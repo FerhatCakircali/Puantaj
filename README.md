@@ -28,8 +28,8 @@ Detaylı kurulum talimatları için [SETUP.md](SETUP.md) dosyasına bakın.
 
 ```bash
 # Projeyi klonlayın
-git clone https://github.com/YOUR_USERNAME/puantaj.git
-cd puantaj
+git clone https://github.com/FerhatCakircali/Puantaj.git
+cd Puantaj
 
 # Bağımlılıkları yükleyin
 flutter pub get

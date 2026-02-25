@@ -15,8 +15,8 @@ Bu rehber, projeyi GitHub'dan klonladıktan sonra çalıştırmak için gerekli 
 ### 1. Projeyi Klonlayın
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/puantaj.git
-cd puantaj
+git clone https://github.com/FerhatCakircali/Puantaj.git
+cd Puantaj
 ```
 
 ### 2. Flutter Bağımlılıklarını Yükleyin

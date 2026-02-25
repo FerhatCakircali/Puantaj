@@ -125,7 +125,7 @@ git commit -m "Initial commit: Secure configuration setup"
 ### 7. Remote Ekleme ve Push
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/puantaj.git
+git remote add origin https://github.com/FerhatCakircali/Puantaj.git
 git branch -M main
 git push -u origin main
 ```

@@ -113,15 +113,16 @@ git commit -m "Initial commit: Secure configuration with placeholder files
 
 ### 3. GitHub Repository Oluştur
 1. GitHub'da yeni repository oluştur
-2. Repository adı: `puantaj` (veya istediğin isim)
-3. **Private** olarak oluştur (önerilir)
-4. README.md ekleme (zaten var)
-5. .gitignore ekleme (zaten var)
+2. Repository adı: `Puantaj`
+3. Repository URL: `https://github.com/FerhatCakircali/Puantaj`
+4. **Private** olarak oluştur (önerilir)
+5. README.md ekleme (zaten var)
+6. .gitignore ekleme (zaten var)
 
 ### 4. Remote Ekle ve Push Et
 ```bash
 # Remote ekle
-git remote add origin https://github.com/YOUR_USERNAME/puantaj.git
+git remote add origin https://github.com/FerhatCakircali/Puantaj.git
 
 # Branch adını main yap
 git branch -M main
