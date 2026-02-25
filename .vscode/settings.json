@@ -1,0 +1,6 @@
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "chat.useAgentsMdFile": true,
+    "chat.useNestedAgentsMdFiles": false,
+    "cmake.sourceDirectory": "C:/Users/ferha/Desktop/PuantajGithub/Puantaj/linux"
+}

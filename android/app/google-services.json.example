@@ -1,0 +1,40 @@
+{
+  "_comment": "Bu dosya sadece yapı göstermek içindir.",
+  "_comment2": "Gerçek google-services.json dosyasını Firebase Console'dan indirin.",
+  "_comment3": "İndirdiğiniz dosyayı android/app/ klasörüne koyun.",
+  "_instructions": [
+    "1. Firebase Console'a gidin: https://console.firebase.google.com",
+    "2. Projenizi seçin",
+    "3. Project Settings > General > Your apps",
+    "4. Android uygulamanızı seçin",
+    "5. google-services.json dosyasını indirin",
+    "6. Bu dosyayı android/app/ klasörüne koyun"
+  ],
+  "project_info": {
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_PROJECT_ID",
+    "storage_bucket": "YOUR_PROJECT_ID.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "YOUR_APP_ID",
+        "android_client_info": {
+          "package_name": "com.example.puantaj"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "YOUR_API_KEY_HERE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,49 @@
+import 'package:flutter/foundation.dart';
+import 'package:puantaj/data/services/supabase_service.dart';
+import 'package:puantaj/data/services/local_storage_service.dart';
+import 'package:puantaj/services/notification_service.dart';
+import 'package:puantaj/services/fcm_service.dart';
+import 'package:puantaj/config/secrets.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+
+/// Servis başlatma ve yapılandırma
+/// Supabase, bildirimler ve FCM dahil tüm servis kurulumunu yönetir
+class ServiceInitializer {
+  /// Tüm uygulama servislerini başlat
+  /// runApp() çağrılmadan önce çağrılmalıdır
+  static Future<void> initialize() async {
+    debugPrint('🔧 ServiceInitializer: Servis başlatma işlemi başlıyor');
+
+    // Timezone başlatma (Türkiye saati - UTC+3)
+    debugPrint('🔧 ServiceInitializer: Timezone başlatılıyor');
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Europe/Istanbul'));
+    debugPrint('✅ ServiceInitializer: Timezone ayarlandı (Europe/Istanbul)');
+
+    // LocalStorage başlatma
+    debugPrint('🔧 ServiceInitializer: LocalStorage başlatılıyor');
+    await LocalStorageService.instance.initialize();
+    debugPrint('✅ ServiceInitializer: LocalStorage başlatıldı');
+
+    // Supabase başlatma
+    debugPrint('🔧 ServiceInitializer: Supabase başlatılıyor');
+    await SupabaseService.instance.initialize(
+      url: Secrets.supabaseUrl,
+      anonKey: Secrets.supabaseAnonKey,
+    );
+    debugPrint('✅ ServiceInitializer: Supabase başlatıldı');
+
+    // Bildirim servisini başlat
+    debugPrint('🔧 ServiceInitializer: Bildirim servisi başlatılıyor');
+    await NotificationService().init();
+    debugPrint('✅ ServiceInitializer: Bildirim servisi başlatıldı');
+
+    // FCM servisini başlat
+    debugPrint('🔧 ServiceInitializer: FCM servisi başlatılıyor');
+    await FCMService.instance.initialize();
+    debugPrint('✅ ServiceInitializer: FCM servisi başlatıldı');
+
+    debugPrint('✅ ServiceInitializer: Tüm servisler başarıyla başlatıldı');
+  }
+}
