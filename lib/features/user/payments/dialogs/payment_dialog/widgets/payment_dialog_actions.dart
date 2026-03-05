@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../../../screens/constants/colors.dart';
 
 /// Ödeme dialog'u alt butonlar widget'ı
 class PaymentDialogActions extends StatelessWidget {
@@ -15,6 +14,7 @@ class PaymentDialogActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
@@ -32,45 +32,48 @@ class PaymentDialogActions extends StatelessWidget {
           ),
         ),
       ),
-      child: Column(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: FilledButton(
-              onPressed: onPayment,
-              style: FilledButton.styleFrom(
-                backgroundColor: primaryIndigo,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: FilledButton(
+                onPressed: onPayment,
+                style: FilledButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
                 ),
-                elevation: 0,
+                child: const Text(
+                  'Ödeme Yap',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
               ),
-              child: const Text(
-                'Ödeme Yap',
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: onCancel,
+              child: Text(
+                'İptal',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.7)
+                      : colorScheme.primary,
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: onCancel,
-            child: Text(
-              'İptal',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.7)
-                    : primaryIndigo,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

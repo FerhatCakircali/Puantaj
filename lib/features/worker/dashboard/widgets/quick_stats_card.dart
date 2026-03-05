@@ -15,8 +15,9 @@ class QuickStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final size = MediaQuery.sizeOf(context);
+    final w = size.width;
+    final h = size.height;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -88,8 +89,9 @@ class QuickStatsCard extends StatelessWidget {
     required bool isDark,
     bool isWide = false,
   }) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final size = MediaQuery.sizeOf(context);
+    final w = size.width;
+    final h = size.height;
     final theme = Theme.of(context);
 
     return Container(

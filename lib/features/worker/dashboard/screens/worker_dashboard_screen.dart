@@ -28,6 +28,32 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
   void initState() {
     super.initState();
     _loadData();
+    _checkAndClearAttendanceNotification();
+  }
+
+  /// Bugün için yevmiye yapılmışsa bildirimi temizle
+  Future<void> _checkAndClearAttendanceNotification() async {
+    try {
+      final session = await _controller.getWorkerSession();
+      if (session == null) return;
+
+      final workerId = int.parse(session['workerId']!);
+
+      // Bugün için yevmiye yapılmış mı kontrol et
+      final hasAttendance = await _controller.hasAttendanceToday(workerId);
+
+      if (hasAttendance) {
+        debugPrint('✅ Bugün için yevmiye yapılmış, bildirim temizleniyor...');
+
+        // Çalışan hatırlatıcısını iptal et
+        final notificationId = 1000 + workerId;
+        await _controller.cancelNotification(notificationId);
+
+        debugPrint('✅ Çalışan hatırlatıcısı temizlendi');
+      }
+    } catch (e) {
+      debugPrint('❌ Bildirim temizleme hatası: $e');
+    }
   }
 
   Future<void> _loadData() async {

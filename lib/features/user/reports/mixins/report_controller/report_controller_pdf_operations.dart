@@ -9,6 +9,8 @@ import '../../../../../models/employee.dart';
 import '../../widgets/screen_widgets/index.dart';
 import '../../../../../services/attendance_service.dart';
 import '../../../../../services/payment_service.dart';
+import '../../../../../services/advance_service.dart';
+import '../../../../../services/expense_service.dart';
 import '../../../services/pdf_service.dart';
 import 'report_controller_pdf_mixin.dart';
 
@@ -26,10 +28,11 @@ class ReportControllerPdfOperations {
     required List<Employee> employees,
     required AttendanceService attendanceService,
     required PaymentService paymentService,
+    required AdvanceService advanceService,
+    required ExpenseService expenseService,
     required PdfService pdfService,
     required ValueNotifier<double> progressNotifier,
     required void Function(bool) onLoadingUpdate,
-    required Future<void> Function(File, String) showReportNotification,
   }) async {
     if (!state.mounted) return;
 
@@ -82,6 +85,7 @@ class ReportControllerPdfOperations {
               customEndDate: customEndDate,
               attendanceService: attendanceService,
               paymentService: paymentService,
+              advanceService: advanceService,
               pdfService: pdfService,
               progressNotifier: progressNotifier,
             )
@@ -92,6 +96,8 @@ class ReportControllerPdfOperations {
               employees: employees,
               attendanceService: attendanceService,
               paymentService: paymentService,
+              advanceService: advanceService,
+              expenseService: expenseService,
               outputDir: outputDir,
               robotoFontBytes: robotoFontBytes,
               robotoBoldFontBytes: robotoBoldFontBytes,
@@ -103,7 +109,7 @@ class ReportControllerPdfOperations {
         SnackBar(
           content: Row(
             children: [
-              const Expanded(child: Text('Rapor oluşturuldu')),
+              const Expanded(child: Text('Rapor oluşturuldu ve açıldı')),
               IconButton(
                 icon: const Icon(Icons.share, color: Colors.white),
                 tooltip: 'Paylaş',
@@ -116,16 +122,10 @@ class ReportControllerPdfOperations {
             ],
           ),
           backgroundColor: Colors.green,
-          action: SnackBarAction(
-            label: 'AÇ',
-            onPressed: () => pdfService.openPdf(file),
-          ),
         ),
       );
 
-      await showReportNotification(file, 'Dönemsel Rapor');
-
-      debugPrint('✅ ReportControllerMixin: Rapor oluşturuldu');
+      debugPrint('✅ ReportControllerMixin: Rapor oluşturuldu ve açıldı');
     } catch (e, stackTrace) {
       debugPrint('❌ ReportControllerMixin: Rapor hatası: $e');
       debugPrint('Stack trace: $stackTrace');
@@ -162,6 +162,7 @@ class ReportControllerPdfOperations {
     required DateTime customEndDate,
     required AttendanceService attendanceService,
     required PaymentService paymentService,
+    required AdvanceService advanceService,
     required PdfService pdfService,
     required ValueNotifier<double> progressNotifier,
   }) async {
@@ -176,6 +177,7 @@ class ReportControllerPdfOperations {
         workerId: selectedEmployee.id,
       ),
       payments: await paymentService.getPaymentsByWorkerId(selectedEmployee.id),
+      advances: await advanceService.getWorkerAdvances(selectedEmployee.id),
       periodTitle: periodTitle,
       progressCallback: (progress) => progressNotifier.value = progress,
       outputDirectory: outputDir,

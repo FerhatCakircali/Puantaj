@@ -18,16 +18,6 @@ mixin ReminderLogicMixin on ReminderDataMixin {
         'Hatırlatıcı zamanlaması başlatılıyor: ID=${reminder.id}, Tarih=${reminder.reminderDate}, Şimdi=$now',
       );
 
-      // Tarihin gerçekçi olup olmadığını kontrol et
-      if (reminder.reminderDate.difference(now).inDays > 30) {
-        debugPrint(
-          'UYARI: Hatırlatıcı tarihi çok uzak bir gelecekte (${reminder.reminderDate}), muhtemelen UTC dönüşüm hatası!',
-        );
-
-        await _scheduleTestNotification(reminder, now);
-        return;
-      }
-
       // Normal bildirim süreci
       if (reminder.reminderDate.isBefore(now)) {
         debugPrint(
@@ -92,51 +82,6 @@ mixin ReminderLogicMixin on ReminderDataMixin {
       }
     } catch (e) {
       debugPrint('Hatırlatıcı bildirimi zamanlanırken hata: $e');
-    }
-  }
-
-  /// Test bildirimi zamanla (UTC dönüşüm hatası durumunda)
-  Future<void> _scheduleTestNotification(
-    EmployeeReminder reminder,
-    DateTime now,
-  ) async {
-    final userData = await getUserData(reminder.userId);
-    final username = userData['username'] as String? ?? 'kullanıcı';
-    final firstName = userData['first_name'] as String? ?? '';
-    final lastName = userData['last_name'] as String? ?? '';
-    final fullName = '$firstName $lastName'.trim();
-
-    final testScheduleDate = now.add(const Duration(minutes: 2));
-
-    try {
-      // Yeni payload formatı kullanılıyor
-      // ignore: unused_local_variable
-      final payload = NotificationPayload(
-        type: NotificationType.employeeReminder,
-        userId: reminder.userId,
-        username: username,
-        fullName: fullName,
-        reminderId: reminder.id,
-      ).toJson();
-
-      // Eski bildirim servisi kullanımı - yeni sistem kullanılıyor
-      debugPrint(
-        'scheduleNotification çağrısı atlandı - yeni sistem kullanılıyor',
-      );
-      /*
-      await _notificationService.scheduleNotification(
-        id: reminder.id ?? DateTime.now().millisecondsSinceEpoch,
-        title: 'Hatırlatıcı - ${reminder.workerName} ($fullName)',
-        body: reminder.message,
-        scheduledDate: testScheduleDate,
-        payload: payload,
-        matchDateTimeComponents: DateTimeComponents.time,
-      );
-      */
-
-      debugPrint('Düzeltilmiş bildirim zamanlandı: Tarih=$testScheduleDate');
-    } catch (e) {
-      debugPrint('Bildirim zamanlanırken hata: $e');
     }
   }
 
@@ -286,11 +231,11 @@ mixin ReminderLogicMixin on ReminderDataMixin {
       ).toJson();
 
       await _notificationService.flutterLocalNotificationsPlugin.zonedSchedule(
-        id: reminder.id!,
-        title: title,
-        body: body,
-        scheduledDate: scheduledDate,
-        notificationDetails: notificationDetails,
+        reminder.id!,
+        title,
+        body,
+        scheduledDate,
+        notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: payload,
         matchDateTimeComponents: DateTimeComponents.time,

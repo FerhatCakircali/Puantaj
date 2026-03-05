@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../services/auth_service.dart';
+import '../../../../services/database_cleanup_service.dart';
 import '../../../../core/user_data_notifier.dart';
 import '../../../../core/app_globals.dart';
 import '../../../auth/login/screens/login_screen.dart';
+import '../../services/employee_reminder_service.dart';
 import 'home_notification_handler.dart';
 
 /// Ana ekran lifecycle yönetimi mixin'i
 mixin HomeLifecycleMixin<T extends StatefulWidget> on State<T>
     implements WidgetsBindingObserver {
-  Timer? backgroundTimer;
   Timer? blockCheckTimer;
-  static const int backgroundTimeoutMinutes = 5;
   bool tabStateInitialized = false;
 
   final AuthService authService = AuthService();
@@ -38,6 +38,12 @@ mixin HomeLifecycleMixin<T extends StatefulWidget> on State<T>
     // Bildirim dinleme servisini başlat
     notificationHandler.startNotificationListener();
 
+    // Eski hatırlatıcıları temizle
+    _cleanupOldReminders();
+
+    // Veritabanı temizliği yap
+    _cleanupDatabase();
+
     // Ekran çizildikten sonra sekme durumunu başlat
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -46,11 +52,35 @@ mixin HomeLifecycleMixin<T extends StatefulWidget> on State<T>
     });
   }
 
+  /// Eski hatırlatıcıları temizle (3 gün geçmiş olanlar)
+  Future<void> _cleanupOldReminders() async {
+    try {
+      final reminderService = EmployeeReminderService();
+      final oldCount = await reminderService.cleanupOldReminders();
+      final completedCount = await reminderService.cleanupCompletedReminders();
+
+      debugPrint('🧹 Hatırlatıcı temizliği tamamlandı:');
+      debugPrint('  - Eski: $oldCount');
+      debugPrint('  - Tamamlanmış: $completedCount');
+    } catch (e) {
+      debugPrint('❌ Eski hatırlatıcılar temizlenirken hata: $e');
+    }
+  }
+
+  /// Veritabanı temizliği yap
+  Future<void> _cleanupDatabase() async {
+    try {
+      final cleanupService = DatabaseCleanupService();
+      await cleanupService.performFullCleanup();
+    } catch (e) {
+      debugPrint('❌ Veritabanı temizlenirken hata: $e');
+    }
+  }
+
   @override
   void dispose() {
     notificationHandler.stopNotificationListener();
     WidgetsBinding.instance.removeObserver(this);
-    backgroundTimer?.cancel();
     blockCheckTimer?.cancel();
     userDataNotifier.removeListener(updateDrawerHeader);
     super.dispose();
@@ -58,27 +88,11 @@ mixin HomeLifecycleMixin<T extends StatefulWidget> on State<T>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      backgroundTimer = Timer(
-        const Duration(minutes: backgroundTimeoutMinutes),
-        onSessionTimeout,
-      );
-    } else if (state == AppLifecycleState.resumed) {
-      backgroundTimer?.cancel();
+    if (state == AppLifecycleState.resumed) {
+      // Ön plana gelince kullanıcı verilerini yenile
+      authService.loadCurrentUser();
+      // Blok durumunu kontrol et
       checkUserBlockStatus();
-    }
-  }
-
-  void onSessionTimeout() {
-    signOut();
-    if (mounted) {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Oturum süresi doldu, tekrar giriş yapınız.'),
-          ),
-        );
-      });
     }
   }
 

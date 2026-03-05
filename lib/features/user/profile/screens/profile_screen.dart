@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../services/auth_service.dart';
-import '../../profile/widgets/screen_widgets/index.dart';
+import '../../../../shared/widgets/profile/shared_profile_avatar_card.dart';
+import '../../../../shared/widgets/profile/shared_profile_info_card.dart';
+import '../../../../shared/widgets/profile/shared_password_card.dart';
+import '../widgets/user_profile_edit_dialog.dart';
+import '../widgets/screen_widgets/profile_password_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,16 +18,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _jobTitleController = TextEditingController();
-  final _usernameController = TextEditingController();
-  final _emailController = TextEditingController();
   bool _isLoading = true;
+
+  // User data
+  int? _userId;
   String? _username;
-  bool _isChangingPassword = false;
-  bool _isEditingProfile = false;
-  String? _usernameError;
+  String? _firstName;
+  String? _lastName;
+  String? _jobTitle;
+  String? _email;
 
   @override
   void initState() {
@@ -36,11 +39,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _jobTitleController.dispose();
-    _usernameController.dispose();
-    _emailController.dispose();
     super.dispose();
   }
 
@@ -52,22 +50,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final user = await _authService.currentUser;
 
-      // İşlem bittikten sonra da widget'ın hala ağaçta olup olmadığını kontrol et
       if (!mounted) return;
 
       setState(() {
+        _userId = user?['id'] as int?;
         _username = user?['username'] as String?;
-        _usernameController.text = user?['username'] as String? ?? '';
-        _firstNameController.text = user?['first_name'] as String? ?? '';
-        _lastNameController.text = user?['last_name'] as String? ?? '';
-        _jobTitleController.text = user?['job_title'] as String? ?? '';
-        _emailController.text = user?['email'] as String? ?? '';
+        _firstName = user?['first_name'] as String?;
+        _lastName = user?['last_name'] as String?;
+        _jobTitle = user?['job_title'] as String?;
+        _email = user?['email'] as String?;
         _isLoading = false;
       });
     } catch (e) {
       debugPrint('Kullanıcı bilgileri yüklenirken hata: $e');
 
-      // Hata durumunda da widget'ın hala ağaçta olup olmadığını kontrol et
       if (!mounted) return;
 
       setState(() {
@@ -76,103 +72,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _updateProfile() async {
-    if (!mounted) return;
-
-    // Alan doğrulama
-    if (_usernameController.text.trim().isEmpty ||
-        _firstNameController.text.trim().isEmpty ||
-        _lastNameController.text.trim().isEmpty ||
-        _jobTitleController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen tüm alanları doldurunuz.')),
-        );
-      }
-      return;
-    }
-
-    // Email validasyonu
-    final emailRegex = RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    );
-    if (!emailRegex.hasMatch(_emailController.text.trim())) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Geçerli bir email adresi girin.')),
-        );
-      }
-      return;
-    }
-
-    setState(() => _isEditingProfile = true);
-
-    try {
-      final trimmedUsername = _usernameController.text.trim();
-      final trimmedFirstName = _firstNameController.text.trim();
-      final trimmedLastName = _lastNameController.text.trim();
-      final trimmedJobTitle = _jobTitleController.text.trim();
-      final trimmedEmail = _emailController.text.trim();
-
-      // Kullanıcı adı gerçekten değiştiyse güncelle
-      if (trimmedUsername.toLowerCase() != _username?.toLowerCase()) {
-        // Önce kullanıcı adını güncelle
-        final usernameError = await _authService.updateUsername(
-          trimmedUsername,
-        );
-
-        if (!mounted) return;
-
-        if (usernameError != null) {
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(usernameError)));
-          }
-          // Kullanıcı adı güncellenirken hata oluşursa, diğer bilgileri güncelleme
-          setState(() => _isEditingProfile = false);
-          return;
-        }
-      }
-
-      // Sonra diğer bilgileri güncelle
-      final error = await _authService.updateProfile(
-        trimmedFirstName,
-        trimmedLastName,
-        trimmedJobTitle,
-        email: trimmedEmail,
+  Future<void> _handleProfileEdit() async {
+    if (_userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kullanıcı bilgileri yüklenemedi')),
       );
+      return;
+    }
 
-      if (!mounted) return;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => UserProfileEditDialog(
+        userId: _userId!,
+        username: _username ?? '',
+        firstName: _firstName ?? '',
+        lastName: _lastName ?? '',
+        jobTitle: _jobTitle ?? '',
+        email: _email ?? '',
+        onSave:
+            ({
+              required String username,
+              required String firstName,
+              required String lastName,
+              required String jobTitle,
+              required String email,
+            }) async {
+              // Kullanıcı adı değiştiyse güncelle
+              if (username.toLowerCase() != _username?.toLowerCase()) {
+                final usernameError = await _authService.updateUsername(
+                  username,
+                );
+                if (usernameError != null) {
+                  throw Exception(usernameError);
+                }
+              }
 
-      if (error != null) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(error)));
-        }
-      } else {
-        if (mounted) {
-          _usernameController.text = trimmedUsername;
-          _firstNameController.text = trimmedFirstName;
-          _lastNameController.text = trimmedLastName;
-          _jobTitleController.text = trimmedJobTitle;
-          setState(() {
-            _username = trimmedUsername;
-          });
+              // Diğer bilgileri güncelle
+              final error = await _authService.updateProfile(
+                firstName,
+                lastName,
+                jobTitle,
+                email: email,
+              );
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profil başarıyla güncellendi.')),
-          );
-          setState(() => _isEditingProfile = false);
-        }
-      }
-    } finally {
-      if (mounted) {
-        // İşlem sonunda _isEditingProfile durumunu false yap (hata olsa da olmasa da)
-        setState(() => _isEditingProfile = false);
-      }
+              if (error != null) {
+                throw Exception(error);
+              }
+            },
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _loadUserData();
     }
   }
 
@@ -202,8 +153,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return; // Şifreler eşleşmiyorsa işlemi durdur
     }
 
-    setState(() => _isChangingPassword = true);
-
     try {
       final error = await _authService.changePassword(
         _currentPasswordController.text.trim(), // Boşlukları temizle
@@ -228,10 +177,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _confirmPasswordController.clear();
         }
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isChangingPassword = false);
-      }
+    } catch (e) {
+      debugPrint('Şifre değiştirme hatası: $e');
     }
   }
 
@@ -248,82 +195,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _validateUsername(String value) async {
-    if (!mounted) return;
-
-    if (value.isEmpty) {
-      setState(() => _usernameError = 'Kullanıcı adı gerekli');
-      return;
-    }
-
-    final validUsernameRegex = RegExp(r'^[a-zA-Z0-9]+$');
-    if (!validUsernameRegex.hasMatch(value)) {
-      setState(
-        () => _usernameError =
-            'Sadece İngilizce harfler (A-Z) ve sayılar (0-9) kullanılabilir',
-      );
-      return;
-    }
-
-    // Kullanıcı adı kullanılabilirlik kontrolü
-    // Eğer kullanıcı adı değişmediyse kontrol etme
-    if (value.toLowerCase() == _username?.toLowerCase()) {
-      setState(() => _usernameError = null);
-      return;
-    }
-
-    final availabilityError = await _authService.checkUsernameAvailability(
-      value,
-    );
-
-    if (!mounted) return;
-
-    if (availabilityError != null) {
-      setState(() => _usernameError = availabilityError);
-      return;
-    }
-
-    setState(() => _usernameError = null);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
-                padding: EdgeInsets.all(
-                  MediaQuery.of(context).size.width * 0.05,
-                ),
+                padding: EdgeInsets.all(screenWidth * 0.05),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    ProfileAvatarCard(
-                      firstName: _firstNameController.text,
-                      lastName: _lastNameController.text,
-                      jobTitle: _jobTitleController.text,
+                    SharedProfileAvatarCard(
+                      fullName: '${_firstName ?? ''} ${_lastName ?? ''}'.trim(),
+                      subtitle: _jobTitle,
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.width * 0.04),
-                    ProfileInfoCard(
-                      username: _username,
-                      usernameController: _usernameController,
-                      firstNameController: _firstNameController,
-                      lastNameController: _lastNameController,
-                      jobTitleController: _jobTitleController,
-                      emailController: _emailController,
-                      usernameError: _usernameError,
-                      isEditingProfile: _isEditingProfile,
-                      isLoading: _isLoading,
-                      onEditToggle: () =>
-                          setState(() => _isEditingProfile = true),
-                      onSave: _updateProfile,
-                      onUsernameChanged: _validateUsername,
+                    SizedBox(height: screenWidth * 0.04),
+                    SharedProfileInfoCard(
+                      fields: [
+                        ProfileInfoField(
+                          icon: Icons.person_outline,
+                          label: 'Kullanıcı Adı',
+                          value: _username ?? '',
+                        ),
+                        ProfileInfoField(
+                          icon: Icons.badge_outlined,
+                          label: 'Ad Soyad',
+                          value: '${_firstName ?? ''} ${_lastName ?? ''}'
+                              .trim(),
+                        ),
+                        ProfileInfoField(
+                          icon: Icons.work_outline,
+                          label: 'Yapılan İş',
+                          value: _jobTitle ?? '',
+                        ),
+                        ProfileInfoField(
+                          icon: Icons.email_outlined,
+                          label: 'E-posta',
+                          value: _email ?? '',
+                        ),
+                      ],
+                      onEdit: _handleProfileEdit,
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.width * 0.04),
-                    ProfilePasswordCard(
-                      isChangingPassword: _isChangingPassword,
-                      onChangePasswordPressed: _showChangePasswordDialog,
+                    SizedBox(height: screenWidth * 0.04),
+                    SharedPasswordCard(
+                      onChangePassword: _showChangePasswordDialog,
                     ),
                   ],
                 ),

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -182,21 +183,63 @@ mixin AuthLoginMixin {
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getInt(userKey);
 
+      debugPrint('🔍 getUserId: SharedPreferences\'tan okunan değer: $userId');
+
       if (userId == null) {
         debugPrint('getUserId: Kullanıcı ID bulunamadı');
+        // Tüm kayıtlı anahtarları göster
+        final keys = prefs.getKeys();
+        debugPrint('📋 SharedPreferences\'taki tüm anahtarlar: $keys');
+
+        // Eğer cached_user_data varsa, kullanıcı daha önce giriş yapmış demektir
+        // Bu durumda oturumu temizleme, user ID'yi kurtarmaya çalış
+        final cachedUserData = prefs.getString('cached_user_data');
+        if (cachedUserData != null) {
+          debugPrint(
+            '⚠️ getUserId: logged_in_user_id yok ama cached_user_data var! Oturum kurtarılıyor.',
+          );
+          try {
+            // JSON string'i parse et
+            final userData =
+                json.decode(cachedUserData) as Map<String, dynamic>;
+            final recoveredUserId = userData['id'] as int?;
+            if (recoveredUserId != null) {
+              // Kullanıcı ID'sini geri kaydet
+              await prefs.setInt(userKey, recoveredUserId);
+              debugPrint(
+                '✅ getUserId: Kullanıcı ID kurtarıldı ve kaydedildi: $recoveredUserId',
+              );
+              return recoveredUserId;
+            }
+          } catch (e) {
+            debugPrint('❌ getUserId: cached_user_data parse edilemedi: $e');
+          }
+        }
+
         return null;
       }
 
-      final userExists = await checkUserExists(userId);
-      if (!userExists) {
+      // Kullanıcı varlık kontrolünü sadece internet bağlantısı varsa yap
+      try {
+        final userExists = await checkUserExists(userId);
+        if (!userExists) {
+          debugPrint(
+            'getUserId: Kullanıcı veritabanında bulunamadı, oturum temizleniyor',
+          );
+          await clearSessionData();
+          return null;
+        }
+        debugPrint('✅ getUserId: Kullanıcı ID başarıyla alındı: $userId');
+        return userId;
+      } catch (e) {
+        // İnternet bağlantısı yoksa veya Supabase'e erişilemiyorsa
+        // kullanıcıyı çıkış yaptırma, local ID'yi kullan
         debugPrint(
-          'getUserId: Kullanıcı veritabanında bulunamadı, oturum temizleniyor',
+          '⚠️ getUserId: Kullanıcı varlık kontrolü başarısız (internet bağlantısı?), local ID kullanılıyor: $e',
         );
-        await clearSessionData();
-        return null;
+        // Local ID'yi döndür, oturumu temizleme
+        return userId;
       }
-
-      return userId;
     } catch (e) {
       debugPrint('getUserId hatası: $e');
       return null;
@@ -208,9 +251,18 @@ mixin AuthLoginMixin {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(userKey, id);
-      debugPrint('Kullanıcı ID kaydedildi: $id');
+
+      // Doğrulama: Gerçekten kaydedildi mi?
+      final savedId = prefs.getInt(userKey);
+      if (savedId == id) {
+        debugPrint('✅ Kullanıcı ID başarıyla kaydedildi ve doğrulandı: $id');
+      } else {
+        debugPrint(
+          '⚠️ Kullanıcı ID kaydedildi ama doğrulanamadı! Beklenen: $id, Okunan: $savedId',
+        );
+      }
     } catch (e) {
-      debugPrint('Kullanıcı ID kaydedilemedi: $e');
+      debugPrint('❌ Kullanıcı ID kaydedilemedi: $e');
       rethrow;
     }
   }
@@ -222,6 +274,7 @@ mixin AuthLoginMixin {
       final prefs = await SharedPreferences.getInstance();
 
       await prefs.remove(userKey);
+      await prefs.remove('cached_user_data');
       await prefs.remove('launched_from_notification');
       await prefs.remove('last_notification_payload');
       await prefs.remove('notification_needs_handling');
@@ -244,19 +297,15 @@ mixin AuthLoginMixin {
   }
 
   /// Kullanıcının veritabanında var olup olmadığını kontrol et
+  /// Hata durumunda exception fırlatır (internet yoksa vs.)
   Future<bool> checkUserExists(int userId) async {
-    try {
-      final result = await Supabase.instance.client
-          .from('users')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
+    final result = await Supabase.instance.client
+        .from('users')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle();
 
-      return result != null;
-    } catch (e) {
-      debugPrint('Kullanıcı varlık kontrolü hatası: $e');
-      return false;
-    }
+    return result != null;
   }
 
   /// Mevcut kullanıcı bilgilerini yükle
@@ -276,9 +325,43 @@ mixin AuthLoginMixin {
             .single();
 
         userDataNotifier.value = result;
+
+        // Kullanıcı bilgilerini JSON olarak cache'le
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('cached_user_data', jsonEncode(result));
+          debugPrint('✅ Kullanıcı bilgileri cache\'lendi');
+        } catch (e) {
+          debugPrint('⚠️ Kullanıcı bilgileri cache\'lenemedi: $e');
+        }
+
         return result;
       } catch (e) {
         debugPrint('Kullanıcı bilgileri alınırken hata: $e');
+
+        // İnternet bağlantısı yoksa cache'den yükle
+        if (e is SocketException ||
+            e is http.ClientException ||
+            e is PostgrestException) {
+          debugPrint('⚠️ Veritabanına erişilemiyor, cache\'den yükleniyor...');
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            final cachedData = prefs.getString('cached_user_data');
+            if (cachedData != null) {
+              final userData = jsonDecode(cachedData) as Map<String, dynamic>;
+              userDataNotifier.value = userData;
+              debugPrint(
+                '✅ Cache\'den kullanıcı bilgileri yüklendi: ${userData['username']}',
+              );
+              return userData;
+            } else {
+              debugPrint('⚠️ Cache\'de kullanıcı bilgisi bulunamadı');
+            }
+          } catch (cacheError) {
+            debugPrint('⚠️ Cache\'den yükleme hatası: $cacheError');
+          }
+        }
+
         userDataNotifier.value = null;
         return null;
       }

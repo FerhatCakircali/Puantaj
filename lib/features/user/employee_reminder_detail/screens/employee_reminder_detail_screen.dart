@@ -35,6 +35,8 @@ class _EmployeeReminderDetailScreenState
   }
 
   Future<void> _loadReminder() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
     });
@@ -111,9 +113,11 @@ class _EmployeeReminderDetailScreenState
         orElse: () => throw Exception('Hatırlatıcı bulunamadı'),
       );
 
-      setState(() {
-        _reminder = reminder;
-      });
+      if (mounted) {
+        setState(() {
+          _reminder = reminder;
+        });
+      }
 
       debugPrint(
         '✅ EmployeeReminderDetail: Hatırlatıcı yüklendi: ${reminder.workerName}',
@@ -130,15 +134,20 @@ class _EmployeeReminderDetailScreenState
     } catch (e, stackTrace) {
       debugPrint('❌ EmployeeReminderDetail: Hatırlatıcı yükleme hatası: $e');
       debugPrint('Stack trace: $stackTrace');
-      _showSnackBar('Hatırlatıcı yüklenirken bir hata oluştu');
+      if (mounted) {
+        _showSnackBar('Hatırlatıcı yüklenirken bir hata oluştu');
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   void _showSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
@@ -274,7 +283,7 @@ class _EmployeeReminderDetailScreenState
       return;
     }
 
-    if (_isDeleting) return;
+    if (_isDeleting || !mounted) return;
 
     setState(() {
       _isDeleting = true;

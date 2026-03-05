@@ -58,6 +58,8 @@ class WorkerAttendanceTab extends StatelessWidget {
       child: ListView.builder(
         padding: EdgeInsets.fromLTRB(w * 0.06, h * 0.015, w * 0.06, h * 0.1),
         itemCount: attendanceHistory.length,
+        itemExtent:
+            110.0, // ⚡ Performans: Sabit yükseklik belirtilerek scroll optimizasyonu
         itemBuilder: (context, index) {
           final record = attendanceHistory[index];
           final date = DateTime.parse(record['attendance_date']);
@@ -112,47 +114,55 @@ class WorkerAttendanceTab extends StatelessWidget {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        DateFormat('dd MMMM yyyy, EEEE', 'tr_TR').format(date),
-                        style: TextStyle(
-                          fontSize: w * 0.04,
-                          fontWeight: FontWeight.w700,
-                          color: theme.colorScheme.onSurface,
+                      Flexible(
+                        child: Text(
+                          DateFormat('dd MMM yyyy, EEEE', 'tr_TR').format(date),
+                          style: TextStyle(
+                            fontSize: w * 0.038,
+                            fontWeight: FontWeight.w700,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: h * 0.006),
+                      SizedBox(height: h * 0.003),
                       Row(
                         children: [
                           Icon(
                             createdBy == 'manager'
                                 ? Icons.admin_panel_settings
                                 : Icons.person,
-                            size: w * 0.035,
+                            size: w * 0.032,
                             color: theme.colorScheme.onSurface.withValues(
                               alpha: 0.5,
                             ),
                           ),
-                          SizedBox(width: w * 0.015),
-                          Text(
-                            '${createdBy == 'manager' ? 'Yönetici' : 'Çalışan'} tarafından',
-                            style: TextStyle(
-                              fontSize: w * 0.032,
-                              fontWeight: FontWeight.w500,
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.5,
+                          SizedBox(width: w * 0.01),
+                          Flexible(
+                            child: Text(
+                              createdBy == 'manager' ? 'Yönetici' : 'Çalışan',
+                              style: TextStyle(
+                                fontSize: w * 0.03,
+                                fontWeight: FontWeight.w500,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: h * 0.004),
+                      SizedBox(height: h * 0.002),
                       Text(
-                        'Saat: ${DateFormat('HH:mm').format(DateTime.parse(record['created_at']))}',
+                        DateFormat(
+                          'HH:mm',
+                        ).format(DateTime.parse(record['created_at'])),
                         style: TextStyle(
-                          fontSize: w * 0.032,
+                          fontSize: w * 0.03,
                           fontWeight: FontWeight.w500,
                           color: theme.colorScheme.onSurface.withValues(
                             alpha: 0.5,
@@ -162,18 +172,18 @@ class WorkerAttendanceTab extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(width: w * 0.025),
+                SizedBox(width: w * 0.02),
                 // Status Badge
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: w * 0.03,
-                    vertical: h * 0.008,
+                    horizontal: w * 0.025,
+                    vertical: h * 0.006,
                   ),
                   decoration: BoxDecoration(
                     color: isDark
                         ? statusColor.withValues(alpha: 0.2)
                         : statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: statusColor.withValues(alpha: 0.3),
                       width: 1,
@@ -184,7 +194,7 @@ class WorkerAttendanceTab extends StatelessWidget {
                     style: TextStyle(
                       color: statusColor,
                       fontWeight: FontWeight.w700,
-                      fontSize: w * 0.032,
+                      fontSize: w * 0.03,
                     ),
                   ),
                 ),

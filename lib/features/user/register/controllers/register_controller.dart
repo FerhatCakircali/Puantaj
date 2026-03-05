@@ -28,6 +28,11 @@ class RegisterController {
     return await _authService.checkUsernameAvailability(username);
   }
 
+  /// Email kullanılabilirliğini kontrol eder
+  Future<String?> checkEmailAvailability(String email) async {
+    return await _authService.checkEmailAvailability(email);
+  }
+
   /// Kayıt işlemini gerçekleştirir
   Future<String?> register({
     required String username,

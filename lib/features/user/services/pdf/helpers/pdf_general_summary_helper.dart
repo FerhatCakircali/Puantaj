@@ -22,7 +22,10 @@ class PdfGeneralSummaryHelper {
     return [
       pw.Header(
         level: 1,
-        child: pw.Text('GENEL ÖZET - $periodTitle', style: _styles.titleStyle),
+        child: pw.Text(
+          'GENEL ÖZET - $periodTitle',
+          style: _styles.sectionHeaderStyle,
+        ),
       ),
       pw.SizedBox(height: 10),
       pw.Text(

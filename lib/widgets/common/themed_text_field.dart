@@ -55,6 +55,31 @@ class ThemedTextField extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
+    // TextField yerine TextFormField kullan (validator desteği için)
+    if (validator != null) {
+      return TextFormField(
+        controller: controller,
+        obscureText: obscureText,
+        enabled: enabled,
+        maxLines: maxLines,
+        minLines: minLines,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        onChanged: onChanged,
+        focusNode: focusNode,
+        textInputAction: textInputAction,
+        onFieldSubmitted: onSubmitted,
+        readOnly: readOnly,
+        onTap: onTap,
+        validator: validator,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+          fontSize: 16,
+        ),
+        decoration: _buildDecoration(colorScheme, isDark),
+      );
+    }
+
     return TextField(
       controller: controller,
       obscureText: obscureText,
@@ -73,68 +98,58 @@ class ThemedTextField extends StatelessWidget {
         color: isDark ? Colors.white : Colors.black,
         fontSize: 16,
       ),
-      decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
-        hintStyle: TextStyle(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.5)
-              : Colors.grey.shade600,
-        ),
-        prefixText: prefixText,
-        prefixIcon: prefixIcon != null
-            ? Icon(
-                prefixIcon,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.7)
-                    : Colors.grey.shade700,
-              )
-            : null,
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: isDark
-            ? Colors.white.withValues(alpha: 0.05)
-            : Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: colorScheme.primary,
-            width: 2,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: colorScheme.primary,
-            width: 2,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: colorScheme.primary,
-            width: 2,
-          ),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: colorScheme.outline.withValues(alpha: 0.5),
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.error),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.error, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+      decoration: _buildDecoration(colorScheme, isDark),
+    );
+  }
+
+  InputDecoration _buildDecoration(ColorScheme colorScheme, bool isDark) {
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      hintStyle: TextStyle(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.5)
+            : Colors.grey.shade600,
+      ),
+      prefixText: prefixText,
+      prefixIcon: prefixIcon != null
+          ? Icon(
+              prefixIcon,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.7)
+                  : Colors.grey.shade700,
+            )
+          : null,
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: colorScheme.outline.withValues(alpha: 0.5),
         ),
       ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: colorScheme.error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: colorScheme.error, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 }

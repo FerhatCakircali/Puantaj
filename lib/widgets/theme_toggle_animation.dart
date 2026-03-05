@@ -197,7 +197,7 @@ class _ThemeToggleAnimationState extends State<ThemeToggleAnimation>
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
     final animationCenter =
         widget.center ?? Offset(size.width / 2, size.height / 2);
 
@@ -324,8 +324,8 @@ class _ThemeToggleAnimationState extends State<ThemeToggleAnimation>
                             color: starColor,
                             boxShadow: [
                               BoxShadow(
-                                color: starColor.withValues(alpha: 
-                                  _starOpacityAnims[i].value * 0.8,
+                                color: starColor.withValues(
+                                  alpha: _starOpacityAnims[i].value * 0.8,
                                 ),
                                 blurRadius: _starSizes[i] * 2,
                                 spreadRadius: _starSizes[i] * 0.5,
@@ -362,8 +362,8 @@ class _ThemeToggleAnimationState extends State<ThemeToggleAnimation>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: starColor.withValues(alpha: 
-                                    _starOpacityAnims[i].value * 0.7,
+                                  color: starColor.withValues(
+                                    alpha: _starOpacityAnims[i].value * 0.7,
                                   ),
                                   blurRadius: _starSizes[i],
                                   spreadRadius: _starSizes[i] * 0.3,
@@ -406,7 +406,9 @@ class _ThemeToggleAnimationState extends State<ThemeToggleAnimation>
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: glowColor.withValues(alpha: _glowAnim.value * 0.8),
+                          color: glowColor.withValues(
+                            alpha: _glowAnim.value * 0.8,
+                          ),
                           blurRadius: glowRadius,
                           spreadRadius: spreadRadius,
                         ),

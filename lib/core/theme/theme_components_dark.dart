@@ -184,9 +184,11 @@ class ThemeComponentsDark {
         extendedPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         extendedIconLabelSpacing: 12,
         extendedTextStyle: TextStyle(
+          inherit: false,
           fontSize: 16,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.3,
+          color: Colors.white,
         ),
         sizeConstraints: BoxConstraints.tightFor(width: 64, height: 64),
       );

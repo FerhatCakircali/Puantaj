@@ -173,6 +173,27 @@ class ThemeComponentsLight {
   static IconThemeData get iconTheme =>
       const IconThemeData(size: 24, color: ThemeColors.lightPrimary);
 
+  static FloatingActionButtonThemeData get floatingActionButtonTheme =>
+      FloatingActionButtonThemeData(
+        elevation: 8,
+        focusElevation: 12,
+        hoverElevation: 12,
+        highlightElevation: 16,
+        backgroundColor: ThemeColors.lightPrimary,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        extendedPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        extendedIconLabelSpacing: 12,
+        extendedTextStyle: TextStyle(
+          inherit: false,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.3,
+          color: Colors.white,
+        ),
+        sizeConstraints: BoxConstraints.tightFor(width: 64, height: 64),
+      );
+
   static BottomNavigationBarThemeData get bottomNavigationBarTheme =>
       BottomNavigationBarThemeData(
         backgroundColor: ThemeColors.lightSurface,

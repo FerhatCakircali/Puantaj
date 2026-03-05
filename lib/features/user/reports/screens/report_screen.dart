@@ -3,7 +3,6 @@ import '../mixins/report_controller_mixin.dart';
 import '../mixins/report_controller/report_controller_data_mixin.dart';
 import '../mixins/report_controller/report_controller_date_mixin.dart';
 import '../mixins/report_controller/report_controller_pdf_mixin.dart';
-import '../mixins/report_controller/report_controller_notification_mixin.dart';
 import '../widgets/employee_details_dialog.dart';
 import '../widgets/screen_widgets/index.dart';
 
@@ -19,11 +18,11 @@ class ReportScreen extends StatefulWidget {
 class _ReportScreenState extends State<ReportScreen>
     with
         SingleTickerProviderStateMixin,
+        WidgetsBindingObserver,
         ReportControllerMixin,
         ReportControllerDataMixin,
         ReportControllerDateMixin,
-        ReportControllerPdfMixin,
-        ReportControllerNotificationMixin {
+        ReportControllerPdfMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _employeeSearchController =
@@ -32,17 +31,33 @@ class _ReportScreenState extends State<ReportScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(length: 2, vsync: this);
-    initializeNotifications();
     loadData();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     _searchController.dispose();
     _employeeSearchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // Uygulama ön plana geldiğinde state'i koru
+    if (state == AppLifecycleState.resumed) {
+      // State zaten var, sadece UI'ı güncelle
+      if (mounted) {
+        setState(() {
+          // UI refresh için setState çağır ama veriyi yeniden yükleme
+        });
+      }
+    }
   }
 
   void _showEmployeeDetails(dynamic employee) {
@@ -202,47 +217,56 @@ class _ReportScreenState extends State<ReportScreen>
   }
 
   Widget _buildEmptyState(ColorScheme colorScheme, double screenWidth) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              _searchController.text.isEmpty
-                  ? Icons.inbox_outlined
-                  : Icons.search_off,
-              size: 64,
-              color: colorScheme.onSurfaceVariant,
-            ),
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return SingleChildScrollView(
+      child: SizedBox(
+        height: screenHeight * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  _searchController.text.isEmpty
+                      ? Icons.inbox_outlined
+                      : Icons.search_off,
+                  size: 64,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                _searchController.text.isEmpty
+                    ? 'Bu tarih aralığında kayıt yok'
+                    : 'Sonuç bulunamadı',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _searchController.text.isEmpty
+                    ? 'Farklı bir tarih aralığı seçin'
+                    : 'Arama kriterlerinizi değiştirin',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            _searchController.text.isEmpty
-                ? 'Bu tarih aralığında kayıt yok'
-                : 'Sonuç bulunamadı',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _searchController.text.isEmpty
-                ? 'Farklı bir tarih aralığı seçin'
-                : 'Arama kriterlerinizi değiştirin',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -289,6 +313,40 @@ class _ReportScreenState extends State<ReportScreen>
             },
           ),
           const SizedBox(height: 24),
+
+          // Loading göstergesi
+          ValueListenableBuilder<double>(
+            valueListenable: progressNotifier,
+            builder: (context, progress, child) {
+              if (progress > 0 && progress < 1) {
+                return Column(
+                  children: [
+                    LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Colors.grey.shade200,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                      minHeight: 6,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'PDF oluşturuluyor... ${(progress * 100).toInt()}%',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+
           FilledButton.icon(
             icon: const Icon(Icons.picture_as_pdf, size: 20),
             label: const Text('Rapor Oluştur'),
@@ -303,6 +361,25 @@ class _ReportScreenState extends State<ReportScreen>
               textStyle: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.analytics_outlined, size: 20),
+            label: const Text('Finansal Özet Raporu'),
+            onPressed: isEmployeeSpecific
+                ? null
+                : () => createFinancialSummaryReport(context),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
               ),
             ),

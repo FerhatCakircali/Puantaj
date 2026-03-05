@@ -46,7 +46,7 @@ class WorkerNotificationService {
           .limit(50);
 
       final notifications = List<Map<String, dynamic>>.from(response);
-      
+
       // Debug: is_read durumlarını logla
       debugPrint('📊 Bildirimler yüklendi: ${notifications.length} adet');
       for (var notif in notifications) {
@@ -171,10 +171,11 @@ class WorkerNotificationService {
     required TimeOfDay time,
   }) async {
     try {
-      debugPrint('📅 Çalışan hatırlatıcısı zamanlanıyor...');
-      debugPrint(
-        'Worker ID: $workerId, İsim: $workerName, Saat: ${time.hour}:${time.minute}',
-      );
+      debugPrint('🔔🔔🔔 ÇALIŞAN HATIRLATıCıSı ZAMANLANIYOR 🔔🔔🔔');
+      debugPrint('Worker ID: $workerId');
+      debugPrint('İsim: $workerName');
+      debugPrint('Saat: ${time.hour}:${time.minute}');
+      debugPrint('Bildirim ID: ${1000 + workerId}');
 
       // Mevcut NotificationService'i kullan
       // KULLANICI PANELİ İLE AYNI MANTIK: NotificationPayload JSON objesi payload olarak kaydedilecek
@@ -185,9 +186,20 @@ class WorkerNotificationService {
         time: time,
       );
 
-      debugPrint('✅ Çalışan hatırlatıcısı zamanlandı');
+      debugPrint('✅✅✅ ÇALIŞAN HATIRLATıCıSı ZAMANLANDIIII ✅✅✅');
+
+      // Zamanlanmış bildirimleri kontrol et
+      final pendingNotifications = await _notificationService
+          .flutterLocalNotificationsPlugin
+          .pendingNotificationRequests();
+      debugPrint('📋 Bekleyen bildirim sayısı: ${pendingNotifications.length}');
+      for (var notif in pendingNotifications) {
+        debugPrint(
+          '  - ID: ${notif.id}, Başlık: ${notif.title}, Body: ${notif.body}',
+        );
+      }
     } catch (e, stackTrace) {
-      debugPrint('❌ Çalışan hatırlatıcısı zamanlanırken hata: $e');
+      debugPrint('❌❌❌ ÇALIŞAN HATIRLATıCıSı HATA: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }

@@ -130,7 +130,10 @@ class PdfGeneralDetailHelper {
               ? pw.Text('Henüz ödeme yapılmadı.')
               : _buildPaymentTable(filteredPayments, dateFormat),
           pw.SizedBox(height: 10),
-          _buildInfoRow('Toplam Ödenen:', '${totalPaid.toStringAsFixed(2)} ₺'),
+          _buildInfoRow(
+            'Toplam Ödenen:',
+            PdfReportUtils.formatCurrency(totalPaid),
+          ),
           pw.SizedBox(height: 5),
           _buildInfoRow(
             'Ödenmeyen Gün Sayısı:',
@@ -259,7 +262,7 @@ class PdfGeneralDetailHelper {
               ),
               pw.Padding(
                 padding: _styles.cellPadding,
-                child: pw.Text('${payment.amount.toStringAsFixed(2)} ₺'),
+                child: pw.Text(PdfReportUtils.formatCurrency(payment.amount)),
               ),
             ],
           );

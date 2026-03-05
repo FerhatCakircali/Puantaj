@@ -26,7 +26,7 @@ class ProfileInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     debugPrint(
       '🔍 ProfileInfoCard: username=$username, fullName=$fullName, title=$title, phone=$phone, email=$email',
@@ -151,7 +151,7 @@ class ProfileInfoCard extends StatelessWidget {
     String value,
     bool isDark,
   ) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     return Container(
       padding: EdgeInsets.all(screenWidth * 0.03),

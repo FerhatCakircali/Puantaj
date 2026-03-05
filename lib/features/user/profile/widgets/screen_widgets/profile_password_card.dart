@@ -72,7 +72,7 @@ class ProfilePasswordCard extends StatelessWidget {
             width: double.infinity,
             child: FilledButton.icon(
               onPressed: isChangingPassword ? null : onChangePasswordPressed,
-              icon: Icon(Icons.lock_rounded, size: screenWidth * 0.05),
+              icon: Icon(Icons.lock_outline, size: screenWidth * 0.05),
               label: Text(
                 'Şifre Değiştir',
                 style: TextStyle(

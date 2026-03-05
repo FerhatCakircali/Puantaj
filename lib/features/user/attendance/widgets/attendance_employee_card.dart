@@ -6,7 +6,7 @@ import '../../../../screens/constants/colors.dart';
 /// Çalışan kartı widget'ı
 class AttendanceEmployeeCard extends StatelessWidget {
   final Employee employee;
-  final attendance.AttendanceStatus status;
+  final attendance.AttendanceStatus? status;
   final Function(attendance.AttendanceStatus) onStatusChange;
 
   const AttendanceEmployeeCard({
@@ -158,6 +158,16 @@ class AttendanceEmployeeCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? color : color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 10),
+          border: isSelected ? Border.all(color: color, width: 2) : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Icon(
           icon,

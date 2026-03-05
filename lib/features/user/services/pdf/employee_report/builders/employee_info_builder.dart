@@ -1,56 +1,59 @@
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../../../../../../../models/employee.dart';
+import '../../helpers/pdf_styles.dart';
+import '../../helpers/pdf_svg_icons.dart';
 
-/// Çalışan bilgileri PDF widget'ı oluşturucu
+/// Çalışan bilgileri PDF widget'ı oluşturucu - Premium Bento Style
 class EmployeeInfoBuilder {
-  static pw.Widget build(Employee employee, pw.TextStyle headerStyle) {
+  static pw.Widget build(Employee employee, PdfStyles styles) {
     final dateFormat = DateFormat('dd/MM/yyyy');
 
     return pw.Container(
-      padding: const pw.EdgeInsets.all(10),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(),
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
-      ),
+      padding: styles.cardPadding,
+      decoration: styles.premiumCard(PdfStyles.primaryColor),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('ÇALIŞAN BİLGİLERİ', style: headerStyle),
-          pw.Divider(),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text('Ad Soyad:', style: headerStyle),
-              pw.Text(employee.name),
-            ],
-          ),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text('Unvan:', style: headerStyle),
-              pw.Text(employee.title),
-            ],
-          ),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text('Telefon:', style: headerStyle),
-              pw.Text(employee.phone),
-            ],
-          ),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text('İşe Başlama Tarihi:', style: headerStyle),
-              pw.Text(dateFormat.format(employee.startDate)),
-            ],
+          pw.Text('ÇALIŞAN BİLGİLERİ', style: styles.sectionHeaderStyle),
+          pw.SizedBox(height: 16),
+          _buildInfoRow(PdfSvgIcons.user, 'Ad Soyad', employee.name, styles),
+          pw.SizedBox(height: 12),
+          _buildInfoRow(PdfSvgIcons.badge, 'Unvan', employee.title, styles),
+          pw.SizedBox(height: 12),
+          _buildInfoRow(PdfSvgIcons.phone, 'Telefon', employee.phone, styles),
+          pw.SizedBox(height: 12),
+          _buildInfoRow(
+            PdfSvgIcons.calendar,
+            'İşe Başlama Tarihi',
+            dateFormat.format(employee.startDate),
+            styles,
           ),
         ],
       ),
+    );
+  }
+
+  static pw.Widget _buildInfoRow(
+    String svgIcon,
+    String label,
+    String value,
+    PdfStyles styles,
+  ) {
+    return pw.Row(
+      children: [
+        PdfSvgIcons.buildIcon(svgIcon, size: styles.iconSize),
+        pw.SizedBox(width: styles.iconSpacing),
+        pw.Expanded(
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text(label, style: styles.labelStyle),
+              pw.Text(value, style: styles.dataStyle),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

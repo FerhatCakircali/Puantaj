@@ -34,6 +34,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _sendResetCode() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Klavyeyi hemen kapat
+    FocusScope.of(context).unfocus();
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -107,9 +110,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Şifremi Unuttum')),
+      resizeToAvoidBottomInset: true, // Klavye için resize
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(), // Smooth scroll
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior
+                .onDrag, // Scroll ile klavye kapansın
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
               child: Padding(
@@ -137,7 +144,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           if (!_codeSent) ...[
                             ThemedTextField(
                               controller: _emailController,
-                              labelText: 'Email Adresi',
+                              labelText: 'E-posta Adresi',
                               prefixIcon: Icons.email_outlined,
                               keyboardType: TextInputType.emailAddress,
                               validator: _validateEmail,
@@ -209,7 +216,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget _buildDescription() {
     if (!_codeSent) {
       return Text(
-        'Email adresinizi girin. Size 6 haneli bir şifre sıfırlama kodu göndereceğiz.',
+        'E-posta adresinizi girin. Size 6 haneli bir şifre sıfırlama kodu göndereceğiz.',
         style: Theme.of(
           context,
         ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
@@ -268,7 +275,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Email adresi gerekli';
+      return 'E-posta adresi gerekli';
     }
 
     final emailRegex = RegExp(
@@ -276,7 +283,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
 
     if (!emailRegex.hasMatch(value)) {
-      return 'Geçerli bir email adresi girin';
+      return 'Geçerli bir e-posta adresi girin';
     }
 
     return null;

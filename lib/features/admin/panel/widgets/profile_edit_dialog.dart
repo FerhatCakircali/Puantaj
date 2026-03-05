@@ -94,7 +94,7 @@ class ProfileEditDialog extends StatelessWidget {
             _buildTextField(
               context,
               emailController,
-              'Email Adresi',
+              'E-posta Adresi',
               Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
             ),
@@ -128,7 +128,7 @@ class ProfileEditDialog extends StatelessWidget {
             if (!emailRegex.hasMatch(emailController.text.trim())) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Geçerli bir email adresi girin.'),
+                  content: Text('Geçerli bir e-posta adresi girin.'),
                 ),
               );
               return;

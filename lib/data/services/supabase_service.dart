@@ -55,8 +55,17 @@ class SupabaseService {
         throw DatabaseException('Supabase anon key boş olamaz');
       }
 
-      // Initialize Supabase
-      await Supabase.initialize(url: url, anonKey: anonKey, debug: kDebugMode);
+      // Initialize Supabase with auto refresh token
+      await Supabase.initialize(
+        url: url,
+        anonKey: anonKey,
+        debug: kDebugMode,
+        authOptions: const FlutterAuthClientOptions(
+          authFlowType: AuthFlowType.implicit,
+          autoRefreshToken: true, // Otomatik token yenileme - oturum açık kalır
+        ),
+        realtimeClientOptions: const RealtimeClientOptions(eventsPerSecond: 10),
+      );
 
       _client = Supabase.instance.client;
 

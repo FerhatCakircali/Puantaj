@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -24,10 +25,12 @@ class RegisterFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    debugPrint(
+      '🎨 RegisterFormField build: label=$label, errorText=$errorText',
+    );
+    return TextField(
       controller: controller,
       decoration: _inputDecoration(context).copyWith(errorText: errorText),
-      validator: validator,
       keyboardType: keyboardType,
       maxLength: 30,
       maxLengthEnforcement: MaxLengthEnforcement.enforced,
@@ -50,6 +53,20 @@ class RegisterFormField extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         borderSide: BorderSide(
           color: Theme.of(context).colorScheme.primary,
+          width: 2,
+        ),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.error,
+          width: 2,
+        ),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.error,
           width: 2,
         ),
       ),

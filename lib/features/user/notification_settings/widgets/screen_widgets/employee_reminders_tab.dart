@@ -47,16 +47,20 @@ class _EmployeeRemindersTabState extends State<EmployeeRemindersTab>
     _innerTabController = TabController(length: 2, vsync: this);
 
     // Listen to tab changes to clear search when switching tabs
-    _innerTabController.addListener(() {
-      if (_innerTabController.indexIsChanging) {
-        widget.searchController.clear();
-        widget.onSearchClear();
-      }
-    });
+    _innerTabController.addListener(_onTabChanged);
+  }
+
+  void _onTabChanged() {
+    if (_innerTabController.indexIsChanging) {
+      widget.searchController.clear();
+      widget.onSearchClear();
+    }
   }
 
   @override
   void dispose() {
+    // ⚡ ÖNEMLİ: Memory leak önlemek için listener'ı kaldır
+    _innerTabController.removeListener(_onTabChanged);
     _innerTabController.dispose();
     super.dispose();
   }

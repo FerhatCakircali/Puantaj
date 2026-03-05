@@ -62,8 +62,8 @@ class PaymentDialogController {
     return null;
   }
 
-  /// Ödeme kaydı oluşturur
-  Future<void> makePayment({
+  /// Ödeme kaydı oluşturur ve payment ID'yi döner
+  Future<int?> makePayment({
     required Employee employee,
     required int fullDays,
     required int halfDays,
@@ -86,6 +86,6 @@ class PaymentDialogController {
       amount: amount,
     );
 
-    await _paymentService.addPayment(payment);
+    return await _paymentService.addPayment(payment);
   }
 }

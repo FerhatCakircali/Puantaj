@@ -35,25 +35,25 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
 
     try {
       final allEmployees = await workerService.getEmployees();
+
+      debugPrint('📊 Toplam ${allEmployees.length} çalışan bulundu');
+
       final allAttendance = await attendanceService.getAttendanceBetween(
         startDate,
         endDate,
       );
 
+      debugPrint('📊 Dönem içi ${allAttendance.length} yevmiye kaydı bulundu');
+
       final attendanceMap = <int, List<attendance.Attendance>>{};
-      final activeWorkerIds = <int>{};
 
       for (var record in allAttendance) {
         attendanceMap.putIfAbsent(record.workerId, () => []).add(record);
-        activeWorkerIds.add(record.workerId);
       }
 
-      final activeEmployees = allEmployees
-          .where((emp) => activeWorkerIds.contains(emp.id))
-          .toList();
-
+      // ✅ TÜM çalışanları göster (yevmiye kaydı olsun veya olmasın)
       final newStatsMap = <int, Map<String, dynamic>>{};
-      for (var emp in activeEmployees) {
+      for (var emp in allEmployees) {
         final records = attendanceMap[emp.id] ?? [];
         final unpaidDays = await paymentService.getUnpaidDays(emp.id);
         newStatsMap[emp.id] = ReportControllerHelpers.calculateAttendanceStats(
@@ -65,15 +65,15 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
         );
       }
 
-      activeEmployees.sort(
+      allEmployees.sort(
         (a, b) => ReportControllerHelpers.collateTurkish(a.name, b.name),
       );
 
       if (!mounted) return;
 
       setState(() {
-        employees = activeEmployees;
-        filteredEmployees = activeEmployees;
+        employees = allEmployees;
+        filteredEmployees = allEmployees;
         statsMap = newStatsMap;
         isLoading = false;
       });

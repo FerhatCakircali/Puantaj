@@ -36,8 +36,8 @@ class LocalStorageService {
   static const String _keyFullName = 'worker_full_name';
   static const String _keyLoginTimestamp = 'worker_login_timestamp';
 
-  // Session validity duration (7 days)
-  static const Duration _sessionDuration = Duration(days: 7);
+  // Session validity duration (365 days - 1 year)
+  static const Duration _sessionDuration = Duration(days: 365);
 
   /// Initializes SharedPreferences
   ///
@@ -59,7 +59,7 @@ class LocalStorageService {
   /// Saves worker session data
   ///
   /// Stores worker ID, user ID, username, full name, and login timestamp.
-  /// Session is valid for 7 days from login time.
+  /// Session is valid for 365 days (1 year) from login time.
   Future<void> saveWorkerSession({
     required String workerId,
     required String username,
@@ -135,7 +135,7 @@ class LocalStorageService {
   ///
   /// Session is valid if:
   /// - Login timestamp exists
-  /// - Less than 7 days have passed since login
+  /// - Less than 365 days have passed since login
   bool isSessionValid() {
     try {
       final timestamp = _preferences.getString(_keyLoginTimestamp);

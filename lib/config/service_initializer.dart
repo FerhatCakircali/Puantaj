@@ -3,7 +3,6 @@ import 'package:puantaj/data/services/supabase_service.dart';
 import 'package:puantaj/data/services/local_storage_service.dart';
 import 'package:puantaj/services/notification_service.dart';
 import 'package:puantaj/services/fcm_service.dart';
-import 'package:puantaj/config/secrets.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -29,8 +28,9 @@ class ServiceInitializer {
     // Supabase başlatma
     debugPrint('🔧 ServiceInitializer: Supabase başlatılıyor');
     await SupabaseService.instance.initialize(
-      url: Secrets.supabaseUrl,
-      anonKey: Secrets.supabaseAnonKey,
+      url: 'https://uvdcefauzxordqgvvweq.supabase.co',
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2ZGNlZmF1enhvcmRxZ3Z2d2VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjE5NzEsImV4cCI6MjA4NjM5Nzk3MX0.WWyRB9PfOTgWq55oc1sXDDRomL0D5C6ydILGxTDrqWU',
     );
     debugPrint('✅ ServiceInitializer: Supabase başlatıldı');
 

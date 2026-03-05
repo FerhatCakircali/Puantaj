@@ -15,7 +15,7 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
 
   // Bildirim ID'sini al ve kapat
   int notificationId = notificationResponse.id ?? 0;
-  FlutterLocalNotificationsPlugin().cancel(id: notificationId);
+  FlutterLocalNotificationsPlugin().cancel(notificationId);
 
   // Payload'ı işle
   if (notificationResponse.payload != null) {

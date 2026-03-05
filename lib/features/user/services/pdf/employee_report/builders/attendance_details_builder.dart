@@ -1,15 +1,13 @@
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
-import 'package:intl/intl.dart';
 import '../../../../../../../models/attendance.dart';
+import '../../helpers/pdf_styles.dart';
+import '../../helpers/pdf_svg_icons.dart';
+import '../../pdf_report_utils.dart';
 
-/// Devam kayıtları detayları PDF widget'ı oluşturucu
+/// Devam kayıtları detayları PDF widget'ı oluşturucu - Premium Bento Style
 class AttendanceDetailsBuilder {
-  static List<pw.Widget> build(
-    List<Attendance> allDays,
-    pw.TextStyle headerStyle,
-  ) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
+  static List<pw.Widget> build(List<Attendance> allDays, PdfStyles styles) {
     final widgets = <pw.Widget>[];
 
     // Tam gün kayıtları
@@ -18,44 +16,12 @@ class AttendanceDetailsBuilder {
         .toList();
     if (fullDays.isNotEmpty) {
       widgets.add(
-        pw.Container(
-          padding: const pw.EdgeInsets.all(10),
-          decoration: pw.BoxDecoration(
-            border: pw.Border.all(),
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
-          ),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('TAM GÜN ÇALIŞMA KAYITLARI', style: headerStyle),
-              pw.Divider(),
-              pw.SizedBox(height: 10),
-              pw.Table(
-                border: pw.TableBorder.all(),
-                children: [
-                  pw.TableRow(
-                    decoration: pw.BoxDecoration(color: PdfColors.grey300),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text('Tarih', style: headerStyle),
-                      ),
-                    ],
-                  ),
-                  ...fullDays.map((attendance) {
-                    return pw.TableRow(
-                      children: [
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(5),
-                          child: pw.Text(dateFormat.format(attendance.date)),
-                        ),
-                      ],
-                    );
-                  }),
-                ],
-              ),
-            ],
-          ),
+        _buildAttendanceCard(
+          PdfSvgIcons.checkCircle,
+          'TAM GÜN ÇALIŞMA KAYITLARI',
+          fullDays,
+          PdfStyles.successColor,
+          styles,
         ),
       );
     }
@@ -65,46 +31,14 @@ class AttendanceDetailsBuilder {
         .where((a) => a.status == AttendanceStatus.halfDay)
         .toList();
     if (halfDays.isNotEmpty) {
-      widgets.add(pw.SizedBox(height: 20));
+      if (widgets.isNotEmpty) widgets.add(pw.SizedBox(height: 16));
       widgets.add(
-        pw.Container(
-          padding: const pw.EdgeInsets.all(10),
-          decoration: pw.BoxDecoration(
-            border: pw.Border.all(),
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
-          ),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('YARIM GÜN ÇALIŞMA KAYITLARI', style: headerStyle),
-              pw.Divider(),
-              pw.SizedBox(height: 10),
-              pw.Table(
-                border: pw.TableBorder.all(),
-                children: [
-                  pw.TableRow(
-                    decoration: pw.BoxDecoration(color: PdfColors.grey300),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text('Tarih', style: headerStyle),
-                      ),
-                    ],
-                  ),
-                  ...halfDays.map((attendance) {
-                    return pw.TableRow(
-                      children: [
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(5),
-                          child: pw.Text(dateFormat.format(attendance.date)),
-                        ),
-                      ],
-                    );
-                  }),
-                ],
-              ),
-            ],
-          ),
+        _buildAttendanceCard(
+          PdfSvgIcons.halfCircle,
+          'YARIM GÜN ÇALIŞMA KAYITLARI',
+          halfDays,
+          PdfStyles.warningColor,
+          styles,
         ),
       );
     }
@@ -114,50 +48,102 @@ class AttendanceDetailsBuilder {
         .where((a) => a.status == AttendanceStatus.absent)
         .toList();
     if (absentDays.isNotEmpty) {
-      widgets.add(pw.SizedBox(height: 20));
+      if (widgets.isNotEmpty) widgets.add(pw.SizedBox(height: 16));
       widgets.add(
-        pw.Container(
-          padding: const pw.EdgeInsets.all(10),
-          decoration: pw.BoxDecoration(
-            border: pw.Border.all(),
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
-          ),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('GELMEDİĞİ GÜNLER', style: headerStyle),
-              pw.Divider(),
-              pw.SizedBox(height: 10),
-              pw.Table(
-                border: pw.TableBorder.all(),
-                children: [
-                  pw.TableRow(
-                    decoration: pw.BoxDecoration(color: PdfColors.grey300),
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text('Tarih', style: headerStyle),
-                      ),
-                    ],
-                  ),
-                  ...absentDays.map((attendance) {
-                    return pw.TableRow(
-                      children: [
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(5),
-                          child: pw.Text(dateFormat.format(attendance.date)),
-                        ),
-                      ],
-                    );
-                  }),
-                ],
-              ),
-            ],
-          ),
+        _buildAttendanceCard(
+          PdfSvgIcons.xCircle,
+          'GELMEDİĞİ GÜNLER',
+          absentDays,
+          PdfStyles.dangerColor,
+          styles,
         ),
       );
     }
 
     return widgets;
+  }
+
+  /// Premium devam kartı oluştur
+  static pw.Widget _buildAttendanceCard(
+    String svgIcon,
+    String title,
+    List<Attendance> attendances,
+    PdfColor color,
+    PdfStyles styles,
+  ) {
+    return pw.Container(
+      padding: styles.cardPadding,
+      decoration: styles.premiumCard(color),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          // Başlık
+          pw.Row(
+            children: [
+              PdfSvgIcons.buildIcon(svgIcon, size: styles.iconSize),
+              pw.SizedBox(width: styles.iconSpacing),
+              pw.Expanded(
+                child: pw.Text(title, style: styles.sectionHeaderStyle),
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: pw.BoxDecoration(color: color),
+                child: pw.Text(
+                  '${attendances.length} gün',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 16),
+
+          // Tarih tablosu (zebra striping)
+          pw.Table(
+            border: pw.TableBorder.all(color: PdfStyles.borderColor),
+            columnWidths: {0: const pw.FlexColumnWidth(1)},
+            children: [
+              pw.TableRow(
+                decoration: styles.tableHeaderDecoration,
+                children: [
+                  pw.Padding(
+                    padding: styles.cellPadding,
+                    child: pw.Center(
+                      child: pw.Text('Tarih', style: styles.tableHeaderStyle),
+                    ),
+                  ),
+                ],
+              ),
+              ...attendances.asMap().entries.map((entry) {
+                final index = entry.key;
+                final attendance = entry.value;
+                final isEven = index % 2 == 0;
+
+                return pw.TableRow(
+                  decoration: isEven ? styles.zebraStriping : null,
+                  children: [
+                    pw.Padding(
+                      padding: styles.cellPadding,
+                      child: pw.Center(
+                        child: pw.Text(
+                          PdfReportUtils.dateFormat.format(attendance.date),
+                          style: styles.dataStyle,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

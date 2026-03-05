@@ -112,21 +112,23 @@ class WorkerHomeScreenState extends State<WorkerHomeScreen>
         ),
       ),
       drawer: Drawer(
-        child: Column(
-          children: [
-            WorkerHomeScreenDrawerHeader(
-              workerName: workerName,
-              workerUsername: workerUsername,
-            ),
-            WorkerHomeScreenDrawerContent(
-              selectedIndex: selectedIndex,
-              onItemTap: (index) =>
-                  onItemTapped(context, index, _screens.length),
-              onThemeToggle: () =>
-                  toggleThemeWithAnimation(context, _themeIconKey),
-              onLogout: () => handleLogout(context),
-            ),
-          ],
+        child: SafeArea(
+          child: Column(
+            children: [
+              WorkerHomeScreenDrawerHeader(
+                workerName: workerName,
+                workerUsername: workerUsername,
+              ),
+              WorkerHomeScreenDrawerContent(
+                selectedIndex: selectedIndex,
+                onItemTap: (index) =>
+                    onItemTapped(context, index, _screens.length),
+                onThemeToggle: () =>
+                    toggleThemeWithAnimation(context, _themeIconKey),
+                onLogout: () => handleLogout(context),
+              ),
+            ],
+          ),
         ),
       ),
     );

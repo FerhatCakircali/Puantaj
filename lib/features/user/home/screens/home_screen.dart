@@ -39,17 +39,7 @@ class _HomeScreenState extends State<HomeScreen>
   final GlobalKey<EmployeeScreenState> _employeeScreenKey =
       GlobalKey<EmployeeScreenState>();
 
-  final List<Widget> _screens = [
-    const EmployeeScreen(),
-    const AttendanceScreen(),
-    const PaymentScreen(),
-    const ReportScreen(),
-    const UserPaymentHistoryScreen(),
-    const AdminPanelScreen(),
-    const ProfileScreen(),
-    const NotificationSettingsScreen(),
-    const UserNotificationsScreen(),
-  ];
+  late final List<Widget> _screens;
 
   final List<String> _screenTitles = const [
     'Çalışanlar',
@@ -67,7 +57,17 @@ class _HomeScreenState extends State<HomeScreen>
   void initState() {
     super.initState();
     _selectedIndexNotifier = globalSelectedIndexNotifier;
-    _screens[0] = EmployeeScreen(key: _employeeScreenKey);
+    _screens = [
+      EmployeeScreen(key: _employeeScreenKey),
+      const AttendanceScreen(),
+      const PaymentScreen(),
+      const ReportScreen(),
+      const UserPaymentHistoryScreen(),
+      const AdminPanelScreen(),
+      const ProfileScreen(),
+      const NotificationSettingsScreen(),
+      const UserNotificationsScreen(),
+    ];
   }
 
   @override
@@ -96,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen>
             slivers: [
               // iOS-style Collapsing AppBar
               SliverAppBar(
-                expandedHeight: 120,
+                expandedHeight: 70,
                 floating: false,
                 pinned: true,
                 stretch: true,
@@ -119,8 +119,8 @@ class _HomeScreenState extends State<HomeScreen>
                       letterSpacing: -0.5,
                     ),
                   ),
-                  titlePadding: EdgeInsets.only(left: 72, bottom: 16),
-                  expandedTitleScale: 1.6,
+                  titlePadding: EdgeInsets.only(left: 72, bottom: 12),
+                  expandedTitleScale: 1.4,
                   centerTitle: false,
                 ),
               ),
@@ -142,6 +142,7 @@ class _HomeScreenState extends State<HomeScreen>
           // Extended FAB for Employee Screen
           floatingActionButton: isEmployeeScreen
               ? FloatingActionButton.extended(
+                  key: ValueKey('fab_${Theme.of(context).brightness}'),
                   onPressed: () {
                     debugPrint('🔴 HomeScreen FAB TIKLANDI!');
                     final employeeScreenState = _employeeScreenKey.currentState;

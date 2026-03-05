@@ -68,6 +68,90 @@ class EmployeeReminderService with ReminderDataMixin, ReminderLogicMixin {
     }
   }
 
+  /// Eski hatırlatıcıları otomatik temizle (3 gün geçmiş olanlar)
+  Future<int> cleanupOldReminders() async {
+    try {
+      final now = DateTime.now();
+      final cutoffDate = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(const Duration(days: 3));
+
+      debugPrint(
+        '🧹 Eski hatırlatıcılar temizleniyor (${cutoffDate.toString().split(' ')[0]} öncesi)...',
+      );
+
+      final allReminders = await getEmployeeReminders(includeCompleted: false);
+      int deletedCount = 0;
+
+      for (final reminder in allReminders) {
+        final reminderDate = DateTime(
+          reminder.reminderDate.year,
+          reminder.reminderDate.month,
+          reminder.reminderDate.day,
+        );
+
+        // Hatırlatıcı tarihi cutoff tarihinden önceyse sil
+        if (reminderDate.isBefore(cutoffDate)) {
+          if (reminder.id != null) {
+            final success = await deleteEmployeeReminderWithNotification(
+              reminder.id!,
+            );
+            if (success) {
+              deletedCount++;
+              debugPrint(
+                '🗑️ Eski hatırlatıcı silindi: ${reminder.workerName} - ${reminder.reminderDate}',
+              );
+            }
+          }
+        }
+      }
+
+      debugPrint('✅ Toplam $deletedCount eski hatırlatıcı temizlendi');
+      return deletedCount;
+    } catch (e) {
+      debugPrint('❌ Eski hatırlatıcılar temizlenirken hata: $e');
+      return 0;
+    }
+  }
+
+  /// Tamamlanmış eski hatırlatıcıları temizle (30 gün geçmiş)
+  Future<int> cleanupCompletedReminders() async {
+    try {
+      final cutoffDate = DateTime.now().subtract(const Duration(days: 30));
+
+      debugPrint(
+        '🧹 Tamamlanmış eski hatırlatıcılar temizleniyor (${cutoffDate.toString().split(' ')[0]} öncesi)...',
+      );
+
+      final allReminders = await getEmployeeReminders(includeCompleted: true);
+      int deletedCount = 0;
+
+      for (final reminder in allReminders) {
+        // Tamamlanmış ve hatırlatıcı tarihi 30 gün öncesinden eskiyse sil
+        if (reminder.isCompleted &&
+            reminder.reminderDate.isBefore(cutoffDate)) {
+          if (reminder.id != null) {
+            final success = await deleteEmployeeReminder(reminder.id!);
+            if (success) {
+              deletedCount++;
+              debugPrint(
+                '🗑️ Tamamlanmış eski hatırlatıcı silindi: ${reminder.workerName} - ${reminder.reminderDate}',
+              );
+            }
+          }
+        }
+      }
+
+      debugPrint('✅ Toplam $deletedCount tamamlanmış hatırlatıcı temizlendi');
+      return deletedCount;
+    } catch (e) {
+      debugPrint('❌ Tamamlanmış hatırlatıcılar temizlenirken hata: $e');
+      return 0;
+    }
+  }
+
   /// Yeni bildirim sistemi ile hatırlatıcı zamanla
   Future<void> _scheduleReminderWithNewSystem(EmployeeReminder reminder) async {
     try {

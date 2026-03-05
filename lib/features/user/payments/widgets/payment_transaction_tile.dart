@@ -20,8 +20,9 @@ class PaymentTransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final size = MediaQuery.sizeOf(context);
+    final w = size.width;
+    final h = size.height;
     final theme = Theme.of(context);
 
     return Padding(
@@ -39,18 +40,39 @@ class PaymentTransactionTile extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // Sol taraf - İkon alanı
+                // Sol taraf - Baş harf avatar
                 Container(
                   width: w * 0.12,
                   height: w * 0.12,
                   decoration: BoxDecoration(
-                    color: primaryColor.withValues(alpha: 0.1),
+                    gradient: LinearGradient(
+                      colors: [
+                        primaryColor,
+                        primaryColor.withValues(alpha: 0.7),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: Icon(
-                    Icons.arrow_outward_rounded,
-                    color: primaryColor,
-                    size: w * 0.06,
+                  child: Center(
+                    child: Text(
+                      employee.name.isNotEmpty
+                          ? employee.name[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        fontSize: w * 0.055,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(width: w * 0.04),

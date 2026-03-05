@@ -1,42 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../../../screens/constants/colors.dart';
 
 /// Kullanıcı bilgileri kartı widget'ı
 class ProfileInfoCard extends StatelessWidget {
-  final String? username;
-  final TextEditingController usernameController;
-  final TextEditingController firstNameController;
-  final TextEditingController lastNameController;
-  final TextEditingController jobTitleController;
-  final TextEditingController emailController;
-  final String? usernameError;
-  final bool isEditingProfile;
-  final bool isLoading;
-  final VoidCallback onEditToggle;
-  final VoidCallback onSave;
-  final Function(String) onUsernameChanged;
+  final String username;
+  final String firstName;
+  final String lastName;
+  final String jobTitle;
+  final String email;
+  final VoidCallback onEdit;
 
   const ProfileInfoCard({
     super.key,
-    this.username,
-    required this.usernameController,
-    required this.firstNameController,
-    required this.lastNameController,
-    required this.jobTitleController,
-    required this.emailController,
-    this.usernameError,
-    required this.isEditingProfile,
-    required this.isLoading,
-    required this.onEditToggle,
-    required this.onSave,
-    required this.onUsernameChanged,
+    required this.username,
+    required this.firstName,
+    required this.lastName,
+    required this.jobTitle,
+    required this.email,
+    required this.onEdit,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final fullName = '$firstName $lastName';
 
     return Container(
       padding: EdgeInsets.all(screenWidth * 0.05),
@@ -93,160 +81,123 @@ class ProfileInfoCard extends StatelessWidget {
               ),
               IconButton(
                 icon: Icon(
-                  isEditingProfile ? Icons.save_rounded : Icons.edit_rounded,
+                  Icons.edit_rounded,
                   color: isDark
                       ? Colors.white.withValues(alpha: 0.9)
                       : primaryIndigo,
                   size: screenWidth * 0.06,
                 ),
-                onPressed: isLoading
-                    ? null
-                    : () {
-                        if (!isEditingProfile) {
-                          onEditToggle();
-                        } else {
-                          onSave();
-                        }
-                      },
-                tooltip: isEditingProfile ? 'Kaydet' : 'Düzenle',
+                onPressed: onEdit,
+                tooltip: 'Düzenle',
               ),
             ],
           ),
           SizedBox(height: screenWidth * 0.04),
-          _buildTextField(
+          _buildInfoField(
             context,
-            controller: usernameController,
-            label: 'Kullanıcı Adı',
-            icon: Icons.person_outline,
-            enabled: isEditingProfile,
-            errorText: usernameError,
-            maxLength: 30,
-            onChanged: onUsernameChanged,
-            isDark: isDark,
-            screenWidth: screenWidth,
+            Icons.person_outline,
+            'Kullanıcı Adı',
+            username,
+            isDark,
           ),
           SizedBox(height: screenWidth * 0.03),
-          _buildTextField(
+          _buildInfoField(
             context,
-            controller: firstNameController,
-            label: 'Ad',
-            icon: Icons.person_outline,
-            enabled: isEditingProfile,
-            maxLength: 30,
-            isDark: isDark,
-            screenWidth: screenWidth,
+            Icons.badge_outlined,
+            'Ad Soyad',
+            fullName,
+            isDark,
           ),
           SizedBox(height: screenWidth * 0.03),
-          _buildTextField(
+          _buildInfoField(
             context,
-            controller: lastNameController,
-            label: 'Soyad',
-            icon: Icons.person_outline,
-            enabled: isEditingProfile,
-            maxLength: 30,
-            isDark: isDark,
-            screenWidth: screenWidth,
+            Icons.work_outline,
+            'Yapılan İş',
+            jobTitle,
+            isDark,
           ),
           SizedBox(height: screenWidth * 0.03),
-          _buildTextField(
+          _buildInfoField(
             context,
-            controller: jobTitleController,
-            label: 'Yapılan İş',
-            icon: Icons.work_outline,
-            enabled: isEditingProfile,
-            maxLength: 30,
-            isDark: isDark,
-            screenWidth: screenWidth,
-          ),
-          SizedBox(height: screenWidth * 0.03),
-          _buildTextField(
-            context,
-            controller: emailController,
-            label: 'Email Adresi',
-            icon: Icons.email_outlined,
-            enabled: isEditingProfile,
-            keyboardType: TextInputType.emailAddress,
-            isDark: isDark,
-            screenWidth: screenWidth,
+            Icons.email_outlined,
+            'E-posta',
+            email,
+            isDark,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTextField(
-    BuildContext context, {
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    required bool enabled,
-    required bool isDark,
-    required double screenWidth,
-    String? errorText,
-    int? maxLength,
-    TextInputType? keyboardType,
-    Function(String)? onChanged,
-  }) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(
-          icon,
-          color: isDark ? Colors.white.withValues(alpha: 0.7) : primaryIndigo,
-          size: screenWidth * 0.055,
-        ),
-        errorText: errorText,
-        filled: true,
-        fillColor: isDark
+  Widget _buildInfoField(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+    bool isDark,
+  ) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+
+    return Container(
+      padding: EdgeInsets.all(screenWidth * 0.03),
+      decoration: BoxDecoration(
+        color: isDark
             ? Colors.white.withValues(alpha: 0.03)
             : Colors.grey.shade50,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(screenWidth * 0.02),
-          borderSide: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : Colors.grey.shade300,
-          ),
+        borderRadius: BorderRadius.circular(screenWidth * 0.02),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.grey.shade200,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(screenWidth * 0.02),
-          borderSide: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : Colors.grey.shade300,
-          ),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(screenWidth * 0.02),
-          borderSide: BorderSide(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.grey.shade200,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(screenWidth * 0.02),
-          borderSide: const BorderSide(color: primaryIndigo, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(screenWidth * 0.02),
-          borderSide: const BorderSide(color: Color(0xFFE89595)),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(screenWidth * 0.02),
-          borderSide: const BorderSide(color: Color(0xFFE89595), width: 2),
-        ),
-        counterStyle: TextStyle(fontSize: screenWidth * 0.028),
       ),
-      style: TextStyle(fontSize: screenWidth * 0.038),
-      enabled: enabled,
-      keyboardType: keyboardType,
-      maxLength: maxLength,
-      maxLengthEnforcement: maxLength != null
-          ? MaxLengthEnforcement.enforced
-          : null,
-      onChanged: onChanged,
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(screenWidth * 0.02),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : primaryIndigo.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(screenWidth * 0.015),
+            ),
+            child: Icon(
+              icon,
+              size: screenWidth * 0.045,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.7)
+                  : primaryIndigo,
+            ),
+          ),
+          SizedBox(width: screenWidth * 0.03),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.03,
+                    fontWeight: FontWeight.w500,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.6)
+                        : Colors.grey.shade600,
+                  ),
+                ),
+                SizedBox(height: screenWidth * 0.005),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.038,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

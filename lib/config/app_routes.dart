@@ -149,7 +149,6 @@ class AppRoutes {
               ![
                 '/notification_settings',
                 '/employee_reminder_detail',
-                '/notification_test',
                 '/pending-requests',
               ].contains(location)) {
             debugPrint(

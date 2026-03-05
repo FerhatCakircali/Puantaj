@@ -14,22 +14,40 @@ class EmployeeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.sizeOf(context);
+    final w = size.width;
+    final isSmallScreen = w < 360;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          '$employeeCount Çalışan',
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            '$employeeCount Çalışan',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              fontWeight: FontWeight.w600,
+              fontSize: isSmallScreen ? w * 0.04 : w * 0.042,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        TextButton.icon(
-          onPressed: onDeleteAll,
-          icon: const Icon(Icons.delete_outline, size: 18),
-          label: const Text('Tüm Çalışanları Sil'),
-          style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
+        Flexible(
+          child: TextButton.icon(
+            onPressed: onDeleteAll,
+            icon: Icon(Icons.delete_outline, size: isSmallScreen ? 16 : 18),
+            label: Text(
+              isSmallScreen ? 'Tümünü Sil' : 'Tüm Çalışanları Sil',
+              overflow: TextOverflow.ellipsis,
+            ),
+            style: TextButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+              padding: EdgeInsets.symmetric(
+                horizontal: w * 0.02,
+                vertical: w * 0.01,
+              ),
+            ),
+          ),
         ),
       ],
     );

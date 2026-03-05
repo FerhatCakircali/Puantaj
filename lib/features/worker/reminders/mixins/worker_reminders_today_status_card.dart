@@ -16,7 +16,7 @@ class WorkerRemindersTodayStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     return Card(
       elevation: 2,
@@ -44,7 +44,7 @@ class WorkerRemindersTodayStatusCard extends StatelessWidget {
   Widget _buildTodayStatusContent(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final canSubmit = todayStatus?['can_submit'] == true;
     final statusType = todayStatus?['status_type'] as String?;
     final statusValue = todayStatus?['status_value'] as String?;

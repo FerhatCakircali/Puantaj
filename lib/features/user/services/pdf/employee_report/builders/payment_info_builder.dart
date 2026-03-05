@@ -1,17 +1,19 @@
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
-import 'package:intl/intl.dart';
 import '../../../../../../../models/attendance.dart';
 import '../../../../../../../models/payment.dart';
+import '../../helpers/pdf_styles.dart';
+import '../../helpers/pdf_svg_icons.dart';
+import '../../pdf_report_utils.dart';
 
-/// Ödeme bilgileri PDF widget'ı oluşturucu
+/// Ödeme bilgileri PDF widget'ı oluşturucu - Premium Bento Style
 class PaymentInfoBuilder {
   static pw.Widget build(
     List<Attendance> allDays,
     List<Payment> payments,
-    pw.TextStyle headerStyle,
+    PdfStyles styles,
+    pw.Font? boldFont,
   ) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
     final totalPaid = payments.fold<double>(
       0,
       (sum, payment) => sum + payment.amount,
@@ -25,92 +27,118 @@ class PaymentInfoBuilder {
       (sum, payment) => sum + payment.fullDays + (payment.halfDays * 0.5),
     );
     final unpaidDays = totalWorkedDays - paidDays;
+    final displayUnpaidDays = unpaidDays < 0 ? 0.0 : unpaidDays;
 
     return pw.Container(
-      padding: const pw.EdgeInsets.all(10),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(),
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
-      ),
+      padding: styles.cardPadding,
+      decoration: styles.premiumCard(PdfStyles.warningColor),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('ÖDEME BİLGİLERİ', style: headerStyle),
-          pw.Divider(),
-          pw.SizedBox(height: 10),
-          pw.Text('Ödemeler:', style: headerStyle),
-          pw.SizedBox(height: 5),
-          payments.isEmpty
-              ? pw.Text('Henüz ödeme yapılmadı.')
-              : pw.Table(
-                  border: pw.TableBorder.all(),
-                  children: [
-                    pw.TableRow(
-                      decoration: pw.BoxDecoration(color: PdfColors.grey300),
-                      children: [
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(5),
-                          child: pw.Text('Tarih', style: headerStyle),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(5),
-                          child: pw.Text('Tam Gün', style: headerStyle),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(5),
-                          child: pw.Text('Yarım Gün', style: headerStyle),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(5),
-                          child: pw.Text('Ödeme', style: headerStyle),
-                        ),
-                      ],
-                    ),
-                    ...payments.map((payment) {
-                      return pw.TableRow(
-                        children: [
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text(
-                              dateFormat.format(payment.paymentDate),
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text('${payment.fullDays}'),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text('${payment.halfDays}'),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text(
-                              '${payment.amount.toStringAsFixed(2)} ₺',
-                            ),
-                          ),
-                        ],
-                      );
-                    }),
-                  ],
-                ),
-          pw.SizedBox(height: 10),
+          pw.Text('ÖDEME BİLGİLERİ', style: styles.sectionHeaderStyle),
+          pw.SizedBox(height: 16),
+
+          // İstatistik kartları
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Text('Toplam Ödenen:', style: headerStyle),
-              pw.Text('${totalPaid.toStringAsFixed(2)} ₺'),
+              _buildStatCard(
+                PdfSvgIcons.money,
+                'Toplam Ödenen',
+                PdfReportUtils.formatCurrency(totalPaid),
+                PdfStyles.successColor,
+                styles,
+              ),
+              pw.SizedBox(width: 12),
+              _buildStatCard(
+                PdfSvgIcons.checkCircle,
+                'Ödenen Gün',
+                paidDays.toStringAsFixed(1),
+                PdfStyles.primaryColor,
+                styles,
+              ),
+              pw.SizedBox(width: 12),
+              _buildStatCard(
+                PdfSvgIcons.xCircle,
+                'Ödenmeyen Gün',
+                displayUnpaidDays.toStringAsFixed(1),
+                PdfStyles.dangerColor,
+                styles,
+              ),
             ],
           ),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Text('Ödenmeyen Gün Sayısı:', style: headerStyle),
-              pw.Text('${unpaidDays.toStringAsFixed(1)} gün'),
-            ],
-          ),
+          pw.SizedBox(height: 16),
+
+          // Ödeme tablosu
+          if (payments.isEmpty)
+            pw.Container(
+              padding: const pw.EdgeInsets.all(12),
+              decoration: pw.BoxDecoration(color: PdfStyles.lightBg),
+              child: pw.Text('Henüz ödeme yapılmadı.', style: styles.dataStyle),
+            )
+          else
+            pw.Table.fromTextArray(
+              headers: ['Tarih', 'Tam Gün', 'Yarım Gün', 'Ödeme'],
+              data: payments
+                  .map(
+                    (payment) => [
+                      PdfReportUtils.dateFormat.format(payment.paymentDate),
+                      '${payment.fullDays}',
+                      '${payment.halfDays}',
+                      PdfReportUtils.formatCurrency(payment.amount),
+                    ],
+                  )
+                  .toList(),
+              border: pw.TableBorder.all(color: PdfStyles.borderColor),
+              headerStyle: pw.TextStyle(
+                fontSize: 10,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+                font: styles.base.boldFont,
+              ),
+              headerDecoration: styles.tableHeaderDecoration,
+              headerAlignment: pw.Alignment.center,
+              headerPadding: styles.cellPadding,
+              cellStyle: styles.dataStyle,
+              cellAlignment: pw.Alignment.center,
+              cellPadding: styles.cellPadding,
+              oddRowDecoration: styles.zebraStriping,
+              headerCount: 1,
+            ),
         ],
+      ),
+    );
+  }
+
+  /// Stat card oluştur
+  static pw.Widget _buildStatCard(
+    String svgIcon,
+    String label,
+    String value,
+    PdfColor color,
+    PdfStyles styles,
+  ) {
+    return pw.Expanded(
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(12),
+        decoration: styles.statBox(color),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            PdfSvgIcons.buildIcon(svgIcon, size: styles.iconSize),
+            pw.SizedBox(height: 8),
+            pw.Text(label, style: styles.labelStyle),
+            pw.SizedBox(height: 4),
+            pw.Text(
+              value,
+              style: pw.TextStyle(
+                fontSize: 16,
+                fontWeight: pw.FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

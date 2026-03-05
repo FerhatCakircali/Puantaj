@@ -7,10 +7,13 @@ import 'pdf_base_service.dart';
 import '../../../../../models/employee.dart';
 import '../../../../../models/attendance.dart';
 import '../../../../../models/payment.dart';
+import '../../../../../models/advance.dart';
 import 'employee_report/builders/employee_info_builder.dart';
 import 'employee_report/builders/attendance_summary_builder.dart';
 import 'employee_report/builders/payment_info_builder.dart';
 import 'employee_report/builders/attendance_details_builder.dart';
+import 'helpers/pdf_styles.dart';
+import 'helpers/pdf_employee_report_table.dart';
 
 /// Çalışan raporu PDF oluşturma servisi - Modüler tasarım
 class PdfEmployeeReportService {
@@ -20,23 +23,14 @@ class PdfEmployeeReportService {
     required Employee employee,
     required List<Attendance> attendances,
     required List<Payment> payments,
+    required List<Advance> advances,
     String? outputDirectory,
   }) async {
     await _base.loadFonts();
 
     final allDays = _buildAllDays(employee, attendances);
     final pdf = pw.Document(theme: _base.fontsLoaded ? _base.pdfTheme : null);
-
-    final titleStyle = pw.TextStyle(
-      fontSize: 20,
-      fontWeight: pw.FontWeight.bold,
-      font: _base.boldFont,
-    );
-    final headerStyle = pw.TextStyle(
-      fontWeight: pw.FontWeight.bold,
-      fontSize: 12,
-      font: _base.boldFont,
-    );
+    final styles = PdfStyles(_base);
 
     pdf.addPage(
       pw.MultiPage(
@@ -44,22 +38,40 @@ class PdfEmployeeReportService {
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
           return [
-            pw.Header(
-              level: 0,
-              child: pw.Text('Çalışan Raporu', style: titleStyle),
+            // Premium gradient header
+            _buildPremiumHeader(styles),
+            pw.SizedBox(height: 20),
+
+            // Bento layout: Çalışan bilgileri ve Devam özeti yan yana
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Expanded(child: EmployeeInfoBuilder.build(employee, styles)),
+                pw.SizedBox(width: 16),
+                pw.Expanded(
+                  child: AttendanceSummaryBuilder.build(
+                    employee,
+                    allDays,
+                    styles,
+                  ),
+                ),
+              ],
             ),
-            pw.SizedBox(height: 10),
-            EmployeeInfoBuilder.build(employee, headerStyle),
-            pw.SizedBox(height: 20),
-            AttendanceSummaryBuilder.build(employee, allDays, headerStyle),
-            pw.SizedBox(height: 20),
-            PaymentInfoBuilder.build(allDays, payments, headerStyle),
-            pw.SizedBox(height: 20),
-            ...AttendanceDetailsBuilder.build(allDays, headerStyle),
-            pw.SizedBox(height: 10),
-            _buildFooter(employee),
+            pw.SizedBox(height: 16),
+            PaymentInfoBuilder.build(allDays, payments, styles, _base.boldFont),
+            pw.SizedBox(height: 16),
+            // Avans bilgileri
+            PdfEmployeeReportTable.buildAdvanceInfo(
+              advances,
+              employee.startDate,
+              DateTime.now(),
+              styles,
+            ),
+            pw.SizedBox(height: 16),
+            ...AttendanceDetailsBuilder.build(allDays, styles),
           ];
         },
+        footer: (pw.Context context) => _buildFooter(context),
       ),
     );
 
@@ -97,20 +109,92 @@ class PdfEmployeeReportService {
     return allDays;
   }
 
-  pw.Widget _buildFooter(Employee employee) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
-
+  /// Premium gradient header oluştur
+  pw.Widget _buildPremiumHeader(PdfStyles styles) {
     return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 20),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+      padding: styles.headerPadding,
+      decoration: styles.premiumHeaderDecoration,
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('Bu rapor ${employee.name} için oluşturulmuştur.'),
-              pw.Text('Oluşturma Tarihi: ${dateFormat.format(DateTime.now())}'),
+              pw.Text('ÇALIŞAN RAPORU', style: styles.mainTitleStyle),
+              pw.SizedBox(height: 6),
+              pw.Text(
+                'Detaylı Performans ve Devam Analizi',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  color: PdfColor.fromInt(0xFFD1D5DB),
+                  font: _base.baseFont,
+                ),
+              ),
             ],
+          ),
+          pw.Container(
+            padding: const pw.EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 10,
+            ),
+            decoration: pw.BoxDecoration(color: PdfColors.white),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text(
+                  'RAPOR TARİHİ',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    color: PdfStyles.neutralColor,
+                    font: _base.baseFont,
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  DateFormat('dd.MM.yyyy').format(DateTime.now()),
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfStyles.primaryColor,
+                    font: _base.boldFont,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Premium footer oluştur
+  pw.Widget _buildFooter(pw.Context context) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: pw.BoxDecoration(
+        border: pw.Border(
+          top: pw.BorderSide(color: PdfStyles.borderColor, width: 1),
+        ),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            'Rapor Oluşturma: ${DateFormat('dd/MM/yyyy').format(DateTime.now())}',
+            style: pw.TextStyle(
+              fontSize: 10,
+              color: PdfStyles.neutralColor,
+              font: _base.baseFont,
+            ),
+          ),
+          pw.Text(
+            'Sayfa ${context.pageNumber}',
+            style: pw.TextStyle(
+              fontSize: 10,
+              color: PdfStyles.neutralColor,
+              font: _base.baseFont,
+            ),
           ),
         ],
       ),

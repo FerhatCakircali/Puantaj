@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_globals.dart';
 import '../core/user_data_notifier.dart';
 import '../services/auth_service.dart';
@@ -9,6 +10,21 @@ class AppDrawer extends StatelessWidget {
 
   AppDrawer({super.key});
 
+  Future<void> _saveThemeMode(ThemeMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    switch (mode) {
+      case ThemeMode.dark:
+        await prefs.setString('theme_mode', 'dark');
+        break;
+      case ThemeMode.light:
+        await prefs.setString('theme_mode', 'light');
+        break;
+      case ThemeMode.system:
+        await prefs.setString('theme_mode', 'system');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = userDataNotifier.value;
@@ -16,7 +32,7 @@ class AppDrawer extends StatelessWidget {
     final lastName = currentUser?['last_name'] as String? ?? '';
 
     return Drawer(
-      width: MediaQuery.of(context).size.width * 0.75,
+      width: MediaQuery.sizeOf(context).width * 0.75,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(30),
@@ -92,9 +108,11 @@ class AppDrawer extends StatelessWidget {
                           : Icons.dark_mode_outlined,
                       text: isDark ? 'Tema' : 'Tema',
                       onTap: () {
-                        themeModeNotifier.value = isDark
+                        final newMode = isDark
                             ? ThemeMode.light
                             : ThemeMode.dark;
+                        themeModeNotifier.value = newMode;
+                        _saveThemeMode(newMode);
                       },
                     );
                   },
@@ -110,7 +128,7 @@ class AppDrawer extends StatelessWidget {
             color: Colors.grey,
           ),
           _buildLogoutButton(context),
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 8.0),
+          SizedBox(height: MediaQuery.paddingOf(context).bottom + 8.0),
         ],
       ),
     );

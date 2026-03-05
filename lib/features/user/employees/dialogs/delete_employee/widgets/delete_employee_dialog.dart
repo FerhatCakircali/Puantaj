@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../../models/employee.dart';
 import '../../../../../../services/attendance_service.dart';
 import '../../../../../../services/payment_service.dart';
+import '../../../../../../services/advance_service.dart';
 import '../../../../services/pdf_service.dart';
 
 /// Çalışan silme dialog'u
@@ -27,6 +28,7 @@ class DeleteEmployeeDialog extends StatelessWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true, // Navigation bar'dan korunur
       backgroundColor: Colors.transparent,
       builder: (context) => DeleteEmployeeDialog(
         employee: employee,
@@ -37,12 +39,45 @@ class DeleteEmployeeDialog extends StatelessWidget {
   }
 
   Future<void> _handleDeleteWithReport(BuildContext context) async {
+    // İkinci onay dialog'u göster
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 12),
+            Text('Son Onay'),
+          ],
+        ),
+        content: Text(
+          'Bu işlem GERİ ALINAMAZ!\n\n${employee.name} ve tüm devam/ödeme kayıtları kalıcı olarak silinecek. Rapor oluşturulacak.\n\nDevam etmek istediğinizden emin misiniz?',
+          style: TextStyle(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('Evet, Sil'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     Navigator.pop(context);
 
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final pdf = PdfService();
     final attendanceService = AttendanceService();
     final paymentService = PaymentService();
+    final advanceService = AdvanceService();
 
     try {
       debugPrint('📄 DeleteEmployeeDialog: Rapor oluşturuluyor');
@@ -54,11 +89,13 @@ class DeleteEmployeeDialog extends StatelessWidget {
       );
 
       final payments = await paymentService.getPaymentsByWorkerId(employee.id);
+      final advances = await advanceService.getWorkerAdvances(employee.id);
 
       final pdfFile = await pdf.generateEmployeeTerminatedReport(
         employee,
         attendances,
         payments,
+        advances,
       );
 
       await onDelete(employee.id);
@@ -91,6 +128,38 @@ class DeleteEmployeeDialog extends StatelessWidget {
   }
 
   Future<void> _handleDeleteOnly(BuildContext context) async {
+    // İkinci onay dialog'u göster
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 12),
+            Text('Son Onay'),
+          ],
+        ),
+        content: Text(
+          'Bu işlem GERİ ALINAMAZ!\n\n${employee.name} ve tüm devam/ödeme kayıtları kalıcı olarak silinecek.\n\nDevam etmek istediğinizden emin misiniz?',
+          style: TextStyle(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('Evet, Sil'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     Navigator.pop(context);
 
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -234,6 +303,7 @@ class DeleteEmployeeDialog extends StatelessWidget {
               ],
             ),
           ),
+          SizedBox(height: 16),
         ],
       ),
     );

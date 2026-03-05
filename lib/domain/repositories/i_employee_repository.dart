@@ -22,4 +22,10 @@ abstract class IEmployeeRepository {
 
   /// Search employees by name
   Future<Result<List<Employee>>> search(String query);
+
+  /// Check if username already exists
+  Future<Result<bool>> isUsernameExists(String username);
+
+  /// Check if email already exists
+  Future<Result<bool>> isEmailExists(String email);
 }

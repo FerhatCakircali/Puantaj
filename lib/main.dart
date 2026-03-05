@@ -10,6 +10,7 @@ import 'package:puantaj/config/index.dart';
 import 'package:puantaj/core/app_bootstrap.dart';
 import 'package:puantaj/core/app_globals.dart';
 import 'package:puantaj/core/app_notification_handler.dart';
+import 'package:puantaj/core/app_state.dart';
 import 'package:puantaj/core/error_handler.dart';
 import 'package:puantaj/core/user_data_notifier.dart';
 import 'package:puantaj/firebase_options.dart';
@@ -17,6 +18,14 @@ import 'package:puantaj/services/fcm_service.dart';
 import 'package:puantaj/services/notification/notification_helpers.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// ⚡ Performans: Const breakpoints tanımı
+const kResponsiveBreakpoints = [
+  Breakpoint(start: 0, end: 450, name: 'MOBILE'),
+  Breakpoint(start: 451, end: 800, name: 'TABLET'),
+  Breakpoint(start: 801, end: 1920, name: 'DESKTOP'),
+  Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+];
 
 void main() async {
   // Global hata yakalayıcılar
@@ -43,6 +52,9 @@ void main() async {
 
   // Get Supabase client reference
   supabase = Supabase.instance.client;
+
+  // Kaydedilmiş tema tercihini yükle
+  await loadSavedThemeMode();
 
   // FCM servisini başlat
   await FCMService.instance.initialize();
@@ -71,11 +83,23 @@ class _MyAppState extends State<MyApp> {
 
   StreamSubscription<String>? _notificationClickSubscription;
 
+  // ⚡ Performans: İç içe ValueListenableBuilder yerine tek notifier
+  late final ValueNotifier<AppState> _appStateNotifier;
+
   @override
   void initState() {
     super.initState();
 
     _navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'appNavigator');
+
+    // ⚡ Performans: AppState notifier'ı başlat
+    _appStateNotifier = ValueNotifier(
+      AppState(
+        themeMode: themeModeNotifier.value,
+        isAuthenticated: authStateNotifier.value,
+      ),
+    );
+
     _bootstrapSession();
 
     // Bildirim tıklama olaylarını dinle
@@ -192,6 +216,11 @@ class _MyAppState extends State<MyApp> {
     if (_isLoggedIn != newLoginState) {
       _isLoggedIn = newLoginState;
 
+      // ⚡ Performans: AppState notifier'ı güncelle
+      _appStateNotifier.value = _appStateNotifier.value.copyWith(
+        isAuthenticated: newLoginState,
+      );
+
       if (_isLoggedIn) {
         debugPrint('🔐 Auth state değişti: Giriş yapıldı');
 
@@ -243,12 +272,15 @@ class _MyAppState extends State<MyApp> {
 
   void _onThemeChanged() {
     if (mounted) {
-      setState(() {
-        ErrorHandler.logDebug(
-          'ThemeChange',
-          'Tema değişikliği algılandı: ${themeModeNotifier.value}',
-        );
-      });
+      // ⚡ Performans: AppState notifier'ı güncelle
+      _appStateNotifier.value = _appStateNotifier.value.copyWith(
+        themeMode: themeModeNotifier.value,
+      );
+
+      ErrorHandler.logDebug(
+        'ThemeChange',
+        'Tema değişikliği algılandı: ${themeModeNotifier.value}',
+      );
     }
   }
 
@@ -415,6 +447,8 @@ class _MyAppState extends State<MyApp> {
     authStateNotifier.removeListener(_onAuthStateChanged);
     themeModeNotifier.removeListener(_onThemeChanged);
     userDataNotifier.removeListener(_onUserDataChanged);
+    // ⚡ Performans: AppState notifier'ı temizle
+    _appStateNotifier.dispose();
     super.dispose();
   }
 
@@ -434,44 +468,31 @@ class _MyAppState extends State<MyApp> {
       );
     }
 
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeModeNotifier,
-      builder: (context, themeMode, _) {
-        return ValueListenableBuilder<bool>(
-          valueListenable: authStateNotifier,
-          builder: (context, isAuthenticated, child) {
-            return MaterialApp.router(
-              scaffoldMessengerKey: appScaffoldMessengerKey,
-              title: 'Puantaj',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: themeMode,
-              routerConfig: appRouter,
-              builder: (context, child) {
-                return ResponsiveBreakpoints.builder(
-                  child: child!,
-                  breakpoints: [
-                    const Breakpoint(start: 0, end: 450, name: 'MOBILE'),
-                    const Breakpoint(start: 451, end: 800, name: 'TABLET'),
-                    const Breakpoint(start: 801, end: 1920, name: 'DESKTOP'),
-                    const Breakpoint(
-                      start: 1921,
-                      end: double.infinity,
-                      name: '4K',
-                    ),
-                  ],
-                );
-              },
-              localizationsDelegates: const [
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              supportedLocales: const [Locale('tr', 'TR'), Locale('en', 'US')],
-              locale: const Locale('tr', 'TR'),
+    // ⚡ Performans: İç içe ValueListenableBuilder yerine tek AppState listener
+    return ValueListenableBuilder<AppState>(
+      valueListenable: _appStateNotifier,
+      builder: (context, appState, child) {
+        return MaterialApp.router(
+          scaffoldMessengerKey: appScaffoldMessengerKey,
+          title: 'Puantaj',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: appState.themeMode,
+          routerConfig: appRouter,
+          builder: (context, child) {
+            return ResponsiveBreakpoints.builder(
+              child: child!,
+              breakpoints: kResponsiveBreakpoints,
             );
           },
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('tr', 'TR'), Locale('en', 'US')],
+          locale: const Locale('tr', 'TR'),
         );
       },
     );

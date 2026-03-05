@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../../models/employee.dart';
 import '../../../../models/attendance.dart' as attendance;
 import '../../../../services/attendance_service.dart';
+import '../../../../services/advance_service.dart';
 import '../../services/pdf_service.dart';
 import '../../../../services/payment_service.dart';
 import '../../../../screens/constants/colors.dart';
@@ -28,7 +29,11 @@ class EmployeeDetailsDialog extends StatefulWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
+      // ⚡ Performans: Klavye açılırken dialog yeniden boyutlandırılmasın
+      isDismissible: true,
+      enableDrag: true,
       builder: (context) => EmployeeDetailsDialog(
         employee: employee,
         onPaymentComplete: onPaymentComplete,
@@ -42,6 +47,7 @@ class EmployeeDetailsDialog extends StatefulWidget {
 
 class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
   bool _isLoading = true;
+  bool _isGeneratingReport = false;
   int _fullDays = 0;
   int _halfDays = 0;
   int _absentDays = 0;
@@ -54,6 +60,7 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
   final PdfService _pdfService = PdfService();
   final AttendanceService _attendanceService = AttendanceService();
   final PaymentService _paymentService = PaymentService();
+  final AdvanceService _advanceService = AdvanceService();
 
   @override
   void initState() {
@@ -122,6 +129,10 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
   }
 
   Future<void> _createEmployeeReport() async {
+    if (_isGeneratingReport) return;
+
+    setState(() => _isGeneratingReport = true);
+
     try {
       final attendances = await _attendanceService.getAttendanceBetween(
         widget.employee.startDate,
@@ -131,10 +142,14 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
       final payments = await _paymentService.getPaymentsByWorkerId(
         widget.employee.id,
       );
+      final advances = await _advanceService.getWorkerAdvances(
+        widget.employee.id,
+      );
       await _pdfService.generateEmployeeReport(
         widget.employee,
         attendances,
         payments,
+        advances,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -160,6 +175,10 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
             ),
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGeneratingReport = false);
       }
     }
   }
@@ -393,7 +412,7 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
         width: double.infinity,
         height: 56,
         child: FilledButton.icon(
-          onPressed: _createEmployeeReport,
+          onPressed: _isGeneratingReport ? null : _createEmployeeReport,
           style: FilledButton.styleFrom(
             backgroundColor: primaryIndigo,
             shape: RoundedRectangleBorder(
@@ -401,10 +420,19 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
             ),
             elevation: 0,
           ),
-          icon: const Icon(Icons.picture_as_pdf, size: 20),
-          label: const Text(
-            'Rapor Oluştur',
-            style: TextStyle(
+          icon: _isGeneratingReport
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Icon(Icons.picture_as_pdf, size: 20),
+          label: Text(
+            _isGeneratingReport ? 'Rapor Oluşturuluyor...' : 'Rapor Oluştur',
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.white,

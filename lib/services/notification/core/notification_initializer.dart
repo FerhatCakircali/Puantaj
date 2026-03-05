@@ -92,7 +92,7 @@ class NotificationInitializer {
       );
 
       await plugin.initialize(
-        settings: initSettings,
+        initSettings,
         onDidReceiveNotificationResponse: _onNotificationTapped,
         onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );

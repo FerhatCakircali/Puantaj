@@ -91,7 +91,7 @@ class NotificationSettingsHandler {
         }
       } else {
         debugPrint('Bildirimler devre dışı, yevmiye bildirimi iptal ediliyor');
-        await plugin.cancel(id: 1);
+        await plugin.cancel(1);
       }
     } catch (e, stack) {
       debugPrint('Bildirimler kontrol edilirken hata: $e');

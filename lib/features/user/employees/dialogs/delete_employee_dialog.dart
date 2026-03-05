@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../models/employee.dart';
 import '../../../../services/attendance_service.dart';
 import '../../../../services/payment_service.dart';
+import '../../../../services/advance_service.dart';
 import '../../services/pdf_service.dart';
 
 /// Çalışan silme dialog'u
@@ -27,6 +28,7 @@ class DeleteEmployeeDialog extends StatelessWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true, // Navigation bar'dan korunur
       backgroundColor: Colors.transparent,
       builder: (context) => DeleteEmployeeDialog(
         employee: employee,
@@ -43,6 +45,7 @@ class DeleteEmployeeDialog extends StatelessWidget {
     final pdf = PdfService();
     final attendanceService = AttendanceService();
     final paymentService = PaymentService();
+    final advanceService = AdvanceService();
 
     try {
       debugPrint('📄 DeleteEmployeeDialog: Rapor oluşturuluyor');
@@ -54,11 +57,13 @@ class DeleteEmployeeDialog extends StatelessWidget {
       );
 
       final payments = await paymentService.getPaymentsByWorkerId(employee.id);
+      final advances = await advanceService.getWorkerAdvances(employee.id);
 
       final pdfFile = await pdf.generateEmployeeTerminatedReport(
         employee,
         attendances,
         payments,
+        advances,
       );
 
       await onDelete(employee.id);

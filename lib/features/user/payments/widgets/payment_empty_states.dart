@@ -8,8 +8,9 @@ class AllPaidState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final size = MediaQuery.sizeOf(context);
+    final w = size.width;
+    final h = size.height;
     final theme = Theme.of(context);
 
     return Center(
@@ -59,29 +60,37 @@ class NoSearchResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final size = MediaQuery.sizeOf(context);
+    final w = size.width;
+    final h = size.height;
     final theme = Theme.of(context);
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off_rounded,
-            size: w * 0.12,
-            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+    return SingleChildScrollView(
+      child: SizedBox(
+        height: h * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off_rounded,
+                size: w * 0.12,
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.5,
+                ),
+              ),
+              SizedBox(height: h * 0.02),
+              Text(
+                'Sonuç bulunamadı',
+                style: TextStyle(
+                  fontSize: w * 0.045,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: h * 0.02),
-          Text(
-            'Sonuç bulunamadı',
-            style: TextStyle(
-              fontSize: w * 0.045,
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../data/services/password_hasher.dart';
+import '../../../../services/validation_service.dart';
 import '../../../admin/panel/services/activity_log_service.dart';
 
 mixin AuthTokenMixin {
@@ -95,7 +96,9 @@ mixin AuthTokenMixin {
 
         // Email değiştiyse kontrol et
         if (currentEmail?.toLowerCase() != email.toLowerCase()) {
-          final emailAvailability = await checkEmailAvailability(email);
+          // Kendi ID'sini hariç tutarak kontrol et
+          final emailAvailability = await ValidationService.instance
+              .checkEmailAvailability(email, excludeUserId: userId);
           if (emailAvailability != null) {
             return emailAvailability;
           }
@@ -142,7 +145,7 @@ mixin AuthTokenMixin {
     } catch (e) {
       debugPrint('Profil güncelleme hatası: $e');
       if (e is PostgrestException && e.code == '23505') {
-        return 'Bu email adresi zaten kullanılıyor.';
+        return 'Bu e-posta adresi zaten kullanılıyor.';
       }
       return 'Profil güncellenirken bir hata oluştu.';
     }
@@ -161,9 +164,9 @@ mixin AuthTokenMixin {
     }
 
     try {
-      final usernameAvailability = await checkUsernameAvailability(
-        lowercaseUsername,
-      );
+      // Kendi ID'sini hariç tutarak kontrol et
+      final usernameAvailability = await ValidationService.instance
+          .checkUsernameAvailability(lowercaseUsername, excludeUserId: userId);
       if (usernameAvailability != null) {
         return usernameAvailability;
       }

@@ -2,12 +2,70 @@ import '../../../../data/services/local_storage_service.dart';
 import '../../services/worker_attendance_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
+import '../../../../services/notification_service.dart';
 
 /// Çalışan dashboard iş mantığı kontrolcüsü
 class WorkerDashboardController {
   final _localStorage = LocalStorageService.instance;
   final _attendanceService = WorkerAttendanceService();
   final _supabase = Supabase.instance.client;
+  final _notificationService = NotificationService();
+
+  /// Worker session bilgisini al
+  Future<Map<String, String>?> getWorkerSession() async {
+    return await _localStorage.getWorkerSession();
+  }
+
+  /// Bugün için yevmiye yapılmış mı kontrol et
+  Future<bool> hasAttendanceToday(int workerId) async {
+    try {
+      final today = DateTime.now();
+      final todayStr =
+          '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+      // Attendance tablosunda bugün için kayıt var mı?
+      final attendanceResponse = await _supabase
+          .from('attendance')
+          .select('id')
+          .eq('worker_id', workerId)
+          .eq('date', todayStr)
+          .maybeSingle();
+
+      if (attendanceResponse != null) {
+        debugPrint('✅ Bugün için attendance kaydı var');
+        return true;
+      }
+
+      // Attendance_requests tablosunda bugün için kayıt var mı?
+      final requestResponse = await _supabase
+          .from('attendance_requests')
+          .select('id')
+          .eq('worker_id', workerId)
+          .eq('date', todayStr)
+          .maybeSingle();
+
+      if (requestResponse != null) {
+        debugPrint('✅ Bugün için attendance_request kaydı var');
+        return true;
+      }
+
+      debugPrint('❌ Bugün için yevmiye kaydı yok');
+      return false;
+    } catch (e) {
+      debugPrint('❌ hasAttendanceToday hata: $e');
+      return false;
+    }
+  }
+
+  /// Bildirimi iptal et
+  Future<void> cancelNotification(int notificationId) async {
+    try {
+      await _notificationService.cancelNotification(notificationId);
+      debugPrint('✅ Bildirim iptal edildi: $notificationId');
+    } catch (e) {
+      debugPrint('❌ Bildirim iptal hatası: $e');
+    }
+  }
 
   /// Dashboard verilerini yükler
   Future<DashboardData> loadDashboardData() async {

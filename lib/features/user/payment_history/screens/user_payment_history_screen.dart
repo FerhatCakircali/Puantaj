@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../widgets/common/themed_text_field.dart';
 import '../../payment_history/widgets/screen_widgets/index.dart';
 import '../controllers/payment_history_controller.dart';
@@ -37,6 +38,8 @@ class _UserPaymentHistoryScreenState extends State<UserPaymentHistoryScreen> {
 
   @override
   void dispose() {
+    // ⚡ ÖNEMLİ: Memory leak önlemek için listener'ı kaldır
+    _searchController.removeListener(_filterPayments);
     _searchController.dispose();
     super.dispose();
   }
@@ -163,6 +166,105 @@ class _UserPaymentHistoryScreenState extends State<UserPaymentHistoryScreen> {
   }
 
   void _handlePaymentTap(Map<String, dynamic> payment) async {
+    final isAdvance = payment['is_advance'] as bool? ?? false;
+
+    if (isAdvance) {
+      // Avans için detay dialog'u göster
+      _handleAdvanceTap(payment);
+    } else {
+      // Ödeme için düzenleme dialog'u göster
+      _handleRegularPaymentTap(payment);
+    }
+  }
+
+  void _handleAdvanceTap(Map<String, dynamic> advance) {
+    // Avans detaylarını göster (sadece görüntüleme, düzenleme yok)
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.account_balance_wallet,
+                color: Colors.orange,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text('Avans Detayı'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildAdvanceDetailRow(
+              'Çalışan',
+              advance['workers']['full_name'] as String,
+            ),
+            const SizedBox(height: 12),
+            _buildAdvanceDetailRow(
+              'Tutar',
+              '₺${(advance['amount'] as num).toDouble().toStringAsFixed(0)}',
+            ),
+            const SizedBox(height: 12),
+            _buildAdvanceDetailRow(
+              'Tarih',
+              DateFormat(
+                'dd/MM/yyyy',
+              ).format(DateTime.parse(advance['payment_date'] as String)),
+            ),
+            if (advance['description'] != null &&
+                (advance['description'] as String).isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildAdvanceDetailRow(
+                'Açıklama',
+                advance['description'] as String,
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdvanceDetailRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 80,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleRegularPaymentTap(Map<String, dynamic> payment) async {
     final details = _controller.parsePaymentDetails(payment);
 
     debugPrint(

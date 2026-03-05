@@ -147,6 +147,34 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
     }
   }
 
+  /// Kullanıcı adı kontrolü
+  Future<bool> isUsernameExists(String username) async {
+    debugPrint('🔍 EmployeeScreenMixin: Kullanıcı adı kontrolü: $username');
+
+    try {
+      final exists = await workerService.isUsernameExists(username);
+      debugPrint('✅ EmployeeScreenMixin: Kullanıcı adı durumu: $exists');
+      return exists;
+    } catch (e) {
+      debugPrint('❌ EmployeeScreenMixin: Kullanıcı adı kontrolü hatası: $e');
+      return false;
+    }
+  }
+
+  /// E-posta kontrolü
+  Future<bool> isEmailExists(String email) async {
+    debugPrint('🔍 EmployeeScreenMixin: E-posta kontrolü: $email');
+
+    try {
+      final exists = await workerService.isEmailExists(email);
+      debugPrint('✅ EmployeeScreenMixin: E-posta durumu: $exists');
+      return exists;
+    } catch (e) {
+      debugPrint('❌ EmployeeScreenMixin: E-posta kontrolü hatası: $e');
+      return false;
+    }
+  }
+
   /// Çalışan güncelle
   Future<void> updateEmployee(Employee employee) async {
     if (!mounted) return;

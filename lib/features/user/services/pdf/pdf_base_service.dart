@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -53,7 +54,7 @@ class PdfBaseService {
       final InitializationSettings initializationSettings =
           InitializationSettings(android: initializationSettingsAndroid);
       await flutterLocalNotificationsPlugin.initialize(
-        settings: initializationSettings,
+        initializationSettings,
         onDidReceiveNotificationResponse: (NotificationResponse response) {
           if (response.payload != null) {
             openPdf(File(response.payload!));
@@ -164,19 +165,33 @@ class PdfBaseService {
       android: androidPlatformChannelSpecifics,
     );
     await flutterLocalNotificationsPlugin.show(
-      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title: title,
-      body: payload,
-      notificationDetails: platformChannelSpecifics,
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      payload,
+      platformChannelSpecifics,
       payload: payload,
     );
   }
 
   Future<void> openPdf(File file) async {
     try {
-      await OpenFile.open(file.path);
+      // PDF açmadan önce dosyanın var olduğundan emin ol
+      if (!await file.exists()) {
+        debugPrint('PDF dosyası bulunamadı: ${file.path}');
+        return;
+      }
+
+      // PDF'i aç - Bu işlem uygulamayı arka plana atabilir
+      // Ancak state korunacak çünkü lifecycle observer eklendi
+      final result = await OpenFile.open(file.path);
+
+      // Açma sonucunu logla (debug için)
+      if (result.type != ResultType.done) {
+        debugPrint('PDF açma hatası: ${result.message}');
+      }
     } catch (e) {
-      // Silently fail if file cannot be opened (no PDF viewer installed)
+      // Hata durumunda sessizce başarısız ol
+      debugPrint('PDF açma hatası: $e');
     }
   }
 }

@@ -24,7 +24,7 @@ class _WorkerRemindersScreenState extends State<WorkerRemindersScreen>
       return const Center(child: CircularProgressIndicator());
     }
 
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final horizontalPadding = screenWidth * 0.05;
 
     return RefreshIndicator(
@@ -58,7 +58,7 @@ class _WorkerRemindersScreenState extends State<WorkerRemindersScreen>
   }
 
   Widget _buildSaveButton(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final theme = Theme.of(context);
 
     return Container(

@@ -6,7 +6,9 @@ import 'pdf_base_service.dart';
 import '../../../../../models/employee.dart';
 import '../../../../../models/attendance.dart';
 import '../../../../../models/payment.dart';
+import '../../../../../models/advance.dart';
 import 'helpers/index.dart';
+import 'pdf_report_utils.dart';
 
 class PdfPeriodEmployeeReportService {
   final PdfBaseService _base = PdfBaseService();
@@ -17,11 +19,16 @@ class PdfPeriodEmployeeReportService {
     required DateTime periodEnd,
     required List<Attendance> attendances,
     required List<Payment> payments,
+    required List<Advance> advances,
     required String periodTitle,
     void Function(double progress)? progressCallback,
     String? outputDirectory,
   }) async {
+    if (progressCallback != null) progressCallback(0.1);
+
     await _base.loadFonts();
+
+    if (progressCallback != null) progressCallback(0.2);
 
     // Tüm günleri hazırla
     final allDays = _prepareAllDays(
@@ -32,9 +39,13 @@ class PdfPeriodEmployeeReportService {
       progressCallback,
     );
 
+    if (progressCallback != null) progressCallback(0.6);
+
     // PDF oluştur
     final pdf = pw.Document(theme: _base.fontsLoaded ? _base.pdfTheme : null);
     final styles = PdfStyles(_base);
+
+    if (progressCallback != null) progressCallback(0.7);
 
     pdf.addPage(
       pw.MultiPage(
@@ -42,17 +53,78 @@ class PdfPeriodEmployeeReportService {
         margin: const pw.EdgeInsets.all(32),
         build: (pw.Context context) {
           if (progressCallback != null) {
-            progressCallback(0.75);
+            progressCallback(0.8);
           }
 
           return [
-            // Başlık
-            PdfEmployeeReportHeader.buildTitle(periodTitle, styles),
-            pw.SizedBox(height: 10),
+            // Premium gradient başlık - Genel raporla aynı format
+            pw.Container(
+              padding: styles.largePadding,
+              decoration: styles.premiumHeaderDecoration,
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'DÖNEMSEL ÇALIŞAN RAPORU',
+                        style: styles.mainTitleStyle,
+                      ),
+                      pw.SizedBox(height: 6),
+                      pw.Text(
+                        periodTitle,
+                        style: pw.TextStyle(
+                          fontSize: 14,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.white,
+                          font: _base.boldFont,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Beyaz kutu - RAPOR DÖNEMİ
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    decoration: pw.BoxDecoration(color: PdfColors.white),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        pw.Text(
+                          'RAPOR DÖNEMİ',
+                          style: pw.TextStyle(
+                            fontSize: 8,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfStyles.neutralColor,
+                            font: _base.boldFont,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          '${PdfReportUtils.dateFormat.format(periodStart)} - ${PdfReportUtils.dateFormat.format(periodEnd)}',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfStyles.darkColor,
+                            font: _base.boldFont,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 16),
 
             // Çalışan bilgileri
             PdfEmployeeReportHeader.buildEmployeeInfo(employee, styles),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 16),
 
             // Devam kayıtları özeti
             PdfEmployeeReportTable.buildAttendanceSummary(
@@ -61,7 +133,7 @@ class PdfPeriodEmployeeReportService {
               periodEnd,
               styles,
             ),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 16),
 
             // Ödeme bilgileri
             PdfEmployeeReportTable.buildPaymentInfo(
@@ -71,7 +143,16 @@ class PdfPeriodEmployeeReportService {
               periodEnd,
               styles,
             ),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 16),
+
+            // Avans bilgileri
+            PdfEmployeeReportTable.buildAdvanceInfo(
+              advances,
+              periodStart,
+              periodEnd,
+              styles,
+            ),
+            pw.SizedBox(height: 16),
 
             // Tam gün çalışma kayıtları
             if (PdfEmployeeReportTable.buildAttendanceTable(
@@ -81,13 +162,13 @@ class PdfPeriodEmployeeReportService {
                   styles,
                 ) !=
                 null) ...[
-              pw.SizedBox(height: 20),
               PdfEmployeeReportTable.buildAttendanceTable(
                 allDays,
                 AttendanceStatus.fullDay,
                 'TAM GÜN ÇALIŞMA KAYITLARI',
                 styles,
               )!,
+              pw.SizedBox(height: 16),
             ],
 
             // Yarım gün çalışma kayıtları
@@ -98,13 +179,13 @@ class PdfPeriodEmployeeReportService {
                   styles,
                 ) !=
                 null) ...[
-              pw.SizedBox(height: 20),
               PdfEmployeeReportTable.buildAttendanceTable(
                 allDays,
                 AttendanceStatus.halfDay,
                 'YARIM GÜN ÇALIŞMA KAYITLARI',
                 styles,
               )!,
+              pw.SizedBox(height: 16),
             ],
 
             // Gelmediği günler
@@ -115,7 +196,6 @@ class PdfPeriodEmployeeReportService {
                   styles,
                 ) !=
                 null) ...[
-              pw.SizedBox(height: 20),
               PdfEmployeeReportTable.buildAttendanceTable(
                 allDays,
                 AttendanceStatus.absent,
@@ -123,16 +203,13 @@ class PdfPeriodEmployeeReportService {
                 styles,
               )!,
             ],
-
-            // Footer
-            pw.SizedBox(height: 10),
-            PdfEmployeeReportFooter.buildFooter(employee),
           ];
         },
+        footer: (pw.Context context) => _buildFooter(context),
       ),
     );
 
-    if (progressCallback != null) progressCallback(1.0);
+    if (progressCallback != null) progressCallback(0.9);
 
     // PDF'i kaydet ve aç
     final outputPath = outputDirectory ?? (await getTemporaryDirectory()).path;
@@ -140,9 +217,41 @@ class PdfPeriodEmployeeReportService {
       '$outputPath/${periodTitle.replaceAll(' ', '_')}_calisan_raporu.pdf',
     );
     await file.writeAsBytes(await pdf.save());
+
+    if (progressCallback != null) progressCallback(0.95);
+
     await _base.openPdf(file);
 
+    if (progressCallback != null) progressCallback(1.0);
+
     return file;
+  }
+
+  /// Premium footer oluştur
+  pw.Widget _buildFooter(pw.Context context) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.only(top: 16),
+      decoration: pw.BoxDecoration(
+        border: pw.Border(
+          top: pw.BorderSide(color: PdfStyles.borderColor, width: 0.5),
+        ),
+      ),
+      child: pw.Center(
+        child: pw.Column(
+          children: [
+            pw.Text(
+              'Rapor Oluşturma Tarihi: ${PdfReportUtils.dateFormat.format(DateTime.now())}',
+              style: pw.TextStyle(fontSize: 9, color: PdfStyles.neutralColor),
+            ),
+            pw.SizedBox(height: 4),
+            pw.Text(
+              'Sayfa ${context.pageNumber}',
+              style: pw.TextStyle(fontSize: 9, color: PdfStyles.neutralColor),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   /// Tüm günleri hazırla (devam kayıtları)
@@ -179,7 +288,8 @@ class PdfPeriodEmployeeReportService {
       processedDays++;
 
       if (progressCallback != null && totalDays > 0) {
-        progressCallback(processedDays / totalDays * 0.5);
+        // 0.2'den 0.5'e kadar progress (0.3 aralık)
+        progressCallback(0.2 + (processedDays / totalDays * 0.3));
       }
 
       currentDate = currentDate.add(const Duration(days: 1));

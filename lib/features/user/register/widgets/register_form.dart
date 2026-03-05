@@ -14,7 +14,9 @@ class RegisterForm extends StatelessWidget {
   final TextEditingController jobTitleController;
   final TextEditingController emailController;
   final String? usernameError;
+  final String? emailError;
   final ValueChanged<String> onUsernameChanged;
+  final ValueChanged<String> onEmailChanged;
   final VoidCallback onSubmit;
   final bool isLoading;
 
@@ -29,7 +31,9 @@ class RegisterForm extends StatelessWidget {
     required this.jobTitleController,
     required this.emailController,
     required this.usernameError,
+    required this.emailError,
     required this.onUsernameChanged,
+    required this.onEmailChanged,
     required this.onSubmit,
     required this.isLoading,
   });
@@ -50,19 +54,6 @@ class RegisterForm extends StatelessWidget {
             prefixIcon: Icons.person_outline,
             errorText: usernameError,
             onChanged: onUsernameChanged,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Kullanıcı adı gerekli';
-              }
-              if (value.length < 3) {
-                return 'Kullanıcı adı en az 3 karakter olmalıdır';
-              }
-              final validUsernameRegex = RegExp(r'^[a-zA-Z0-9]+$');
-              if (!validUsernameRegex.hasMatch(value)) {
-                return 'Sadece İngilizce harfler (A-Z) ve sayılar (0-9) kullanılabilir';
-              }
-              return null;
-            },
           ),
           const SizedBox(height: 16),
           RegisterFormField(
@@ -103,21 +94,11 @@ class RegisterForm extends StatelessWidget {
           const SizedBox(height: 16),
           RegisterFormField(
             controller: emailController,
-            label: 'Email Adresi',
+            label: 'E-posta Adresi',
             prefixIcon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Email adresi gerekli';
-              }
-              final emailRegex = RegExp(
-                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-              );
-              if (!emailRegex.hasMatch(value)) {
-                return 'Geçerli bir email adresi girin';
-              }
-              return null;
-            },
+            errorText: emailError,
+            onChanged: onEmailChanged,
           ),
           const SizedBox(height: 16),
           PasswordField(

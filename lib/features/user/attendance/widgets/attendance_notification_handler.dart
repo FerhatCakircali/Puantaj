@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../models/employee.dart';
+import '../../../../models/attendance.dart';
 import '../../../../services/attendance_check.dart';
 import '../../../../services/notification_service.dart' as old_ns;
 
@@ -110,6 +111,82 @@ class AttendanceNotificationHandler {
       }
     } catch (e) {
       debugPrint('Hatırlatma gönderme hatası: $e');
+      rethrow;
+    }
+  }
+
+  /// Çalışana yevmiye girişi yapıldı bildirimi gönder
+  static Future<void> sendAttendanceEntryNotification({
+    required int workerId,
+    required String workerName,
+    required String date,
+    required String time,
+    required bool isUpdate,
+    required AttendanceStatus? oldStatus,
+    required AttendanceStatus newStatus,
+  }) async {
+    try {
+      final notificationService = old_ns.NotificationService();
+      final currentUser = await notificationService.authService.currentUser;
+
+      if (currentUser == null) {
+        throw Exception('Kullanıcı bilgisi alınamadı');
+      }
+
+      final managerId = currentUser['id'] as int;
+
+      // Durum metinlerini oluştur
+      String getStatusText(AttendanceStatus status) {
+        switch (status) {
+          case AttendanceStatus.fullDay:
+            return 'Tam Gün';
+          case AttendanceStatus.halfDay:
+            return 'Yarım Gün';
+          case AttendanceStatus.absent:
+            return 'Gelmedi';
+        }
+      }
+
+      // Bildirim başlığı ve mesajı
+      final String title;
+      final String message;
+
+      if (isUpdate && oldStatus != null) {
+        // Güncelleme durumu
+        title = 'Yevmiye girişi güncellendi!';
+        message =
+            '$date - $time\n${getStatusText(oldStatus)} → ${getStatusText(newStatus)}';
+      } else {
+        // Yeni giriş
+        title = 'Yevmiye girişi yapıldı!';
+        message = '$date - $time\n${getStatusText(newStatus)}';
+      }
+
+      // 1. Veritabanına bildirim kaydı ekle
+      await Supabase.instance.client.from('notifications').insert({
+        'sender_id': managerId,
+        'sender_type': 'user',
+        'recipient_id': workerId,
+        'recipient_type': 'worker',
+        'notification_type':
+            'general', // 'attendance_entry' yerine 'general' kullan
+        'title': title,
+        'message': message,
+        'is_read': false,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+
+      debugPrint('✅ Çalışan $workerName için yevmiye bildirimi kaydedildi');
+
+      // NOT: Push notification GÖNDERMİYORUZ
+      // Çünkü bu bildirim sadece çalışan için, yönetici kendi yaptığı işlem için bildirim almamalı
+      // Push notification sadece çalışan uygulamasını açtığında veya FCM trigger ile gönderilecek
+
+      debugPrint(
+        '✅ Çalışan $workerName için bildirim veritabanına kaydedildi (push notification yok)',
+      );
+    } catch (e) {
+      debugPrint('❌ Yevmiye bildirimi gönderme hatası: $e');
       rethrow;
     }
   }

@@ -8,18 +8,24 @@ class AttendanceNoResults extends StatelessWidget {
   Widget build(BuildContext context) {
     final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
     final fontSize = isTablet ? 22.0 : 16.0;
+    final screenHeight = MediaQuery.of(context).size.height;
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.search_off, size: 56, color: Colors.grey[400]),
-          const SizedBox(height: 12),
-          Text(
-            'Arama sonucu bulunamadı.',
-            style: TextStyle(fontSize: fontSize, color: Colors.grey[600]),
+    return SingleChildScrollView(
+      child: SizedBox(
+        height: screenHeight * 0.5,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.search_off, size: 56, color: Colors.grey[400]),
+              const SizedBox(height: 12),
+              Text(
+                'Arama sonucu bulunamadı.',
+                style: TextStyle(fontSize: fontSize, color: Colors.grey[600]),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

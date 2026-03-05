@@ -82,19 +82,31 @@ mixin ReportControllerDateMixin<T extends StatefulWidget> on State<T> {
 
     switch (period) {
       case ReportPeriod.daily:
-        start = now;
+        // Bugün
+        start = DateTime(now.year, now.month, now.day);
+        end = DateTime(now.year, now.month, now.day, 23, 59, 59);
         break;
       case ReportPeriod.weekly:
+        // Son 7 gün
         start = now.subtract(const Duration(days: 7));
         break;
       case ReportPeriod.monthly:
-        start = now.subtract(const Duration(days: 30));
+        // Bu ayın başından bugüne
+        start = DateTime(now.year, now.month, 1);
         break;
       case ReportPeriod.quarterly:
-        start = now.subtract(const Duration(days: 90));
+        // Son 3 ay (bu ay dahil)
+        int startMonth = now.month - 2;
+        int startYear = now.year;
+        if (startMonth <= 0) {
+          startMonth += 12;
+          startYear -= 1;
+        }
+        start = DateTime(startYear, startMonth, 1);
         break;
       case ReportPeriod.yearly:
-        start = now.subtract(const Duration(days: 365));
+        // Bu yılın başından bugüne
+        start = DateTime(now.year, 1, 1);
         break;
       case ReportPeriod.custom:
         start = customStartDate;
@@ -108,5 +120,7 @@ mixin ReportControllerDateMixin<T extends StatefulWidget> on State<T> {
     });
 
     debugPrint('✅ ReportControllerMixin: Dönem tarihleri güncellendi');
+    debugPrint('   Başlangıç: $start');
+    debugPrint('   Bitiş: $end');
   }
 }

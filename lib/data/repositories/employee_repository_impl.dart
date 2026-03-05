@@ -139,4 +139,41 @@ class EmployeeRepositoryImpl implements IEmployeeRepository {
       );
     }
   }
+
+  @override
+  Future<Result<bool>> isUsernameExists(String username) async {
+    try {
+      final response = await _dataSource.client
+          .from('workers')
+          .select('username')
+          .eq('username', username.toLowerCase())
+          .maybeSingle();
+
+      return Success(response != null);
+    } catch (e, stackTrace) {
+      return Failure(
+        NetworkException(
+          'Failed to check username: $e',
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Result<bool>> isEmailExists(String email) async {
+    try {
+      final response = await _dataSource.client
+          .from('workers')
+          .select('email')
+          .eq('email', email.toLowerCase())
+          .maybeSingle();
+
+      return Success(response != null);
+    } catch (e, stackTrace) {
+      return Failure(
+        NetworkException('Failed to check email: $e', stackTrace: stackTrace),
+      );
+    }
+  }
 }

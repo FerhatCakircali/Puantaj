@@ -27,7 +27,7 @@ class PaymentService {
     return buffer.toString();
   }
 
-  Future<void> addPayment(Payment payment) async {
+  Future<int?> addPayment(Payment payment) async {
     try {
       debugPrint(
         '💰 Yeni ödeme ekleniyor: Tarih=${payment.paymentDate}, Tutar=${payment.amount}',
@@ -79,6 +79,9 @@ class PaymentService {
 
       // ⚡ YENİ: Çalışana ödeme bildirimi gönder
       await _sendPaymentNotification(payment);
+
+      // Payment ID'yi döndür
+      return paymentId;
     } catch (e, stackTrace) {
       debugPrint('❌ Ödeme eklenirken hata: $e');
       debugPrint('Stack trace: $stackTrace');
@@ -377,7 +380,7 @@ class PaymentService {
     }
   }
 
-  /// Kullanıcının (yöneticinin) tüm ödemelerini getir
+  /// Kullanıcının (yöneticinin) tüm ödemelerini ve avanslarını getir
   Future<List<Map<String, dynamic>>> getUserPaymentHistory({
     required DateTime startDate,
     required DateTime endDate,
@@ -389,30 +392,76 @@ class PaymentService {
 
       debugPrint('💰 Ödeme geçmişi getiriliyor: $startDate - $endDate');
 
-      var query = supabase
+      // Ödemeleri getir
+      var paymentsQuery = supabase
           .from('payments')
           .select('*, workers!inner(full_name)')
           .eq('user_id', userId)
           .gte('payment_date', _formatDate(startDate))
-          .lte('payment_date', _formatDate(endDate))
-          .order('payment_date', ascending: false);
+          .lte('payment_date', _formatDate(endDate));
 
-      final results = await query;
+      final paymentsResults = await paymentsQuery;
 
+      // Avansları getir
+      var advancesQuery = supabase
+          .from('advances')
+          .select('*, workers!inner(full_name)')
+          .eq('user_id', userId)
+          .gte('advance_date', _formatDate(startDate))
+          .lte('advance_date', _formatDate(endDate));
+
+      final advancesResults = await advancesQuery;
+
+      // Avansları ödeme formatına dönüştür
+      final advancesAsPayments = advancesResults.map((advance) {
+        return {
+          'id': advance['id'],
+          'user_id': advance['user_id'],
+          'worker_id': advance['worker_id'],
+          'amount': advance['amount'],
+          'payment_date': advance['advance_date'],
+          'created_at': advance['created_at'],
+          'updated_at': advance['updated_at'],
+          'workers': advance['workers'],
+          'full_days': 0, // Avanslar için gün bilgisi yok
+          'half_days': 0,
+          'is_advance': true, // Avans olduğunu belirtmek için
+          'description': advance['description'],
+        };
+      }).toList();
+
+      // Ödemelere avans bayrağı ekle
+      final paymentsWithFlag = paymentsResults.map((payment) {
+        return {...payment, 'is_advance': false};
+      }).toList();
+
+      // İki listeyi birleştir
+      final combined = [...paymentsWithFlag, ...advancesAsPayments];
+
+      // Tarihe göre sırala (en yeni en üstte)
+      combined.sort((a, b) {
+        final dateA = DateTime.parse(a['payment_date'] as String);
+        final dateB = DateTime.parse(b['payment_date'] as String);
+        return dateB.compareTo(dateA);
+      });
+
+      // Filtre uygula
       if (workerNameFilter != null && workerNameFilter.isNotEmpty) {
-        final filtered = results.where((payment) {
-          final workerName = payment['workers']['full_name'] as String;
+        final filtered = combined.where((item) {
+          final workerName = item['workers']['full_name'] as String;
           return workerName.toLowerCase().contains(
             workerNameFilter.toLowerCase(),
           );
         }).toList();
 
-        debugPrint('✅ Filtrelenmiş ödeme sayısı: ${filtered.length}');
+        debugPrint('✅ Filtrelenmiş kayıt sayısı: ${filtered.length}');
         return filtered;
       }
 
-      debugPrint('✅ Ödeme geçmişi getirildi: ${results.length} kayıt');
-      return results;
+      debugPrint(
+        '✅ Ödeme geçmişi getirildi: ${combined.length} kayıt (${paymentsResults.length} ödeme, ${advancesResults.length} avans)',
+      );
+      return combined;
     } catch (e) {
       debugPrint('❌ Ödeme geçmişi getirme hatası: $e');
       return [];

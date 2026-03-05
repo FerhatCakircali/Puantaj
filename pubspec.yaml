@@ -16,7 +16,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.3
   intl: ^0.20.2
-  flutter_local_notifications: ^20.1.0
+  flutter_local_notifications: 19.2.1
   table_calendar: ^3.0.9
   google_fonts: ^6.2.1
   go_router: ^17.0.0
@@ -46,6 +46,7 @@ dependencies:
   firebase_messaging: ^16.1.1
   timeago: ^3.7.0
   flutter_dotenv: ^6.0.0
+  android_intent_plus: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -64,10 +65,19 @@ flutter:
     - assets/fonts/Roboto-Bold.ttf
     - assets/icons/
 
-flutter_icons:
-  android: "launcher_icon"
+flutter_launcher_icons:
+  android: "ic_launcher"
   ios: true
   image_path: "assets/icons/icon.png"
-  adaptive_icon_background: "#212121" # Adaptif arka plan rengi (Örnek koyu gri)
-  adaptive_icon_foreground: "assets/icons/icon.png" # Adaptif ön plan görseli
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  # Adaptive icon'u kapat - icon'un orijinal hali kullanılır
+  # adaptive_icon_background: "#FFFFFF"
+  # adaptive_icon_foreground: "assets/icons/icon.png"
+  web:
+    generate: false
+  windows:
+    generate: false
+  macos:
+    generate: false
 

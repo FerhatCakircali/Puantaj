@@ -30,6 +30,8 @@ class NotificationDisplayHelper {
   }
 
   /// Anlık bildirim gösterir
+  ///
+  /// Tüm Android cihazlar için optimize edilmiştir.
   Future<void> showInstantNotification({
     required int id,
     required String title,
@@ -47,11 +49,12 @@ class NotificationDisplayHelper {
         'attendance_channel',
         'Yevmiye Bildirimleri',
         channelDescription: 'Yevmiye girişi ve onay bildirimleri',
-        importance: Importance.high,
-        priority: Priority.high,
+        importance: Importance.max,
+        priority: Priority.max,
         showWhen: true,
         enableVibration: true,
         playSound: true,
+        enableLights: true,
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -65,13 +68,7 @@ class NotificationDisplayHelper {
         iOS: iosDetails,
       );
 
-      await plugin.show(
-        id: id,
-        title: title,
-        body: body,
-        notificationDetails: details,
-        payload: payload,
-      );
+      await plugin.show(id, title, body, details, payload: payload);
 
       debugPrint('✅ Anlık bildirim gösterildi');
     } catch (e, stackTrace) {
@@ -122,7 +119,7 @@ class NotificationDisplayHelper {
         );
         debugPrint('  Mevcut: ${existingWithSameId.first.title}');
         debugPrint('  Yeni: $title');
-        await plugin.cancel(id: id);
+        await plugin.cancel(id);
         debugPrint('  ✅ Eski bildirim iptal edildi');
       }
 
@@ -133,11 +130,12 @@ class NotificationDisplayHelper {
         'Yevmiye Talepleri',
         channelDescription:
             'Çalışanlardan gelen yevmiye girişi onay bildirimleri',
-        importance: Importance.high,
-        priority: Priority.high,
+        importance: Importance.max,
+        priority: Priority.max,
         showWhen: true,
         enableVibration: true,
         playSound: true,
+        enableLights: true,
       );
 
       const iosDetails = DarwinNotificationDetails(
@@ -169,7 +167,7 @@ class NotificationDisplayHelper {
       debugPrint('🔄 zonedSchedule çağrılıyor...');
 
       try {
-        await plugin.cancel(id: id);
+        await plugin.cancel(id);
         debugPrint('  ✅ Eski bildirim iptal edildi (varsa)');
       } catch (e) {
         debugPrint('  ⚠️ Eski bildirim iptal hatası (devam ediliyor): $e');
@@ -178,11 +176,11 @@ class NotificationDisplayHelper {
       await Future.delayed(const Duration(milliseconds: 100));
 
       await plugin.zonedSchedule(
-        id: id,
-        title: title,
-        body: body,
-        scheduledDate: tzScheduledTime,
-        notificationDetails: details,
+        id,
+        title,
+        body,
+        tzScheduledTime,
+        details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: payload,
       );
@@ -221,7 +219,7 @@ class NotificationDisplayHelper {
   Future<void> cancelNotification(int? id) async {
     if (id == null) return;
     try {
-      await plugin.cancel(id: id);
+      await plugin.cancel(id);
       debugPrint('Bildirim iptal edildi: $id');
     } catch (e) {
       debugPrint('Bildirim iptal edilirken hata: $e');

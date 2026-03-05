@@ -18,7 +18,7 @@ class ProfileAvatarCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final initial = fullName.trim().isNotEmpty
         ? fullName.trim()[0].toUpperCase()
         : '?';

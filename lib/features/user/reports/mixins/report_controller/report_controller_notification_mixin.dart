@@ -28,10 +28,10 @@ mixin ReportControllerNotificationMixin<T extends StatefulWidget> on State<T> {
     );
 
     await notifications.show(
-      id: 0,
-      title: title,
-      body: 'Rapor hazır! Açmak için tıklayın.',
-      notificationDetails: platformDetails,
+      0,
+      title,
+      'Rapor hazır! Açmak için tıklayın.',
+      platformDetails,
       payload: file.path,
     );
 
@@ -47,7 +47,7 @@ mixin ReportControllerNotificationMixin<T extends StatefulWidget> on State<T> {
     );
 
     await notifications.initialize(
-      settings: settings,
+      settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         final payload = response.payload;
         if (payload != null && payload.isNotEmpty) {

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../../data/services/local_storage_service.dart';
 import '../../services/worker_notification_service.dart';
 
@@ -75,9 +73,10 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
 
       _workerId = int.parse(session['workerId']!);
 
-      // Önce eski okunmuş bildirimleri sil (1 günden eski)
-      await _deleteOldReadNotifications(_workerId!);
-
+      // Bildirimleri yükle
+      // NOT: Temizleme artık veritabanı trigger'ı tarafından otomatik yapılıyor
+      // - Okunduğunda eski ise hemen silinir (trigger)
+      // - Her gece 00:30'da otomatik temizleme (cron job)
       final notifications = await _notificationService.getAllNotifications(
         _workerId!,
       );
@@ -91,33 +90,6 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
       debugPrint('Bildirim yükleme hatası: $e');
       if (!mounted) return;
       setState(() => _isLoading = false);
-    }
-  }
-
-  /// Eski okunmuş bildirimleri sil (1 günden eski)
-  Future<void> _deleteOldReadNotifications(int workerId) async {
-    try {
-      // Bugünün başlangıcını UTC'de hesapla
-      final now = DateTime.now().toUtc();
-      final todayStartUtc = DateTime.utc(now.year, now.month, now.day);
-      final todayStartStr = todayStartUtc.toIso8601String();
-
-      debugPrint('🗑️ Eski bildirimler siliniyor...');
-      debugPrint('  Şu an (UTC): $now');
-      debugPrint('  Bugün başlangıç (UTC): $todayStartUtc');
-      debugPrint('  Silme kriteri: created_at < $todayStartStr');
-
-      await Supabase.instance.client
-          .from('notifications')
-          .delete()
-          .eq('recipient_id', workerId)
-          .eq('recipient_type', 'worker')
-          .eq('is_read', true)
-          .lt('created_at', todayStartStr);
-
-      debugPrint('✅ Eski okunmuş bildirimler silindi (worker)');
-    } catch (e) {
-      debugPrint('⚠️ Eski bildirim silme hatası (worker): $e');
     }
   }
 
@@ -135,8 +107,9 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
+    final size = MediaQuery.sizeOf(context);
+    final w = size.width;
+    final h = size.height;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -642,31 +615,40 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: w * 0.04,
-                        fontWeight: isRead ? FontWeight.w600 : FontWeight.w800,
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: isRead ? 0.7 : 1.0,
+                    Flexible(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: w * 0.04,
+                          fontWeight: isRead
+                              ? FontWeight.w600
+                              : FontWeight.w800,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: isRead ? 0.7 : 1.0,
+                          ),
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(height: h * 0.003),
+                    Flexible(
+                      child: Text(
+                        message,
+                        style: TextStyle(
+                          fontSize: w * 0.035,
+                          fontWeight: FontWeight.w500,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: isRead ? 0.5 : 0.6,
+                          ),
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     SizedBox(height: h * 0.004),
-                    Text(
-                      message,
-                      style: TextStyle(
-                        fontSize: w * 0.035,
-                        fontWeight: FontWeight.w500,
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: isRead ? 0.5 : 0.6,
-                        ),
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: h * 0.006),
                     Text(
                       DateFormat(
                         'dd MMM yyyy, HH:mm',

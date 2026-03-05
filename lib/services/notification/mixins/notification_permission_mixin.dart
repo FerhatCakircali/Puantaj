@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:android_intent_plus/android_intent.dart';
 
 /// Bildirim izinlerini yöneten mixin
 ///
@@ -74,17 +75,30 @@ mixin NotificationPermissionMixin {
       final alarmStatus = await Permission.scheduleExactAlarm.status;
 
       if (!alarmStatus.isGranted) {
-        debugPrint('SCHEDULE_EXACT_ALARM izni verilmemiş, isteniyor...');
-        final result = await Permission.scheduleExactAlarm.request();
+        debugPrint('⚠️ SCHEDULE_EXACT_ALARM izni verilmemiş!');
+        debugPrint('📱 Kullanıcı ayarlardan manuel olarak vermelidir.');
 
-        // Bu izin kullanıcı tarafından ayarlardan verilmeli
-        // Request sonucu her zaman denied dönebilir, bu normal
-        debugPrint('SCHEDULE_EXACT_ALARM izni durumu: $result');
+        // Kullanıcıyı ayarlara yönlendir
+        debugPrint('🔧 Ayarlar sayfası açılıyor...');
+        await openAppSettings();
 
-        // Alarm izni olmasa bile bildirimleri zamanlamayı deneyeceğiz
-        // Bu yüzden false dönmüyoruz
+        debugPrint(
+          'ℹ️ Ayarlar > Uygulamalar > Puantaj > Alarmlar ve hatırlatıcılar > İzin ver',
+        );
+
+        // Ayarlardan döndükten sonra tekrar kontrol et
+        await Future.delayed(const Duration(seconds: 2));
+        final newStatus = await Permission.scheduleExactAlarm.status;
+
+        if (!newStatus.isGranted) {
+          debugPrint('❌ SCHEDULE_EXACT_ALARM izni hala verilmedi');
+          debugPrint('⚠️ Hatırlatıcılar çalışmayabilir!');
+          // Yine de devam et, belki inexact alarm çalışır
+        } else {
+          debugPrint('✅ SCHEDULE_EXACT_ALARM izni verildi!');
+        }
       } else {
-        debugPrint('SCHEDULE_EXACT_ALARM izni zaten verilmiş');
+        debugPrint('✅ SCHEDULE_EXACT_ALARM izni zaten verilmiş');
       }
 
       return true;
@@ -92,6 +106,141 @@ mixin NotificationPermissionMixin {
       debugPrint('Android izinleri kontrol edilirken hata: $e');
       debugPrint('Stack trace: $stackTrace');
       return false;
+    }
+  }
+
+  /// Kullanıcıyı pil optimizasyonu ayarlarına yönlendirir
+  Future<void> requestBatteryOptimizationExemption(BuildContext context) async {
+    if (!Platform.isAndroid) return;
+
+    try {
+      // Pil optimizasyonu durumunu kontrol et
+      final ignoringBatteryOptimizations =
+          await Permission.ignoreBatteryOptimizations.status;
+
+      if (ignoringBatteryOptimizations.isGranted) {
+        debugPrint('✅ Pil optimizasyonu zaten devre dışı');
+        return;
+      }
+
+      // Dialog göster
+      final shouldOpen = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Arka Plan İzni Gerekli'),
+          content: const Text(
+            'Bildirimlerin arka planda çalışması için pil optimizasyonunu kapatmanız gerekiyor.\n\n'
+            'Açılacak ayarlar sayfasında:\n'
+            '1. "Pil kullanımını optimize et" seçeneğini bulun\n'
+            '2. "Tüm uygulamalar" seçin\n'
+            '3. Puantaj uygulamasını bulun\n'
+            '4. "Optimize etme" seçeneğini seçin',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Daha Sonra'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Ayarları Aç'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldOpen == true) {
+        // Pil optimizasyonu ayarlarını aç
+        try {
+          const intent = AndroidIntent(
+            action: 'android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS',
+          );
+          await intent.launch();
+          debugPrint('🔋 Pil optimizasyonu ayarları açıldı');
+        } catch (e) {
+          debugPrint('⚠️ Pil optimizasyonu ayarları açılamadı: $e');
+          // Genel ayarları aç
+          await openAppSettings();
+        }
+      }
+    } catch (e) {
+      debugPrint('Pil optimizasyonu kontrolü hatası: $e');
+    }
+  }
+
+  /// Kullanıcıyı otomatik başlatma ayarlarına yönlendirir (Xiaomi için)
+  Future<void> requestAutoStartPermission(BuildContext context) async {
+    if (!Platform.isAndroid) return;
+
+    try {
+      final shouldOpen = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Otomatik Başlatma İzni'),
+          content: const Text(
+            'Bildirimlerin düzgün çalışması için otomatik başlatma iznine ihtiyaç var.\n\n'
+            'Xiaomi/MIUI cihazlarda:\n'
+            '1. Güvenlik > İzinler > Otomatik başlatma\n'
+            '2. Puantaj uygulamasını bulun\n'
+            '3. Açık konuma getirin\n\n'
+            'Diğer cihazlarda benzer ayarları arayın.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Daha Sonra'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Ayarları Aç'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldOpen == true) {
+        // Xiaomi otomatik başlatma ayarlarını açmayı dene
+        try {
+          const intent = AndroidIntent(
+            action: 'android.settings.APPLICATION_DETAILS_SETTINGS',
+            data: 'package:com.example.puantaj',
+          );
+          await intent.launch();
+          debugPrint('🚀 Uygulama ayarları açıldı');
+        } catch (e) {
+          debugPrint('⚠️ Uygulama ayarları açılamadı: $e');
+          await openAppSettings();
+        }
+      }
+    } catch (e) {
+      debugPrint('Otomatik başlatma kontrolü hatası: $e');
+    }
+  }
+
+  /// Tüm gerekli izinleri ve ayarları kontrol edip kullanıcıyı yönlendirir
+  Future<void> requestAllPermissionsAndSettings(BuildContext context) async {
+    if (!Platform.isAndroid) return;
+
+    try {
+      // 1. Bildirim izinlerini al
+      final notificationGranted = await _checkAndRequestAndroidPermissions();
+
+      if (!notificationGranted) {
+        debugPrint('❌ Bildirim izinleri verilmedi');
+        return;
+      }
+
+      // 2. Pil optimizasyonunu kapat
+      await requestBatteryOptimizationExemption(context);
+
+      // 3. Otomatik başlatma iznini al
+      await requestAutoStartPermission(context);
+
+      debugPrint('✅ Tüm izin ve ayar kontrolleri tamamlandı');
+    } catch (e) {
+      debugPrint('Tüm izinler kontrol edilirken hata: $e');
     }
   }
 

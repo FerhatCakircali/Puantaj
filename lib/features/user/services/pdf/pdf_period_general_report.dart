@@ -8,9 +8,13 @@ import '../../../../../models/attendance.dart';
 import '../../../../../models/payment.dart';
 import 'dart:typed_data';
 import 'helpers/pdf_styles.dart';
+import 'helpers/pdf_svg_icons.dart';
 import 'helpers/pdf_general_summary_helper.dart';
 import 'helpers/pdf_general_table_helper.dart';
-import 'helpers/pdf_general_detail_helper.dart';
+import 'helpers/pdf_expense_helper.dart';
+import 'pdf_report_utils.dart';
+import '../../../../../models/expense.dart';
+import '../../../../../models/advance.dart';
 
 /// Genel dönem raporu PDF oluşturma servisi
 /// Orchestrator pattern kullanarak helper sınıflarını koordine eder
@@ -24,6 +28,8 @@ class PdfPeriodGeneralReportService {
     required List<Employee> employees,
     required List<List<Attendance>> allAttendances,
     required List<List<Payment>> allPayments,
+    required List<List<Advance>> allAdvances,
+    required List<Expense> expenses,
     String? outputDirectory,
     Uint8List? robotoFontBytes,
     Uint8List? robotoBoldFontBytes,
@@ -37,6 +43,8 @@ class PdfPeriodGeneralReportService {
         employees: employees,
         allAttendances: allAttendances,
         allPayments: allPayments,
+        allAdvances: allAdvances,
+        expenses: expenses,
         outputDirectory: outputDirectory,
         robotoFontBytes: robotoFontBytes,
         robotoBoldFontBytes: robotoBoldFontBytes,
@@ -50,6 +58,8 @@ class PdfPeriodGeneralReportService {
         employees: employees,
         allAttendances: allAttendances,
         allPayments: allPayments,
+        allAdvances: allAdvances,
+        expenses: expenses,
         outputDirectory: outputDirectory,
       );
     }
@@ -63,6 +73,8 @@ class PdfPeriodGeneralReportService {
     required List<Employee> employees,
     required List<List<Attendance>> allAttendances,
     required List<List<Payment>> allPayments,
+    required List<List<Advance>> allAdvances,
+    required List<Expense> expenses,
     String? outputDirectory,
     required Uint8List robotoFontBytes,
     required Uint8List robotoBoldFontBytes,
@@ -85,6 +97,8 @@ class PdfPeriodGeneralReportService {
       employees: employees,
       allAttendances: allAttendances,
       allPayments: allPayments,
+      allAdvances: allAdvances,
+      expenses: expenses,
     );
 
     pdf.addPage(
@@ -106,6 +120,8 @@ class PdfPeriodGeneralReportService {
     required List<Employee> employees,
     required List<List<Attendance>> allAttendances,
     required List<List<Payment>> allPayments,
+    required List<List<Advance>> allAdvances,
+    required List<Expense> expenses,
     String? outputDirectory,
   }) async {
     final pdf = pw.Document(theme: _base.fontsLoaded ? _base.pdfTheme : null);
@@ -118,6 +134,8 @@ class PdfPeriodGeneralReportService {
       employees: employees,
       allAttendances: allAttendances,
       allPayments: allPayments,
+      allAdvances: allAdvances,
+      expenses: expenses,
     );
 
     pdf.addPage(
@@ -140,175 +158,454 @@ class PdfPeriodGeneralReportService {
     required List<Employee> employees,
     required List<List<Attendance>> allAttendances,
     required List<List<Payment>> allPayments,
+    required List<List<Advance>> allAdvances,
+    required List<Expense> expenses,
   }) {
     final styles = PdfStyles(base);
     final summaryHelper = PdfGeneralSummaryHelper(styles);
-    final tableHelper = PdfGeneralTableHelper(styles, summaryHelper);
-    final detailHelper = PdfGeneralDetailHelper(styles);
+    final tableHelper = PdfGeneralTableHelper(summaryHelper, base.boldFont);
 
     final pages = <pw.Widget>[];
 
-    // 1. Başlık ve tarih aralığı
-    pages.addAll(
-      summaryHelper.buildHeader(
-        periodTitle: periodTitle,
-        periodStart: periodStart,
-        periodEnd: periodEnd,
+    // 1. Premium gradient başlık - Finansal Özet ile aynı format
+    pages.add(
+      pw.Container(
+        padding: styles.largePadding,
+        decoration: styles.premiumHeaderDecoration,
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          children: [
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('GENEL DÖNEM RAPORU', style: styles.mainTitleStyle),
+                pw.SizedBox(height: 6),
+                pw.Text(
+                  periodTitle,
+                  style: pw.TextStyle(
+                    fontSize: 14,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.white,
+                    font: base.boldFont,
+                  ),
+                ),
+              ],
+            ),
+            // Beyaz kutu - RAPOR DÖNEMİ
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 12,
+              ),
+              decoration: pw.BoxDecoration(color: PdfColors.white),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  pw.Text(
+                    'RAPOR DÖNEMİ',
+                    style: pw.TextStyle(
+                      fontSize: 8,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfStyles.neutralColor,
+                      font: base.boldFont,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Text(
+                    '${PdfReportUtils.dateFormat.format(periodStart)} - ${PdfReportUtils.dateFormat.format(periodEnd)}',
+                    style: pw.TextStyle(
+                      fontSize: 11,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfStyles.darkColor,
+                      font: base.boldFont,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
+    pages.add(pw.SizedBox(height: 16));
 
-    // 2. Ana özet tablosu
+    // 2. Ana özet tablosu (TÜM ÇALIŞANLAR)
     pages.add(
       tableHelper.buildSummaryTable(
         employees: employees,
         allAttendances: allAttendances,
         allPayments: allPayments,
+        allAdvances: allAdvances,
         periodStart: periodStart,
         periodEnd: periodEnd,
       ),
     );
-    pages.add(pw.SizedBox(height: 30));
+    pages.add(pw.SizedBox(height: 16));
 
-    // 3. Her çalışan için detaylı bilgiler
-    for (int i = 0; i < employees.length; i++) {
-      final employee = employees[i];
-      final attendances = allAttendances[i];
-      final payments = allPayments[i];
+    // 3. Genel masraf özeti (yöneticinin masrafları)
+    if (expenses.isNotEmpty) {
+      pages.add(
+        PdfExpenseHelper.buildExpenseInfo(
+          expenses,
+          periodStart,
+          periodEnd,
+          styles,
+        ),
+      );
+      pages.add(pw.SizedBox(height: 16));
+    }
 
-      // Tüm günleri oluştur
-      final allDays = _generateAllDays(
-        employee: employee,
-        attendances: attendances,
+    // 4. Finansal özet kartı
+    pages.add(
+      _buildFinancialSummaryCard(
+        employees: employees,
+        allPayments: allPayments,
+        allAdvances: allAdvances,
+        expenses: expenses,
         periodStart: periodStart,
         periodEnd: periodEnd,
-      );
+        styles: styles,
+        base: base,
+      ),
+    );
 
-      // Çalışan bilgileri kartı
-      pages.add(detailHelper.buildEmployeeInfoCard(employee));
-      pages.add(pw.SizedBox(height: 20));
-
-      // Devam kayıtları özet kartı
-      pages.add(
-        detailHelper.buildAttendanceSummaryCard(
-          allDays: allDays,
-          periodStart: periodStart,
-          periodEnd: periodEnd,
+    // Footer - Standart (Ortalanmış)
+    pages.add(pw.SizedBox(height: 16));
+    pages.add(
+      pw.Container(
+        padding: const pw.EdgeInsets.only(top: 16),
+        decoration: pw.BoxDecoration(
+          border: pw.Border(
+            top: pw.BorderSide(color: PdfStyles.borderColor, width: 0.5),
+          ),
         ),
-      );
-      pages.add(pw.SizedBox(height: 20));
-
-      // Ödeme bilgileri kartı
-      pages.add(
-        detailHelper.buildPaymentInfoCard(
-          payments: payments,
-          allDays: allDays,
-          periodStart: periodStart,
-          periodEnd: periodEnd,
+        child: pw.Center(
+          child: pw.Column(
+            children: [
+              pw.Text(
+                'Rapor Oluşturma Tarihi: ${PdfReportUtils.dateFormat.format(DateTime.now())}',
+                style: pw.TextStyle(fontSize: 9, color: PdfStyles.neutralColor),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Text(
+                'Sayfa 1',
+                style: pw.TextStyle(fontSize: 9, color: PdfStyles.neutralColor),
+              ),
+            ],
+          ),
         ),
-      );
-
-      // Detaylı devam kayıtları tabloları
-      _addAttendanceDetailTables(
-        pages: pages,
-        allDays: allDays,
-        detailHelper: detailHelper,
-      );
-
-      // Footer
-      pages.add(pw.SizedBox(height: 10));
-      pages.add(detailHelper.buildReportFooter(employee.name));
-
-      // Sayfa sonu (son çalışan hariç)
-      if (i < employees.length - 1) {
-        pages.add(pw.NewPage());
-      }
-    }
+      ),
+    );
 
     return pages;
   }
 
-  /// Tüm günleri oluşturur (devam kayıtları + eksik günler)
-  List<Attendance> _generateAllDays({
-    required Employee employee,
-    required List<Attendance> attendances,
+  /// Finansal özet kartı oluştur (modern tasarım)
+  pw.Widget _buildFinancialSummaryCard({
+    required List<Employee> employees,
+    required List<List<Payment>> allPayments,
+    required List<List<Advance>> allAdvances,
+    required List<Expense> expenses,
     required DateTime periodStart,
     required DateTime periodEnd,
+    required PdfStyles styles,
+    required PdfBaseService base,
   }) {
-    final allDays = <Attendance>[];
-    DateTime currentDate = periodStart.isAfter(employee.startDate)
-        ? periodStart
-        : employee.startDate;
-
-    while (!currentDate.isAfter(periodEnd)) {
-      final existingRecord = attendances.firstWhere(
-        (a) =>
-            a.date.year == currentDate.year &&
-            a.date.month == currentDate.month &&
-            a.date.day == currentDate.day,
-        orElse: () => Attendance(
-          userId: 0,
-          workerId: employee.id,
-          date: currentDate,
-          status: AttendanceStatus.absent,
-        ),
-      );
-      allDays.add(existingRecord);
-      currentDate = currentDate.add(const Duration(days: 1));
+    // Toplam ödemeler (dönem içi)
+    double totalPayments = 0;
+    for (var payments in allPayments) {
+      totalPayments += payments
+          .where((p) => _isInPeriod(p.paymentDate, periodStart, periodEnd))
+          .fold<double>(0, (sum, p) => sum + p.amount);
     }
 
-    return allDays;
+    // Toplam avanslar (dönem içi)
+    double totalAdvances = 0;
+    double deductedAdvances = 0;
+    double pendingAdvances = 0;
+    for (var advances in allAdvances) {
+      final periodAdvances = advances
+          .where((a) => _isInPeriod(a.advanceDate, periodStart, periodEnd))
+          .toList();
+
+      totalAdvances += periodAdvances.fold<double>(
+        0,
+        (sum, a) => sum + a.amount,
+      );
+      deductedAdvances += periodAdvances
+          .where((a) => a.isDeducted)
+          .fold<double>(0, (sum, a) => sum + a.amount);
+      pendingAdvances += periodAdvances
+          .where((a) => !a.isDeducted)
+          .fold<double>(0, (sum, a) => sum + a.amount);
+    }
+
+    // Toplam masraflar (dönem içi)
+    final totalExpenses = expenses.fold<double>(0, (sum, e) => sum + e.amount);
+
+    // Toplam gider
+    final totalSpending = totalPayments + totalAdvances + totalExpenses;
+
+    return pw.Container(
+      padding: styles.standardPadding,
+      decoration: styles.primaryCardDecoration,
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            'FİNANSAL ÖZET',
+            style: pw.TextStyle(
+              font: base.boldFont,
+              fontSize: 16,
+              color: PdfStyles.primaryColor,
+            ),
+          ),
+          pw.SizedBox(height: 12),
+
+          // İstatistik kartları (grid)
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              _buildStatCard(
+                PdfSvgIcons.users,
+                'Çalışan',
+                '${employees.length}',
+                PdfStyles.primaryColor,
+                styles,
+                base,
+              ),
+              pw.SizedBox(width: 8),
+              _buildStatCard(
+                PdfSvgIcons.money,
+                'Ödemeler',
+                PdfReportUtils.formatCurrency(totalPayments),
+                PdfStyles.successColor,
+                styles,
+                base,
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 8),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              _buildStatCard(
+                PdfSvgIcons.handMoney,
+                'Avanslar',
+                PdfReportUtils.formatCurrency(totalAdvances),
+                PdfStyles.warningColor,
+                styles,
+                base,
+              ),
+              pw.SizedBox(width: 8),
+              _buildStatCard(
+                PdfSvgIcons.shopping,
+                'Masraflar',
+                PdfReportUtils.formatCurrency(totalExpenses),
+                PdfStyles.dangerColor,
+                styles,
+                base,
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 12),
+
+          // Avans detayları - Modern Bento Box (Yeşil/Turuncu Dots)
+          pw.Container(
+            padding: const pw.EdgeInsets.all(16),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.white,
+              border: pw.Border(
+                top: pw.BorderSide(color: PdfStyles.warningColor, width: 3),
+                left: pw.BorderSide(color: PdfStyles.borderColor, width: 0.5),
+                right: pw.BorderSide(color: PdfStyles.borderColor, width: 0.5),
+                bottom: pw.BorderSide(color: PdfStyles.borderColor, width: 0.5),
+              ),
+              boxShadow: [
+                pw.BoxShadow(
+                  color: PdfColor.fromInt(0x0A000000),
+                  offset: const PdfPoint(0, 2),
+                  blurRadius: 6,
+                ),
+              ],
+            ),
+            child: pw.Column(
+              children: [
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    pw.Row(
+                      children: [
+                        // Yeşil dot
+                        pw.Container(
+                          width: 6,
+                          height: 6,
+                          decoration: pw.BoxDecoration(
+                            color: PdfStyles.successColor,
+                            shape: pw.BoxShape.circle,
+                          ),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Text(
+                          'Düşülmüş Avans',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            color: PdfStyles.darkColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    pw.Text(
+                      PdfReportUtils.formatCurrency(deductedAdvances),
+                      style: pw.TextStyle(
+                        fontSize: 12,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfStyles.successColor,
+                        font: base.boldFont,
+                      ),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 12),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    pw.Row(
+                      children: [
+                        // Turuncu dot
+                        pw.Container(
+                          width: 6,
+                          height: 6,
+                          decoration: pw.BoxDecoration(
+                            color: PdfStyles.warningColor,
+                            shape: pw.BoxShape.circle,
+                          ),
+                        ),
+                        pw.SizedBox(width: 8),
+                        pw.Text(
+                          'Bekleyen Avans',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            color: PdfStyles.darkColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    pw.Text(
+                      PdfReportUtils.formatCurrency(pendingAdvances),
+                      style: pw.TextStyle(
+                        fontSize: 12,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfStyles.warningColor,
+                        font: base.boldFont,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 12),
+
+          // Modern Toplam Gider Bandı - İnce, keskin köşeli, derin gölge
+          pw.Container(
+            padding: const pw.EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 18,
+            ),
+            decoration: pw.BoxDecoration(
+              color: PdfStyles.darkColor,
+              boxShadow: [
+                pw.BoxShadow(
+                  color: PdfColor.fromInt(0x33000000),
+                  offset: const PdfPoint(0, 4),
+                  blurRadius: 12,
+                ),
+              ],
+            ),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'TOPLAM GİDER',
+                  style: pw.TextStyle(
+                    font: base.boldFont,
+                    fontSize: 11,
+                    color: PdfColors.white,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                pw.Text(
+                  PdfReportUtils.formatCurrency(totalSpending),
+                  style: pw.TextStyle(
+                    font: base.boldFont,
+                    fontSize: 16,
+                    color: PdfColors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  /// Detaylı devam kayıtları tablolarını ekler
-  void _addAttendanceDetailTables({
-    required List<pw.Widget> pages,
-    required List<Attendance> allDays,
-    required PdfGeneralDetailHelper detailHelper,
-  }) {
-    // Tam gün çalışma kayıtları
-    final fullDays = allDays
-        .where((a) => a.status == AttendanceStatus.fullDay)
-        .toList();
-    if (fullDays.isNotEmpty) {
-      pages.add(pw.SizedBox(height: 20));
-      pages.add(
-        detailHelper.buildAttendanceDetailTable(
-          title: 'TAM GÜN ÇALIŞMA KAYITLARI',
-          attendances: fullDays,
+  /// Küçük istatistik kartı oluştur (İkonsuz, Minimalist, Büyük Metinler)
+  pw.Widget _buildStatCard(
+    String iconSvg,
+    String label,
+    String value,
+    PdfColor color,
+    PdfStyles styles,
+    PdfBaseService base,
+  ) {
+    return pw.Expanded(
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(14),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          border: pw.Border.all(color: PdfStyles.borderColor, width: 0.5),
+          boxShadow: [
+            pw.BoxShadow(
+              color: PdfColor.fromInt(0x0A000000),
+              offset: const PdfPoint(0, 1),
+              blurRadius: 4,
+            ),
+          ],
         ),
-      );
-    }
-
-    // Yarım gün çalışma kayıtları
-    final halfDays = allDays
-        .where((a) => a.status == AttendanceStatus.halfDay)
-        .toList();
-    if (halfDays.isNotEmpty) {
-      pages.add(pw.SizedBox(height: 20));
-      pages.add(
-        detailHelper.buildAttendanceDetailTable(
-          title: 'YARIM GÜN ÇALIŞMA KAYITLARI',
-          attendances: halfDays,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              label,
+              style: pw.TextStyle(
+                fontSize: 10,
+                color: PdfStyles.neutralColor,
+                fontWeight: pw.FontWeight.bold,
+                font: base.boldFont,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              value,
+              style: pw.TextStyle(
+                font: base.boldFont,
+                fontSize: 14,
+                color: color,
+              ),
+            ),
+          ],
         ),
-      );
-    }
-
-    // Gelmediği günler
-    final absentDays = allDays
-        .where((a) => a.status == AttendanceStatus.absent)
-        .toList();
-    if (absentDays.isNotEmpty) {
-      pages.add(pw.SizedBox(height: 20));
-      pages.add(
-        detailHelper.buildAttendanceDetailTable(
-          title: 'GELMEDİĞİ GÜNLER',
-          attendances: absentDays,
-        ),
-      );
-    }
+      ),
+    );
   }
 
-  /// PDF'i kaydeder ve açar
+  /// PDF'i kaydeder (açmaz - ana thread'de açılacak)
   Future<File> _savePdf(
     pw.Document pdf,
     String periodTitle,
@@ -319,7 +616,25 @@ class PdfPeriodGeneralReportService {
       '$outputPath/${periodTitle.replaceAll(' ', '_')}_genel_rapor.pdf',
     );
     await file.writeAsBytes(await pdf.save());
-    await _base.openPdf(file);
+    // openPdf çağrısı kaldırıldı - isolate içinde çalışmaz
+    // Ana thread'de açılacak
     return file;
+  }
+
+  /// Tarihin dönem içinde olup olmadığını kontrol eder
+  bool _isInPeriod(DateTime date, DateTime periodStart, DateTime periodEnd) {
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+    final normalizedStart = DateTime(
+      periodStart.year,
+      periodStart.month,
+      periodStart.day,
+    );
+    final normalizedEnd = DateTime(
+      periodEnd.year,
+      periodEnd.month,
+      periodEnd.day,
+    );
+    return !normalizedDate.isBefore(normalizedStart) &&
+        !normalizedDate.isAfter(normalizedEnd);
   }
 }

@@ -25,31 +25,29 @@ class NotificationIds {
 /// Bildirim kanalları (Android)
 ///
 /// Android bildirim kanalları için ID tanımları.
+/// Tüm Android cihazlar (Samsung, Xiaomi, Oppo, Huawei, vb.) için optimize edilmiştir.
 /// Her kanal farklı önem seviyesi ve ayarlara sahiptir.
 class NotificationChannels {
   /// Yevmiye hatırlatıcısı kanalı
   ///
   /// Günlük yevmiye girişi hatırlatıcıları için kullanılır.
-  /// Yüksek önem seviyesi, ses ve titreşim etkin.
+  /// Maksimum önem seviyesi, ses ve titreşim etkin.
+  /// Tüm Android cihazlarda çalışır.
   static const String attendanceReminder = 'attendance_reminder';
 
   /// Yevmiye talep bildirimleri kanalı
   ///
   /// Çalışanlar tarafından gönderilen yevmiye talepleri için kullanılır.
   /// FCM ile anında bildirim gönderilir.
-  /// Yüksek önem seviyesi, ses ve titreşim etkin.
+  /// Maksimum önem seviyesi, ses ve titreşim etkin.
+  /// Tüm Android cihazlarda çalışır.
   static const String attendanceRequests = 'attendance_requests';
 
   /// Çalışan hatırlatıcıları kanalı
   ///
   /// Çalışanlarla ilgili hatırlatıcılar için kullanılır.
   /// (Doğum günü, izin dönüşü, vb.)
-  /// Yüksek önem seviyesi, ses ve titreşim etkin.
+  /// Maksimum önem seviyesi, ses ve titreşim etkin.
+  /// Tüm Android cihazlarda çalışır.
   static const String employeeReminders = 'employee_reminders';
-
-  /// Xiaomi cihazlar için özel yüksek önem kanalı
-  ///
-  /// Xiaomi cihazlarda bildirimlerin düzgün gösterilmesi için
-  /// özel yapılandırılmış kanal.
-  static const String xiaomiHighImportance = 'xiaomi_high_importance_channel';
 }

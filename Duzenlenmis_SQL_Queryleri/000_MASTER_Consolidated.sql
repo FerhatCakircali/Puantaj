@@ -615,10 +615,10 @@ DECLARE
 BEGIN
   BEGIN
     SELECT net.http_post(
-      url := 'https://YOUR_PROJECT_ID.supabase.co/functions/v1/send-push-notification',
+      url := 'https://uvdcefauzxordqgvvweq.supabase.co/functions/v1/send-push-notification',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'Authorization', 'Bearer YOUR_SERVICE_ROLE_KEY_HERE'
+        'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2ZGNlZmF1enhvcmRxZ3Z2d2VxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MDgyMTk3MSwiZXhwIjoyMDg2Mzk3OTcxfQ.-x_wB2UUEg4gcTN1-PkLnUi3-wQLkLAeOuIb7t68Npk'
       ),
       body := jsonb_build_object(
         'recipientId', NEW.recipient_id,

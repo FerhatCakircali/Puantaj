@@ -38,17 +38,15 @@ class EditEmployeeDialog extends StatefulWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: EditEmployeeDialog(
-          employee: employee,
-          onCheckRecords: onCheckRecords,
-          onDeleteRecords: onDeleteRecords,
-          onUpdate: onUpdate,
-        ),
+      isDismissible: true,
+      enableDrag: true,
+      builder: (context) => EditEmployeeDialog(
+        employee: employee,
+        onCheckRecords: onCheckRecords,
+        onDeleteRecords: onDeleteRecords,
+        onUpdate: onUpdate,
       ),
     );
   }
@@ -62,12 +60,26 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
   late TextEditingController nameController;
   late TextEditingController titleController;
   late TextEditingController phoneController;
+  late TextEditingController usernameController;
+  late TextEditingController emailController;
   late DateTime selectedDate;
   late bool isActive;
   late bool isTrusted;
   bool isStartDateChanged = false;
   bool hasRecordsBeforeNewDate = false;
   bool isProcessing = false;
+  late final ScrollController _scrollController;
+
+  final _usernameKey = GlobalKey();
+  final _emailKey = GlobalKey();
+  final _nameKey = GlobalKey();
+  final _titleKey = GlobalKey();
+  final _phoneKey = GlobalKey();
+  final _dateKey = GlobalKey();
+
+  late final FocusNode _nameFocus;
+  late final FocusNode _titleFocus;
+  late final FocusNode _phoneFocus;
 
   @override
   void initState() {
@@ -75,9 +87,29 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
     nameController = TextEditingController(text: widget.employee.name);
     titleController = TextEditingController(text: widget.employee.title);
     phoneController = TextEditingController(text: widget.employee.phone);
+    usernameController = TextEditingController(
+      text: widget.employee.username ?? 'Kullanıcı adı yok',
+    );
+    emailController = TextEditingController(
+      text: widget.employee.email ?? 'Email yok',
+    );
     selectedDate = widget.employee.startDate;
     isActive = widget.employee.isActive;
     isTrusted = widget.employee.isTrusted;
+    _scrollController = ScrollController();
+    _nameFocus = FocusNode();
+    _titleFocus = FocusNode();
+    _phoneFocus = FocusNode();
+
+    _nameFocus.addListener(() {
+      if (_nameFocus.hasFocus) _ensureVisible(_nameKey);
+    });
+    _titleFocus.addListener(() {
+      if (_titleFocus.hasFocus) _ensureVisible(_titleKey);
+    });
+    _phoneFocus.addListener(() {
+      if (_phoneFocus.hasFocus) _ensureVisible(_phoneKey);
+    });
   }
 
   @override
@@ -85,10 +117,29 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
     nameController.dispose();
     titleController.dispose();
     phoneController.dispose();
+    usernameController.dispose();
+    emailController.dispose();
+    _scrollController.dispose();
+    _nameFocus.dispose();
+    _titleFocus.dispose();
+    _phoneFocus.dispose();
     super.dispose();
   }
 
+  Future<void> _ensureVisible(GlobalKey key) async {
+    await Future.delayed(const Duration(milliseconds: 60));
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+    await Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      alignment: 0.2,
+    );
+  }
+
   Future<void> _handleDateSelection() async {
+    _ensureVisible(_dateKey);
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: selectedDate,
@@ -130,11 +181,37 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
   }
 
   Future<void> _handleSave() async {
-    if (!_controller.validateForm(
-      name: nameController.text,
-      title: titleController.text,
-      phone: phoneController.text,
-    )) {
+    // Validasyon
+    if (nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('İsim Soyisim alanı boş bırakılamaz'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unvan alanı boş bırakılamaz'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (phoneController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Telefon alanı boş bırakılamaz'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
 
@@ -178,18 +255,43 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
       } catch (e) {
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('İşlem sırasında bir hata oluştu: $e'),
-            backgroundColor: Colors.red,
-          ),
+        debugPrint(
+          '❌ EditEmployeeDialog: Güncelleme hatası (kayıt silme ile): $e',
         );
-      } finally {
-        if (mounted) {
-          setState(() => isProcessing = false);
+
+        // Oturum hatası kontrolü
+        final errorMessage = e.toString();
+        if (errorMessage.contains('Kullanıcı oturumu bulunamadı')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Oturumunuz sonlanmış. Lütfen tekrar giriş yapın.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+          // Kullanıcıyı login sayfasına yönlendir
+          Future.delayed(const Duration(seconds: 1), () {
+            if (mounted) {
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/login', (route) => false);
+            }
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('İşlem sırasında bir hata oluştu: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
+
+        // Hata durumunda dialog'u kapatma, isProcessing'i false yap
+        setState(() => isProcessing = false);
       }
     } else {
+      setState(() => isProcessing = true);
+
       try {
         await _controller.updateEmployee(
           employee: updatedEmployee,
@@ -209,12 +311,37 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
       } catch (e) {
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('İşlem sırasında bir hata oluştu: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        debugPrint('❌ EditEmployeeDialog: Güncelleme hatası: $e');
+
+        // Oturum hatası kontrolü
+        final errorMessage = e.toString();
+        if (errorMessage.contains('Kullanıcı oturumu bulunamadı')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Oturumunuz sonlanmış. Lütfen tekrar giriş yapın.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+          // Kullanıcıyı login sayfasına yönlendir
+          Future.delayed(const Duration(seconds: 1), () {
+            if (mounted) {
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil('/login', (route) => false);
+            }
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('İşlem sırasında bir hata oluştu: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+
+        // Hata durumunda dialog'u kapatma, isProcessing'i false yap
+        setState(() => isProcessing = false);
       }
     }
   }
@@ -230,77 +357,121 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mediaQuery = MediaQuery.of(context);
+    final screenSize = MediaQuery.sizeOf(context);
+    final screenHeight = screenSize.height;
+    final screenWidth = screenSize.width;
 
-    return Container(
-      height: mediaQuery.size.height * 0.9,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      child: Column(
-        children: [
-          EditEmployeeHeader(
-            onClose: () => Navigator.pop(context),
-            isProcessing: isProcessing,
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  EditEmployeeTextField(
-                    controller: TextEditingController(
-                      text: widget.employee.username ?? 'Kullanıcı adı yok',
-                    ),
-                    label: 'Kullanıcı Adı',
-                    icon: Icons.account_circle,
-                    enabled: false,
-                  ),
-                  const SizedBox(height: 16),
-                  EditEmployeeTextField(
-                    controller: nameController,
-                    label: 'İsim Soyisim',
-                    icon: Icons.person_outline,
-                  ),
-                  const SizedBox(height: 16),
-                  EditEmployeeTextField(
-                    controller: titleController,
-                    label: 'Unvan',
-                    icon: Icons.work_outline,
-                  ),
-                  const SizedBox(height: 16),
-                  EditEmployeeTextField(
-                    controller: phoneController,
-                    label: 'Telefon',
-                    icon: Icons.phone,
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 16),
-                  EditEmployeeDateSelector(
-                    selectedDate: selectedDate,
-                    onTap: _handleDateSelection,
-                  ),
-                  const SizedBox(height: 24),
-                  TrustedStatusSwitch(
-                    isTrusted: isTrusted,
-                    onChanged: (value) {
-                      setState(() => isTrusted = value);
-                    },
-                  ),
-                  if (isStartDateChanged && hasRecordsBeforeNewDate)
-                    const DateChangeWarning(),
-                ],
-              ),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: false,
+      body: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: screenHeight * 0.9),
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(screenWidth * 0.08),
             ),
           ),
-          EditEmployeeActions(
-            onSave: _handleSave,
-            onCancel: () => Navigator.pop(context),
-            isProcessing: isProcessing,
+          child: Column(
+            children: [
+              RepaintBoundary(
+                child: EditEmployeeHeader(
+                  onClose: () => Navigator.pop(context),
+                  isProcessing: isProcessing,
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  padding: EdgeInsets.all(screenWidth * 0.06),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        key: _usernameKey,
+                        child: EditEmployeeTextField(
+                          controller: usernameController,
+                          label: 'Kullanıcı Adı',
+                          icon: Icons.account_circle,
+                          enabled: false,
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+                      Container(
+                        key: _emailKey,
+                        child: EditEmployeeTextField(
+                          controller: emailController,
+                          label: 'E-posta',
+                          icon: Icons.email_outlined,
+                          enabled: false,
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+                      Container(
+                        key: _nameKey,
+                        child: EditEmployeeTextField(
+                          controller: nameController,
+                          focusNode: _nameFocus,
+                          label: 'İsim Soyisim',
+                          icon: Icons.person_outline,
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+                      Container(
+                        key: _titleKey,
+                        child: EditEmployeeTextField(
+                          controller: titleController,
+                          focusNode: _titleFocus,
+                          label: 'Unvan',
+                          icon: Icons.work_outline,
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+                      Container(
+                        key: _phoneKey,
+                        child: EditEmployeeTextField(
+                          controller: phoneController,
+                          focusNode: _phoneFocus,
+                          label: 'Telefon',
+                          icon: Icons.phone,
+                          keyboardType: TextInputType.phone,
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+                      Container(
+                        key: _dateKey,
+                        child: EditEmployeeDateSelector(
+                          selectedDate: selectedDate,
+                          onTap: _handleDateSelection,
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.03),
+                      TrustedStatusSwitch(
+                        isTrusted: isTrusted,
+                        onChanged: (value) {
+                          setState(() => isTrusted = value);
+                        },
+                      ),
+                      if (isStartDateChanged && hasRecordsBeforeNewDate)
+                        Padding(
+                          padding: EdgeInsets.only(top: screenHeight * 0.02),
+                          child: const DateChangeWarning(),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              RepaintBoundary(
+                child: EditEmployeeActions(
+                  onSave: _handleSave,
+                  onCancel: () => Navigator.pop(context),
+                  isProcessing: isProcessing,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -39,9 +39,9 @@ class WorkerAttendanceService {
   /// Yevmiye talebi gönder
   ///
   /// Database trigger otomatik olarak:
-  /// 1. notifications tablosuna kayıt ekler
-  /// 2. scheduled_time = NOW() + 1 dakika olarak ayarlar
-  /// 3. Yöneticinin cihazı periyodik kontrol ile bildirimi gösterir
+  /// 1. notifications tablosuna kayıt ekler (scheduled_time = NULL)
+  /// 2. FCM ile ANINDA bildirim gönderilir
+  /// 3. Uygulama açıksa Realtime, kapalıysa Push Notification
   Future<bool> submitAttendanceRequest({
     required int workerId,
     int? userId,
@@ -101,10 +101,8 @@ class WorkerAttendanceService {
 
       debugPrint('✅ Yeni yevmiye talebi gönderildi (ID: $requestId)');
       debugPrint('📬 Database trigger notifications tablosuna kayıt ekleyecek');
-      debugPrint('📬 scheduled_time = NOW() + 1 dakika olarak ayarlanacak');
-      debugPrint(
-        '📡 Yöneticinin cihazı periyodik kontrol ile bildirimi gösterecek',
-      );
+      debugPrint('⚡ FCM ile ANINDA bildirim gönderilecek');
+      debugPrint('📡 Uygulama açıksa Realtime, kapalıysa Push Notification');
 
       return true;
     } catch (e) {

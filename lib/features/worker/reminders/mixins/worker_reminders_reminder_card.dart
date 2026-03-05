@@ -21,7 +21,7 @@ class WorkerRemindersReminderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     final iconBgColor = isDark
         ? theme.colorScheme.primary.withValues(alpha: 0.15)

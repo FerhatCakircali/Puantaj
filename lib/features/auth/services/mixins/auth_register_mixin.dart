@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../data/services/password_hasher.dart';
+import '../../../../services/validation_service.dart';
 
 mixin AuthRegisterMixin {
+  final _validationService = ValidationService.instance;
+
   /// Yeni kullanıcı kaydı
   Future<String?> register(
     String username,
@@ -16,24 +19,32 @@ mixin AuthRegisterMixin {
     try {
       final lowercaseUsername = username.toLowerCase();
 
-      final usernameError = validateUsername(lowercaseUsername);
+      final usernameError = _validationService.validateUsernameFormat(
+        lowercaseUsername,
+      );
       if (usernameError != null) {
         return usernameError;
       }
 
-      final usernameAvailability = await checkUsernameAvailability(
-        lowercaseUsername,
-      );
+      final usernameAvailability = await _validationService
+          .checkUsernameAvailability(lowercaseUsername);
       if (usernameAvailability != null) {
         return usernameAvailability;
       }
 
-      // Email kontrolü (zorunlu)
+      // E-posta kontrolü (zorunlu)
       if (email == null || email.isEmpty) {
-        return 'Email adresi gerekli';
+        return 'E-posta adresi gerekli';
       }
 
-      final emailAvailability = await checkEmailAvailability(email);
+      final emailFormatError = _validationService.validateEmailFormat(email);
+      if (emailFormatError != null) {
+        return emailFormatError;
+      }
+
+      final emailAvailability = await _validationService.checkEmailAvailability(
+        email,
+      );
       if (emailAvailability != null) {
         return emailAvailability;
       }
@@ -64,101 +75,26 @@ mixin AuthRegisterMixin {
       debugPrint('Kayıt sırasında hata: $e');
       if (e is PostgrestException && e.code == '23505') {
         if (e.message.contains('email')) {
-          return 'Bu email adresi zaten kullanılıyor';
+          return 'Bu e-posta adresi zaten kullanılıyor';
         }
       }
       return 'Bir hata oluştu';
     }
   }
 
-  /// Kullanıcı adı validasyonu
+  /// Kullanıcı adı validasyonu (wrapper for ValidationService)
   String? validateUsername(String username) {
-    if (username.isEmpty) {
-      return 'Kullanıcı adı boş olamaz.';
-    }
-
-    if (username.length < 3) {
-      return 'Kullanıcı adı en az 3 karakter olmalıdır.';
-    }
-
-    if (username.length > 30) {
-      return 'Kullanıcı adı en fazla 30 karakter olabilir.';
-    }
-
-    final validUsernameRegex = RegExp(r'^[a-zA-Z0-9]+$');
-    if (!validUsernameRegex.hasMatch(username)) {
-      return 'Kullanıcı adı sadece İngilizce harfler (A-Z) ve sayılardan (0-9) oluşmalıdır.';
-    }
-
-    return null;
+    return _validationService.validateUsernameFormat(username);
   }
 
-  /// Kullanıcı adı kullanılabilirlik kontrolü (hem users hem workers tablosunda)
+  /// Kullanıcı adı kullanılabilirlik kontrolü (wrapper for ValidationService)
   Future<String?> checkUsernameAvailability(String username) async {
-    try {
-      final lowercaseUsername = username.toLowerCase();
-
-      // Users tablosunda kontrol et
-      final userResult = await Supabase.instance.client
-          .from('users')
-          .select('id')
-          .eq('username', lowercaseUsername)
-          .maybeSingle();
-
-      if (userResult != null) {
-        return 'Bu kullanıcı adı zaten kullanılıyor';
-      }
-
-      // Workers tablosunda da kontrol et
-      final workerResult = await Supabase.instance.client
-          .from('workers')
-          .select('id')
-          .eq('username', lowercaseUsername)
-          .maybeSingle();
-
-      if (workerResult != null) {
-        return 'Bu kullanıcı adı zaten kullanılıyor';
-      }
-
-      return null;
-    } catch (e) {
-      debugPrint('Kullanıcı adı kontrolü hatası: $e');
-      return 'Kullanıcı adı kontrolü sırasında bir hata oluştu';
-    }
+    return await _validationService.checkUsernameAvailability(username);
   }
 
-  /// Email kullanılabilirlik kontrolü (hem users hem workers tablosunda)
+  /// Email kullanılabilirlik kontrolü (wrapper for ValidationService)
   Future<String?> checkEmailAvailability(String email) async {
-    try {
-      final lowercaseEmail = email.toLowerCase();
-
-      // Users tablosunda kontrol et
-      final userResult = await Supabase.instance.client
-          .from('users')
-          .select('id')
-          .eq('email', lowercaseEmail)
-          .maybeSingle();
-
-      if (userResult != null) {
-        return 'Bu email adresi zaten kullanılıyor';
-      }
-
-      // Workers tablosunda da kontrol et
-      final workerResult = await Supabase.instance.client
-          .from('workers')
-          .select('id')
-          .eq('email', lowercaseEmail)
-          .maybeSingle();
-
-      if (workerResult != null) {
-        return 'Bu email adresi zaten kullanılıyor';
-      }
-
-      return null;
-    } catch (e) {
-      debugPrint('Email kontrolü hatası: $e');
-      return 'Email kontrolü sırasında bir hata oluştu';
-    }
+    return await _validationService.checkEmailAvailability(email);
   }
 
   /// Admin kullanıcı oluştur (yoksa)
@@ -177,7 +113,7 @@ mixin AuthRegisterMixin {
 
         await Supabase.instance.client.from('users').insert({
           'username': 'admin',
-          'password_hash': 'admin123',
+          'password_hash': 'admin',
           'first_name': 'Admin',
           'last_name': 'User',
           'job_title': 'System Administrator',

@@ -106,13 +106,11 @@ mixin NotificationSchedulingMixin on NotificationPermissionMixin {
       final notificationId = 1000 + userId;
 
       await flutterLocalNotificationsPlugin.zonedSchedule(
-        id: notificationId,
-        title: 'Yevmiye Hatırlatıcısı',
-        body: 'Bugünkü yevmiye kayıtlarını girmeyi unutmayın.',
-        scheduledDate: tzDate,
-        notificationDetails: _buildNotificationDetails(
-          NotificationChannels.attendanceReminder,
-        ),
+        notificationId,
+        'Yevmiye Hatırlatıcısı',
+        'Bugünkü yevmiye kayıtlarını girmeyi unutmayın.',
+        tzDate,
+        _buildNotificationDetails(NotificationChannels.attendanceReminder),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
         payload: payload.toJson(),
@@ -199,13 +197,11 @@ mixin NotificationSchedulingMixin on NotificationPermissionMixin {
 
       // Bildirimi zamanla
       await flutterLocalNotificationsPlugin.zonedSchedule(
-        id: reminderId, // Benzersiz ID
-        title: 'Çalışan Hatırlatıcısı - $workerName',
-        body: message,
-        scheduledDate: tzDate,
-        notificationDetails: _buildNotificationDetails(
-          NotificationChannels.employeeReminders,
-        ),
+        reminderId, // Benzersiz ID
+        'Çalışan Hatırlatıcısı - $workerName',
+        message,
+        tzDate,
+        _buildNotificationDetails(NotificationChannels.employeeReminders),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: payload.toJson(),
       );
@@ -236,7 +232,7 @@ mixin NotificationSchedulingMixin on NotificationPermissionMixin {
   /// ```
   Future<void> cancelNotification(int id) async {
     try {
-      await flutterLocalNotificationsPlugin.cancel(id: id);
+      await flutterLocalNotificationsPlugin.cancel(id);
       debugPrint('Bildirim iptal edildi: ID=$id');
     } catch (e) {
       debugPrint('Bildirim iptal edilirken hata: ID=$id, Hata: $e');

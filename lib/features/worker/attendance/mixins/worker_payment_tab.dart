@@ -58,6 +58,7 @@ class WorkerPaymentTab extends StatelessWidget {
       child: ListView.builder(
         padding: EdgeInsets.fromLTRB(w * 0.06, h * 0.015, w * 0.06, h * 0.1),
         itemCount: paymentHistory.length,
+        itemExtent: h * 0.21,
         itemBuilder: (context, index) {
           final payment = paymentHistory[index];
 
@@ -130,7 +131,7 @@ class WorkerPaymentTab extends StatelessWidget {
                         children: [
                           Text(
                             DateFormat(
-                              'dd MMMM yyyy, EEEE',
+                              'dd MMMM yyyy',
                               'tr_TR',
                             ).format(paymentDate),
                             style: TextStyle(
@@ -139,7 +140,17 @@ class WorkerPaymentTab extends StatelessWidget {
                               color: theme.colorScheme.onSurface,
                             ),
                           ),
-                          SizedBox(height: h * 0.006),
+                          Text(
+                            DateFormat('EEEE', 'tr_TR').format(paymentDate),
+                            style: TextStyle(
+                              fontSize: w * 0.035,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: h * 0.004),
                           Text(
                             'Saat: ${DateFormat('HH:mm', 'tr_TR').format(displayTime)}',
                             style: TextStyle(
@@ -180,15 +191,15 @@ class WorkerPaymentTab extends StatelessWidget {
                   ],
                 ),
                 if (fullDays > 0 || halfDays > 0) ...[
-                  SizedBox(height: h * 0.018),
+                  SizedBox(height: h * 0.01),
                   Container(
                     height: 1,
                     color: theme.colorScheme.outline.withValues(alpha: 0.1),
                   ),
-                  SizedBox(height: h * 0.018),
+                  SizedBox(height: h * 0.006),
                   Wrap(
-                    spacing: w * 0.02,
-                    runSpacing: h * 0.01,
+                    spacing: w * 0.012,
+                    runSpacing: h * 0.004,
                     children: [
                       if (fullDays > 0)
                         _buildDayBadge(
@@ -228,25 +239,25 @@ class WorkerPaymentTab extends StatelessWidget {
     required String text,
   }) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: w * 0.03, vertical: h * 0.008),
+      padding: EdgeInsets.symmetric(horizontal: w * 0.02, vertical: h * 0.003),
       decoration: BoxDecoration(
         color: isDark
             ? color.withValues(alpha: 0.2)
             : color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(5),
         border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: w * 0.04),
-          SizedBox(width: w * 0.015),
+          Icon(icon, color: color, size: w * 0.028),
+          SizedBox(width: w * 0.008),
           Text(
             text,
             style: TextStyle(
               color: color,
               fontWeight: FontWeight.w700,
-              fontSize: w * 0.032,
+              fontSize: w * 0.025,
             ),
           ),
         ],

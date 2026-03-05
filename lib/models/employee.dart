@@ -12,6 +12,7 @@ class Employee {
   final String name;
   final String title;
   final String phone;
+  final String? email;
   final DateTime startDate;
   final DateTime? createdAt;
   final String? username;
@@ -26,6 +27,7 @@ class Employee {
     required this.phone,
     required this.startDate,
     this.userId = 0, // Default to 0 if not provided, will be set later
+    this.email,
     this.createdAt,
     this.username,
     this.password,
@@ -38,6 +40,7 @@ class Employee {
     String? name,
     String? title,
     String? phone,
+    String? email,
     DateTime? startDate,
     int? userId,
     DateTime? createdAt,
@@ -51,6 +54,7 @@ class Employee {
       name: name ?? this.name,
       title: title ?? this.title,
       phone: phone ?? this.phone,
+      email: email ?? this.email,
       startDate: startDate ?? this.startDate,
       userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
@@ -69,6 +73,7 @@ class Employee {
     name: worker.fullName,
     title: worker.title ?? '',
     phone: worker.phone ?? '',
+    email: worker.email,
     startDate: DateTime.parse(worker.startDate),
     createdAt: worker.createdAt,
     isActive: true, // Default for old model
@@ -84,6 +89,7 @@ class Employee {
     fullName: name,
     title: title.isNotEmpty ? title : null,
     phone: phone.isNotEmpty ? phone : null,
+    email: email,
     startDate:
         '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
     createdAt: createdAt,
@@ -95,6 +101,7 @@ class Employee {
     name: map['full_name'] as String,
     title: map['title'] as String? ?? '',
     phone: map['phone'] as String? ?? '',
+    email: map['email'] as String?,
     startDate: DateTime.parse(
       map['start_date'] as String? ?? DateTime.now().toIso8601String(),
     ),
@@ -113,6 +120,7 @@ class Employee {
     'full_name': name,
     'title': title,
     'phone': phone,
+    if (email != null) 'email': email,
     'start_date':
         '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
     'is_active': isActive,

@@ -3,9 +3,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/worker.dart';
 import '../models/employee.dart';
 import 'auth_service.dart';
+import 'validation_service.dart';
 
 class WorkerService {
   final AuthService _authService = AuthService();
+  final _validationService = ValidationService.instance;
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -119,6 +121,7 @@ class WorkerService {
             'full_name': employee.name,
             'title': employee.title,
             'phone': employee.phone,
+            'email': employee.email,
             'start_date': _formatDate(employee.startDate),
             'user_id': userId,
             'username':
@@ -131,6 +134,45 @@ class WorkerService {
     } catch (e) {
       debugPrint('Error adding employee: $e');
       rethrow;
+    }
+  }
+
+  // Kullanıcı adı kontrolü (ValidationService kullanarak)
+  Future<bool> isUsernameExists(String username) async {
+    try {
+      debugPrint('🔍 isUsernameExists: Kontrol ediliyor: $username');
+
+      final result = await _validationService.checkUsernameAvailability(
+        username.toLowerCase(),
+      );
+
+      final exists = result != null;
+      debugPrint('✅ isUsernameExists: Sonuç: $exists');
+      return exists;
+    } catch (e) {
+      debugPrint('❌ isUsernameExists: Hata: $e');
+      return false;
+    }
+  }
+
+  // E-posta kontrolü (ValidationService kullanarak)
+  Future<bool> isEmailExists(String email) async {
+    try {
+      // Boş email kontrolü
+      if (email.trim().isEmpty) return false;
+
+      debugPrint('🔍 isEmailExists: Kontrol ediliyor: $email');
+
+      final result = await _validationService.checkEmailAvailability(
+        email.toLowerCase(),
+      );
+
+      final exists = result != null;
+      debugPrint('✅ isEmailExists: Sonuç: $exists');
+      return exists;
+    } catch (e) {
+      debugPrint('❌ isEmailExists: Hata: $e');
+      return false;
     }
   }
 
@@ -171,45 +213,14 @@ class WorkerService {
     try {
       final lowercaseEmail = email.toLowerCase();
 
-      // Workers tablosunda kontrol et (kendi ID'si hariç)
-      if (workerId != null) {
-        final workerResult = await supabase
-            .from('workers')
-            .select('id')
-            .eq('email', lowercaseEmail)
-            .neq('id', workerId)
-            .maybeSingle();
-
-        if (workerResult != null) {
-          return 'Bu email adresi zaten kullanılıyor';
-        }
-      } else {
-        final workerResult = await supabase
-            .from('workers')
-            .select('id')
-            .eq('email', lowercaseEmail)
-            .maybeSingle();
-
-        if (workerResult != null) {
-          return 'Bu email adresi zaten kullanılıyor';
-        }
-      }
-
-      // Users tablosunda da kontrol et
-      final userResult = await supabase
-          .from('users')
-          .select('id')
-          .eq('email', lowercaseEmail)
-          .maybeSingle();
-
-      if (userResult != null) {
-        return 'Bu email adresi zaten kullanılıyor';
-      }
-
-      return null;
+      // ValidationService kullanarak kontrol et
+      return await _validationService.checkEmailAvailability(
+        lowercaseEmail,
+        excludeWorkerId: workerId,
+      );
     } catch (e) {
       debugPrint('Email kontrolü hatası: $e');
-      return 'Email kontrolü sırasında bir hata oluştu';
+      return 'E-posta kontrolü sırasında bir hata oluştu';
     }
   }
 

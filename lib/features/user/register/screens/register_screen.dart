@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../auth/login/screens/login_screen.dart';
 import '../controllers/register_controller.dart';
@@ -27,9 +30,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isLoading = false;
   String? _usernameError;
+  String? _emailError;
+  Timer? _usernameDebounce;
+  Timer? _emailDebounce;
 
   @override
   void dispose() {
+    _usernameDebounce?.cancel();
+    _emailDebounce?.cancel();
+
     _usernameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -41,21 +50,96 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _validateUsername(String value) async {
+    // Debounce: 500ms bekle
+    _usernameDebounce?.cancel();
+
+    if (value.trim().isEmpty) {
+      setState(() => _usernameError = null);
+      return;
+    }
+
     final error = _controller.validateUsername(value);
     if (error != null) {
       setState(() => _usernameError = error);
       return;
     }
 
-    // Kullanıcı adı kullanılabilirlik kontrolü
-    final availabilityError = await _controller.checkUsernameAvailability(
-      value,
+    _usernameDebounce = Timer(const Duration(milliseconds: 500), () async {
+      // Kullanıcı adı kullanılabilirlik kontrolü
+      final availabilityError = await _controller.checkUsernameAvailability(
+        value,
+      );
+      if (mounted) {
+        setState(() => _usernameError = availabilityError);
+      }
+    });
+  }
+
+  void _validateEmail(String value) async {
+    // Debounce: 500ms bekle
+    _emailDebounce?.cancel();
+
+    debugPrint('🔍 RegisterScreen: Email validation başladı: $value');
+
+    if (value.trim().isEmpty) {
+      debugPrint('🔍 RegisterScreen: Email boş, hata temizlendi');
+      setState(() => _emailError = null);
+      return;
+    }
+
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
-    setState(() => _usernameError = availabilityError);
+    if (!emailRegex.hasMatch(value.trim())) {
+      debugPrint('🔍 RegisterScreen: Email format hatası');
+      setState(() => _emailError = 'Geçerli bir e-posta adresi girin');
+      return;
+    }
+
+    _emailDebounce = Timer(const Duration(milliseconds: 500), () async {
+      debugPrint('🔍 RegisterScreen: Email kontrolü başlıyor: ${value.trim()}');
+      // Email kullanılabilirlik kontrolü
+      final availabilityError = await _controller.checkEmailAvailability(
+        value.trim(),
+      );
+      debugPrint(
+        '🔍 RegisterScreen: Email kontrolü sonucu: $availabilityError',
+      );
+      if (mounted) {
+        setState(() {
+          _emailError = availabilityError;
+          debugPrint(
+            '🔍 RegisterScreen: setState çağrıldı, _emailError: $_emailError',
+          );
+        });
+      }
+    });
   }
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
+    // Boş alan kontrolü
+    if (_usernameController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty ||
+        _firstNameController.text.trim().isEmpty ||
+        _lastNameController.text.trim().isEmpty ||
+        _jobTitleController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty) {
+      _showErrorMessage('Lütfen tüm alanları doldurun');
+      return;
+    }
+
+    // Real-time validation hatası varsa kayıt yapma
+    if (_usernameError != null || _emailError != null) {
+      _showErrorMessage('Lütfen hataları düzeltin');
+      return;
+    }
+
+    // Şifre eşleşme kontrolü
+    if (_passwordController.text != _confirmPasswordController.text) {
+      _showErrorMessage('Şifreler eşleşmiyor');
+      return;
+    }
 
     final username = _usernameController.text.trim();
     final usernameValidation = _controller.validateUsername(username);
@@ -118,6 +202,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final maxWidth = isTablet ? 500.0 : double.infinity;
 
     return Scaffold(
+      appBar: AppBar(title: const Text('Kayıt Ol')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -145,7 +230,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       jobTitleController: _jobTitleController,
                       emailController: _emailController,
                       usernameError: _usernameError,
+                      emailError: _emailError,
                       onUsernameChanged: _validateUsername,
+                      onEmailChanged: _validateEmail,
                       onSubmit: _register,
                       isLoading: _isLoading,
                     ),

@@ -20,6 +20,7 @@ class DeleteAllEmployeesDialog extends StatelessWidget {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true, // Navigation bar'dan korunur
       backgroundColor: Colors.transparent,
       builder: (context) => DeleteAllEmployeesDialog(
         onDeleteAll: onDeleteAll,
@@ -29,6 +30,38 @@ class DeleteAllEmployeesDialog extends StatelessWidget {
   }
 
   Future<void> _handleDeleteAll(BuildContext context) async {
+    // İkinci onay dialog'u göster
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 12),
+            Text('Son Onay'),
+          ],
+        ),
+        content: Text(
+          'Bu işlem GERİ ALINAMAZ!\n\nTüm çalışanlar ve tüm devam/ödeme kayıtları kalıcı olarak silinecek.\n\nDevam etmek istediğinizden emin misiniz?',
+          style: TextStyle(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('Evet, Sil'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
     Navigator.pop(context);
 
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -148,6 +181,7 @@ class DeleteAllEmployeesDialog extends StatelessWidget {
               ],
             ),
           ),
+          SizedBox(height: 16),
         ],
       ),
     );

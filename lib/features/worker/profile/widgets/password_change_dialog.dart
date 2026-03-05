@@ -34,176 +34,179 @@ class _PasswordChangeDialogState extends State<PasswordChangeDialog> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
-    return Dialog(
-      backgroundColor: isDark ? const Color(0xFF0A0E1A) : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(screenWidth * 0.04),
-      ),
-      child: Container(
-        constraints: BoxConstraints(maxHeight: screenWidth * 1.5),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Padding(
-              padding: EdgeInsets.all(screenWidth * 0.05),
-              child: Row(
-                children: [
-                  Container(
-                    width: screenWidth * 0.1,
-                    height: screenWidth * 0.1,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(screenWidth * 0.02),
-                    ),
-                    child: Icon(
-                      Icons.lock_outline,
-                      color: colorScheme.primary,
-                      size: screenWidth * 0.05,
-                    ),
-                  ),
-                  SizedBox(width: screenWidth * 0.03),
-                  Expanded(
-                    child: Text(
-                      'Şifre Değiştir',
-                      style: TextStyle(
-                        fontSize: screenWidth * 0.045,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : colorScheme.primary,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Dialog(
+        backgroundColor: isDark ? const Color(0xFF0A0E1A) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(screenWidth * 0.04),
+        ),
+        child: Container(
+          constraints: BoxConstraints(maxHeight: screenWidth * 1.5),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Padding(
+                padding: EdgeInsets.all(screenWidth * 0.05),
+                child: Row(
+                  children: [
+                    Container(
+                      width: screenWidth * 0.1,
+                      height: screenWidth * 0.1,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                      ),
+                      child: Icon(
+                        Icons.lock_outline,
+                        color: colorScheme.primary,
+                        size: screenWidth * 0.05,
                       ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: widget.isChanging ? null : widget.onCancel,
-                    icon: Icon(
-                      Icons.close,
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.7)
-                          : Colors.grey.shade700,
-                      size: screenWidth * 0.06,
+                    SizedBox(width: screenWidth * 0.03),
+                    Expanded(
+                      child: Text(
+                        'Şifre Değiştir',
+                        style: TextStyle(
+                          fontSize: screenWidth * 0.045,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : colorScheme.primary,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Divider(
-              height: 1,
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.grey.shade200,
-            ),
-            // Content
-            Flexible(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(screenWidth * 0.05),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildCurrentPasswordField(
-                      colorScheme,
-                      isDark,
-                      screenWidth,
-                    ),
-                    SizedBox(height: screenWidth * 0.04),
-                    _buildNewPasswordField(colorScheme, isDark, screenWidth),
-                    SizedBox(height: screenWidth * 0.04),
-                    _buildConfirmPasswordField(
-                      colorScheme,
-                      isDark,
-                      screenWidth,
+                    IconButton(
+                      onPressed: widget.isChanging ? null : widget.onCancel,
+                      icon: Icon(
+                        Icons.close,
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.7)
+                            : Colors.grey.shade700,
+                        size: screenWidth * 0.06,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-            // Bottom Actions
-            Container(
-              padding: EdgeInsets.all(screenWidth * 0.05),
-              decoration: BoxDecoration(
+              Divider(
+                height: 1,
                 color: isDark
-                    ? Colors.black.withValues(alpha: 0.2)
-                    : Colors.grey.shade50,
-                border: Border(
-                  top: BorderSide(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.grey.shade200,
-                    width: 1,
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.grey.shade200,
+              ),
+              // Content
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(screenWidth * 0.05),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildCurrentPasswordField(
+                        colorScheme,
+                        isDark,
+                        screenWidth,
+                      ),
+                      SizedBox(height: screenWidth * 0.04),
+                      _buildNewPasswordField(colorScheme, isDark, screenWidth),
+                      SizedBox(height: screenWidth * 0.04),
+                      _buildConfirmPasswordField(
+                        colorScheme,
+                        isDark,
+                        screenWidth,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: widget.isChanging ? null : widget.onCancel,
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          vertical: screenWidth * 0.035,
-                        ),
-                        side: BorderSide(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.2)
-                              : Colors.grey.shade300,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            screenWidth * 0.02,
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        'İptal',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.038,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
+              // Bottom Actions
+              Container(
+                padding: EdgeInsets.all(screenWidth * 0.05),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.2)
+                      : Colors.grey.shade50,
+                  border: Border(
+                    top: BorderSide(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.grey.shade200,
+                      width: 1,
                     ),
                   ),
-                  SizedBox(width: screenWidth * 0.03),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: widget.isChanging
-                          ? null
-                          : widget.onChangePassword,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        padding: EdgeInsets.symmetric(
-                          vertical: screenWidth * 0.035,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            screenWidth * 0.02,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: widget.isChanging ? null : widget.onCancel,
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: screenWidth * 0.035,
                           ),
-                        ),
-                      ),
-                      child: widget.isChanging
-                          ? SizedBox(
-                              width: screenWidth * 0.04,
-                              height: screenWidth * 0.04,
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              'Değiştir',
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.038,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
+                          side: BorderSide(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.2)
+                                : Colors.grey.shade300,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              screenWidth * 0.02,
                             ),
+                          ),
+                        ),
+                        child: Text(
+                          'İptal',
+                          style: TextStyle(
+                            fontSize: screenWidth * 0.038,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                    SizedBox(width: screenWidth * 0.03),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: widget.isChanging
+                            ? null
+                            : widget.onChangePassword,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          padding: EdgeInsets.symmetric(
+                            vertical: screenWidth * 0.035,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              screenWidth * 0.02,
+                            ),
+                          ),
+                        ),
+                        child: widget.isChanging
+                            ? SizedBox(
+                                width: screenWidth * 0.04,
+                                height: screenWidth * 0.04,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Değiştir',
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.038,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
