@@ -8,9 +8,6 @@ import '../widgets/date_range_selector.dart';
 import '../widgets/payment_history_actions.dart';
 
 /// Kullanıcı (Yönetici) Ödeme Geçmişi Ekranı
-///
-/// Ödeme kayıtlarını listeler, düzenler ve siler.
-/// AGENTS.md kurallarına uygun olarak modüler yapıda tasarlanmıştır.
 class UserPaymentHistoryScreen extends StatefulWidget {
   const UserPaymentHistoryScreen({super.key});
 
@@ -39,8 +36,7 @@ class _UserPaymentHistoryScreenState extends State<UserPaymentHistoryScreen> {
 
   @override
   void dispose() {
-    // ⚡ ÖNEMLİ: Memory leak önlemek için listener'ı kaldır
-    _searchController.removeListener(_filterPayments);
+        _searchController.removeListener(_filterPayments);
     _searchController.dispose();
     super.dispose();
   }
@@ -154,8 +150,7 @@ class _UserPaymentHistoryScreenState extends State<UserPaymentHistoryScreen> {
       child: ListView.separated(
         padding: EdgeInsets.fromLTRB(w * 0.06, 0, w * 0.06, h * 0.1),
         itemCount: _filteredPayments.length,
-        // ⚡ PHASE 4: ListView optimizasyonları
-        addAutomaticKeepAlives: false, // Memory optimizasyonu
+                addAutomaticKeepAlives: false, // Memory optimizasyonu
         addRepaintBoundaries: true, // Repaint optimizasyonu
         separatorBuilder: (context, index) => SizedBox(height: h * 0.015),
         itemBuilder: (context, index) {

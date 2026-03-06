@@ -2,16 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 /// Önbellekli profil resmi widget'ı
-///
 /// Network'ten gelen profil resimlerini önbelleğe alarak
 /// tekrarlanan yüklemeleri önler ve performansı artırır.
-///
 /// Özellikler:
 /// - Otomatik önbellekleme (7 gün)
 /// - Loading placeholder (CircularProgressIndicator)
 /// - Error fallback (İlk harf avatarı)
 /// - Özelleştirilebilir boyut ve renk
-///
 /// Kullanım:
 /// ```dart
 /// CachedProfileAvatar(

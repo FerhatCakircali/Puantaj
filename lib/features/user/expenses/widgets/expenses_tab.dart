@@ -69,9 +69,9 @@ class _ExpensesTabState extends State<ExpensesTab> {
         _isLoading = false;
       });
 
-      debugPrint('✅ Masraf verileri yüklendi: ${_expenses.length} masraf');
+      debugPrint('Masraf verileri yüklendi: ${_expenses.length} masraf');
     } catch (e) {
-      debugPrint('⚠️ Masraf verileri yükleme hatası: $e');
+      debugPrint('Masraf verileri yükleme hatası: $e');
 
       if (!mounted) return;
 
@@ -197,8 +197,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
                               cacheExtent: h * 0.5,
                               keyboardDismissBehavior:
                                   ScrollViewKeyboardDismissBehavior
-                                      .onDrag, // ✅ Klavye overflow fix
-                              itemBuilder: (context, index) {
+                                      .onDrag,                               itemBuilder: (context, index) {
                                 final expense = _filteredExpenses[index];
                                 return RepaintBoundary(
                                   child: ExpenseListTile(

@@ -2,7 +2,6 @@ import 'worker.dart';
 
 /// Employee model - compatibility wrapper around Worker
 /// Prefer using Worker instead. This class exists for backward compatibility.
-///
 /// Maps DateTime-based properties to/from Worker's string-based properties
 /// (e.g., DateTime startDate <-> String startDate in 'YYYY-MM-DD' format)
 class Employee {
@@ -109,8 +108,7 @@ class Employee {
         ? DateTime.parse(map['created_at'] as String)
         : null,
     username:
-        map['username'] as String?, // ⚡ FIX: username field'ını map'ten al
-    isActive: map['is_active'] as bool? ?? true,
+        map['username'] as String?,     isActive: map['is_active'] as bool? ?? true,
     isTrusted: map['is_trusted'] as bool? ?? false,
   );
 

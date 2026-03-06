@@ -5,10 +5,8 @@ import '../../../core/app_globals.dart';
 import '../../../services/notification_service.dart';
 
 /// Çalışan için bildirim dinleme servisi
-///
 /// Supabase Realtime kullanarak notifications tablosunu dinler.
 /// Yeni bildirim geldiğinde local notification gösterir.
-///
 /// Singleton pattern ile tek instance garantisi.
 class WorkerNotificationListenerService {
   WorkerNotificationListenerService._();
@@ -27,16 +25,14 @@ class WorkerNotificationListenerService {
   bool get isListening => _isListening;
 
   /// Çalışan için bildirim dinlemeyi başlatır
-  ///
-  /// [workerId] - Dinlenecek çalışan ID'si
-  ///
-  /// Notifications tablosunda bu çalışana gelen yeni bildirimleri dinler.
+    /// [workerId] - Dinlenecek çalışan ID'si
+    /// Notifications tablosunda bu çalışana gelen yeni bildirimleri dinler.
   /// Yeni bildirim geldiğinde local notification gösterir.
   Future<void> startListening(int workerId) async {
     try {
       // Zaten dinliyorsa ve aynı worker ise, tekrar başlatma
       if (_isListening && _currentWorkerId == workerId) {
-        debugPrint('✅ Bildirim dinleme zaten aktif (worker: $workerId)');
+        debugPrint('Bildirim dinleme zaten aktif (worker: $workerId)');
         return;
       }
 
@@ -71,14 +67,14 @@ class WorkerNotificationListenerService {
           .subscribe((status, error) {
             debugPrint('📡 Subscription status: $status');
             if (error != null) {
-              debugPrint('❌ Subscription error: $error');
+              debugPrint('Subscription error: $error');
             }
           });
 
       _isListening = true;
-      debugPrint('✅ Bildirim dinleme başlatıldı (worker: $workerId)');
+      debugPrint('Bildirim dinleme başlatıldı (worker: $workerId)');
     } catch (e, stackTrace) {
-      debugPrint('❌ Bildirim dinleme başlatılamadı: $e');
+      debugPrint('Bildirim dinleme başlatılamadı: $e');
       debugPrint('Stack trace: $stackTrace');
       _isListening = false;
     }
@@ -93,17 +89,16 @@ class WorkerNotificationListenerService {
         _channel = null;
         _isListening = false;
         _currentWorkerId = null;
-        debugPrint('✅ Bildirim dinleme durduruldu');
+        debugPrint('Bildirim dinleme durduruldu');
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ Bildirim dinleme durdurulurken hata: $e');
+      debugPrint('Bildirim dinleme durdurulurken hata: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
 
   /// Yeni bildirim geldiğinde çağrılır
-  ///
-  /// Local notification gösterir ve routing bilgisini kaydeder.
+    /// Local notification gösterir ve routing bilgisini kaydeder.
   /// KULLANICI PANELİ İLE AYNI MANTIK: Payload ile routing bilgisi taşınır
   void _handleNewNotification(Map<String, dynamic> notification) async {
     try {
@@ -123,23 +118,22 @@ class WorkerNotificationListenerService {
       final relatedId = notification['related_id'];
 
       debugPrint('📢 Local notification gösteriliyor...');
-      debugPrint('  ID: $notificationId');
-      debugPrint('  Başlık: $title');
-      debugPrint('  Mesaj: $message');
-      debugPrint('  Tip: $notificationType');
-      debugPrint('  Related ID: $relatedId');
+      debugPrint('ID: $notificationId');
+      debugPrint('Başlık: $title');
+      debugPrint('Mesaj: $message');
+      debugPrint('Tip: $notificationType');
+      debugPrint('Related ID: $relatedId');
 
-      // ⚡ FIX: Çalışan için payload oluştur
-      // KULLANICI PANELİ İLE AYNI MANTIK: Basit string payload kullan
+            // KULLANICI PANELİ İLE AYNI MANTIK: Basit string payload kullan
       // NotificationPayloadMixin bu payload'ı işleyecek ve routing bilgisini kaydedecek
       String payload = notificationType;
 
       // Related ID varsa payload'a ekle (kullanıcı panelindeki gibi)
       if (relatedId != null) {
         payload = '$notificationType:$relatedId';
-        debugPrint('  📦 Payload (related ID ile): $payload');
+        debugPrint('📦 Payload (related ID ile): $payload');
       } else {
-        debugPrint('  📦 Payload (sadece tip): $payload');
+        debugPrint('📦 Payload (sadece tip): $payload');
       }
 
       // Local notification göster
@@ -151,21 +145,20 @@ class WorkerNotificationListenerService {
         payload: payload,
       );
 
-      debugPrint('✅ Local notification gösterildi');
+      debugPrint('Local notification gösterildi');
       debugPrint(
         '  🎯 Bildirime tıklandığında NotificationPayloadMixin payload\'ı işleyecek',
       );
       debugPrint('  🎯 Routing bilgisi SharedPreferences\'a kaydedilecek');
-      debugPrint('  🎯 Kullanıcı ilgili sayfaya yönlendirilecek');
+      debugPrint('🎯 Kullanıcı ilgili sayfaya yönlendirilecek');
     } catch (e, stackTrace) {
-      debugPrint('❌ Bildirim işlenirken hata: $e');
+      debugPrint('Bildirim işlenirken hata: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
 
   /// Servisi yeniden başlatır
-  ///
-  /// Bağlantı kopması durumunda kullanılabilir.
+    /// Bağlantı kopması durumunda kullanılabilir.
   Future<void> restart() async {
     if (_currentWorkerId != null) {
       await stopListening();

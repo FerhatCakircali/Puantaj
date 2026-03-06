@@ -256,7 +256,7 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
         if (!mounted) return;
 
         debugPrint(
-          '❌ EditEmployeeDialog: Güncelleme hatası (kayıt silme ile): $e',
+          'EditEmployeeDialog: Güncelleme hatası (kayıt silme ile): $e',
         );
 
         // Oturum hatası kontrolü
@@ -302,7 +302,13 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Çalışan bilgileri başarıyla güncellendi'),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Çalışan bilgileri başarıyla güncellendi', style: const TextStyle(color: Colors.white))),
+              ],
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -311,7 +317,7 @@ class _EditEmployeeDialogState extends State<EditEmployeeDialog> {
       } catch (e) {
         if (!mounted) return;
 
-        debugPrint('❌ EditEmployeeDialog: Güncelleme hatası: $e');
+        debugPrint('EditEmployeeDialog: Güncelleme hatası: $e');
 
         // Oturum hatası kontrolü
         final errorMessage = e.toString();

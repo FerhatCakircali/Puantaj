@@ -8,7 +8,6 @@ import '../base_controller.dart';
 import 'auth_state.dart';
 
 /// Kimlik doğrulama controller'ı
-///
 /// Auth işlemlerini yönetir ve state'i günceller.
 /// Use case'leri kullanarak business logic'i delegate eder.
 class AuthController extends BaseController {

@@ -5,7 +5,6 @@ import '../../repositories/i_employee_repository.dart';
 import '../usecase.dart';
 
 /// Update employee use case
-///
 /// Validates input and updates existing employee.
 /// Business rules:
 /// - Employee must exist

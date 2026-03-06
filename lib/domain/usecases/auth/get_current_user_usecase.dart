@@ -4,7 +4,6 @@ import '../../repositories/i_auth_repository.dart';
 import '../usecase.dart';
 
 /// Get current user use case
-///
 /// Retrieves currently authenticated user from session.
 /// Returns null if no user is authenticated.
 class GetCurrentUserUseCase implements UseCase<User?, NoParams> {

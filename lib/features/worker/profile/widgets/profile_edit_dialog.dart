@@ -209,7 +209,7 @@ class _ProfileEditDialogState extends State<ProfileEditDialog> {
       }
     } catch (e) {
       // Hata durumunda dialog'u kapatma, kullanıcıya göster
-      debugPrint('❌ ProfileEditDialog: Kaydetme hatası: $e');
+      debugPrint('ProfileEditDialog: Kaydetme hatası: $e');
       if (mounted) {
         ScaffoldMessenger.of(
           context,

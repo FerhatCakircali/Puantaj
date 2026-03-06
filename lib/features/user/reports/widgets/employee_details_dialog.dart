@@ -31,8 +31,7 @@ class EmployeeDetailsDialog extends StatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      // ⚡ Performans: Klavye açılırken dialog yeniden boyutlandırılmasın
-      isDismissible: true,
+            isDismissible: true,
       enableDrag: true,
       builder: (context) => EmployeeDetailsDialog(
         employee: employee,

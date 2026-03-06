@@ -20,7 +20,7 @@ mixin ReportControllerDateMixin<T extends StatefulWidget> on State<T> {
   Future<void> selectDateRange(BuildContext context) async {
     if (!mounted) return;
 
-    debugPrint('📅 ReportControllerMixin: Tarih aralığı seçiliyor');
+    debugPrint('ReportControllerMixin: Tarih aralığı seçiliyor');
 
     final pickedRange = await showDateRangePicker(
       context: context,
@@ -36,7 +36,7 @@ mixin ReportControllerDateMixin<T extends StatefulWidget> on State<T> {
       });
       await loadData();
 
-      debugPrint('✅ ReportControllerMixin: Tarih aralığı güncellendi');
+      debugPrint('ReportControllerMixin: Tarih aralığı güncellendi');
     }
   }
 
@@ -68,7 +68,7 @@ mixin ReportControllerDateMixin<T extends StatefulWidget> on State<T> {
         }
       });
 
-      debugPrint('✅ ReportControllerMixin: Özel tarih güncellendi');
+      debugPrint('ReportControllerMixin: Özel tarih güncellendi');
     }
   }
 
@@ -119,8 +119,8 @@ mixin ReportControllerDateMixin<T extends StatefulWidget> on State<T> {
       customEndDate = end;
     });
 
-    debugPrint('✅ ReportControllerMixin: Dönem tarihleri güncellendi');
-    debugPrint('   Başlangıç: $start');
-    debugPrint('   Bitiş: $end');
+    debugPrint('ReportControllerMixin: Dönem tarihleri güncellendi');
+    debugPrint('Başlangıç: $start');
+    debugPrint('Bitiş: $end');
   }
 }

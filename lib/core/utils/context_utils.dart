@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// Context-safe utility fonksiyonları
-///
 /// Single Responsibility: Context güvenliği sağlar
 /// Material 3 standartlarına uygun helper metodlar
 class ContextUtils {
@@ -9,8 +8,7 @@ class ContextUtils {
   ContextUtils._();
 
   /// Context-safe SnackBar gösterimi
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [message] - Gösterilecek mesaj
   /// [isError] - Hata mesajı mı? (varsayılan: false)
   /// [duration] - Gösterim süresi (opsiyonel)
@@ -40,16 +38,14 @@ class ContextUtils {
   }
 
   /// Context-safe başarı mesajı gösterimi
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [message] - Gösterilecek mesaj
   static void showSuccessSnackBar(BuildContext context, String message) {
     showSnackBar(context, message, isError: false);
   }
 
   /// Context-safe hata mesajı gösterimi
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [message] - Gösterilecek mesaj
   static void showErrorSnackBar(BuildContext context, String message) {
     showSnackBar(
@@ -61,8 +57,7 @@ class ContextUtils {
   }
 
   /// Context-safe dialog gösterimi
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [title] - Dialog başlığı
   /// [content] - Dialog içeriği
   /// [actions] - Dialog aksiyonları
@@ -93,8 +88,7 @@ class ContextUtils {
   }
 
   /// Context-safe onay dialog'u
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [title] - Dialog başlığı
   /// [content] - Dialog içeriği
   /// [confirmText] - Onay butonu metni (varsayılan: 'Evet')
@@ -131,8 +125,7 @@ class ContextUtils {
   }
 
   /// Context-safe loading dialog gösterimi
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [message] - Yükleme mesajı (opsiyonel)
   static void showLoadingDialog(BuildContext context, {String? message}) {
     if (!context.mounted) return;
@@ -159,16 +152,14 @@ class ContextUtils {
   }
 
   /// Context-safe loading dialog kapatma
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   static void hideLoadingDialog(BuildContext context) {
     if (!context.mounted) return;
     Navigator.of(context).pop();
   }
 
   /// Context-safe navigation
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [page] - Gidilecek sayfa
   /// Returns: Navigation sonucu
   static Future<T?> navigateTo<T>(BuildContext context, Widget page) async {
@@ -180,8 +171,7 @@ class ContextUtils {
   }
 
   /// Context-safe navigation with replacement
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [page] - Gidilecek sayfa
   /// Returns: Navigation sonucu
   static Future<T?> navigateAndReplace<T>(
@@ -196,8 +186,7 @@ class ContextUtils {
   }
 
   /// Context-safe navigation with clear stack
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [page] - Gidilecek sayfa
   /// Returns: Navigation sonucu
   static Future<T?> navigateAndClearStack<T>(
@@ -213,8 +202,7 @@ class ContextUtils {
   }
 
   /// Context-safe pop
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [result] - Geri dönüş değeri (opsiyonel)
   static void pop<T>(BuildContext context, [T? result]) {
     if (!context.mounted) return;
@@ -222,24 +210,21 @@ class ContextUtils {
   }
 
   /// Ekran genişliğini döndürür
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// Returns: Ekran genişliği
   static double getScreenWidth(BuildContext context) {
     return MediaQuery.of(context).size.width;
   }
 
   /// Ekran yüksekliğini döndürür
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// Returns: Ekran yüksekliği
   static double getScreenHeight(BuildContext context) {
     return MediaQuery.of(context).size.height;
   }
 
   /// Responsive genişlik hesaplar
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [percentage] - Yüzde değeri (0.0 - 1.0)
   /// Returns: Hesaplanan genişlik
   static double getResponsiveWidth(BuildContext context, double percentage) {
@@ -247,8 +232,7 @@ class ContextUtils {
   }
 
   /// Responsive yükseklik hesaplar
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// [percentage] - Yüzde değeri (0.0 - 1.0)
   /// Returns: Hesaplanan yükseklik
   static double getResponsiveHeight(BuildContext context, double percentage) {
@@ -256,16 +240,14 @@ class ContextUtils {
   }
 
   /// Cihazın mobil olup olmadığını kontrol eder
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// Returns: true ise mobil, false ise tablet/desktop
   static bool isMobile(BuildContext context) {
     return getScreenWidth(context) < 600;
   }
 
   /// Cihazın tablet olup olmadığını kontrol eder
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// Returns: true ise tablet, false değilse
   static bool isTablet(BuildContext context) {
     final width = getScreenWidth(context);
@@ -273,8 +255,7 @@ class ContextUtils {
   }
 
   /// Cihazın desktop olup olmadığını kontrol eder
-  ///
-  /// [context] - BuildContext
+    /// [context] - BuildContext
   /// Returns: true ise desktop, false değilse
   static bool isDesktop(BuildContext context) {
     return getScreenWidth(context) >= 1200;

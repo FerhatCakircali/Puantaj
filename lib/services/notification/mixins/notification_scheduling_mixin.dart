@@ -6,17 +6,14 @@ import '../notification_constants.dart';
 import 'notification_permission_mixin.dart';
 
 /// Bildirim zamanlama işlemlerini yöneten mixin
-///
 /// Bu mixin bildirim zamanlama, iptal etme ve timezone yönetimi işlemlerini sağlar.
 /// NotificationPermissionMixin'e bağımlıdır ve izin kontrollerini kullanır.
-///
 /// Sorumluluklar:
 /// - Yevmiye hatırlatıcısı zamanlama
 /// - Çalışan hatırlatıcısı zamanlama
 /// - Bildirim iptal etme
 /// - Timezone yönetimi (Europe/Istanbul)
 /// - Bildirim detaylarını oluşturma
-///
 /// Kullanım:
 /// ```dart
 /// class NotificationService
@@ -26,28 +23,23 @@ import 'notification_permission_mixin.dart';
 /// ```
 mixin NotificationSchedulingMixin on NotificationPermissionMixin {
   /// FlutterLocalNotificationsPlugin instance'ına erişim
-  ///
-  /// Bu getter'ı implement eden sınıf tarafından sağlanmalıdır.
+    /// Bu getter'ı implement eden sınıf tarafından sağlanmalıdır.
   FlutterLocalNotificationsPlugin get flutterLocalNotificationsPlugin;
 
   /// Yevmiye hatırlatıcısını zamanlar
-  ///
-  /// Kullanıcı için günlük yevmiye girişi hatırlatıcısı oluşturur.
+    /// Kullanıcı için günlük yevmiye girişi hatırlatıcısı oluşturur.
   /// Bildirim her gün belirlenen saatte tekrarlanır.
-  ///
-  /// [userId] Kullanıcı ID'si
+    /// [userId] Kullanıcı ID'si
   /// [username] Kullanıcı adı
   /// [fullName] Kullanıcının tam adı (ad + soyad)
   /// [time] Hatırlatıcı saati (TimeOfDay formatında)
-  ///
-  /// Özellikler:
+    /// Özellikler:
   /// - İzin kontrolü yapar
   /// - Timezone-aware zamanlama (Europe/Istanbul)
   /// - Geçmiş saat için yarına zamanlar
   /// - Günlük tekrarlama (matchDateTimeComponents.time)
   /// - exactAllowWhileIdle modu (cihaz uyku modundayken bile çalışır)
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// await scheduleAttendanceReminder(
   ///   userId: 1,
@@ -126,26 +118,22 @@ mixin NotificationSchedulingMixin on NotificationPermissionMixin {
   }
 
   /// Çalışan hatırlatıcısını zamanlar
-  ///
-  /// Belirli bir çalışan için özel hatırlatıcı oluşturur.
+    /// Belirli bir çalışan için özel hatırlatıcı oluşturur.
   /// Tek seferlik bildirim, belirlenen tarih ve saatte gösterilir.
-  ///
-  /// [reminderId] Hatırlatıcı ID'si (benzersiz bildirim ID'si olarak kullanılır)
+    /// [reminderId] Hatırlatıcı ID'si (benzersiz bildirim ID'si olarak kullanılır)
   /// [userId] Kullanıcı ID'si
   /// [username] Kullanıcı adı
   /// [fullName] Kullanıcının tam adı
   /// [workerName] Çalışan adı
   /// [message] Hatırlatıcı mesajı
   /// [reminderDate] Hatırlatıcı tarihi ve saati
-  ///
-  /// Özellikler:
+    /// Özellikler:
   /// - İzin kontrolü yapar
   /// - Geçmiş tarih kontrolü (geçmiş tarihli bildirimler zamanlanmaz)
   /// - Timezone-aware zamanlama (Europe/Istanbul)
   /// - Tek seferlik bildirim (matchDateTimeComponents yok)
   /// - exactAllowWhileIdle modu
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// await scheduleEmployeeReminder(
   ///   reminderId: 123,
@@ -217,17 +205,13 @@ mixin NotificationSchedulingMixin on NotificationPermissionMixin {
   }
 
   /// Belirli bir bildirimi iptal eder
-  ///
-  /// Zamanlanmış bir bildirimi ID'sine göre iptal eder.
-  ///
-  /// [id] İptal edilecek bildirim ID'si
-  ///
-  /// Örnek:
+    /// Zamanlanmış bir bildirimi ID'sine göre iptal eder.
+    /// [id] İptal edilecek bildirim ID'si
+    /// Örnek:
   /// ```dart
   /// // Yevmiye hatırlatıcısını iptal et
   /// await cancelNotification(NotificationIds.attendanceReminder);
-  ///
-  /// // Çalışan hatırlatıcısını iptal et
+    /// // Çalışan hatırlatıcısını iptal et
   /// await cancelNotification(reminderId);
   /// ```
   Future<void> cancelNotification(int id) async {
@@ -240,11 +224,9 @@ mixin NotificationSchedulingMixin on NotificationPermissionMixin {
   }
 
   /// Tüm zamanlanmış bildirimleri iptal eder
-  ///
-  /// Sistemdeki tüm zamanlanmış bildirimleri temizler.
+    /// Sistemdeki tüm zamanlanmış bildirimleri temizler.
   /// Kullanıcı çıkış yaptığında veya bildirimleri sıfırlamak gerektiğinde kullanılır.
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// // Kullanıcı çıkış yaparken
   /// await cancelAllNotifications();
@@ -259,19 +241,14 @@ mixin NotificationSchedulingMixin on NotificationPermissionMixin {
   }
 
   /// Bildirim detaylarını oluşturur
-  ///
-  /// Platform-specific bildirim ayarlarını içeren NotificationDetails oluşturur.
-  ///
-  /// [channelId] Android bildirim kanalı ID'si
-  ///
-  /// Returns: Platform-specific bildirim detayları
-  ///
-  /// Android özellikleri:
+    /// Platform-specific bildirim ayarlarını içeren NotificationDetails oluşturur.
+    /// [channelId] Android bildirim kanalı ID'si
+    /// Returns: Platform-specific bildirim detayları
+    /// Android özellikleri:
   /// - Yüksek önem seviyesi (Importance.max)
   /// - Yüksek öncelik (Priority.high)
   /// - Özel ikon (ic_launcher_foreground)
-  ///
-  /// iOS özellikleri:
+    /// iOS özellikleri:
   /// - Alert gösterimi
   /// - Badge gösterimi
   /// - Ses çalma

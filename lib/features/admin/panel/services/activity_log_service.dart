@@ -30,7 +30,7 @@ class ActivityLogService {
 
       debugPrint('📝 Aktivite logu kaydedildi: $actionType');
     } catch (e) {
-      debugPrint('❌ Aktivite logu kaydetme hatası: $e');
+      debugPrint('Aktivite logu kaydetme hatası: $e');
     }
   }
 
@@ -47,7 +47,7 @@ class ActivityLogService {
           .map((json) => ActivityLog.fromJson(json))
           .toList();
     } catch (e) {
-      debugPrint('❌ Son aktiviteler getirme hatası: $e');
+      debugPrint('Son aktiviteler getirme hatası: $e');
       return [];
     }
   }
@@ -68,7 +68,7 @@ class ActivityLogService {
 
       return response.count;
     } catch (e) {
-      debugPrint('❌ Bugünkü aktivite sayısı getirme hatası: $e');
+      debugPrint('Bugünkü aktivite sayısı getirme hatası: $e');
       return 0;
     }
   }
@@ -92,7 +92,7 @@ class ActivityLogService {
 
       return response.count;
     } catch (e) {
-      debugPrint('❌ Haftalık aktivite sayısı getirme hatası: $e');
+      debugPrint('Haftalık aktivite sayısı getirme hatası: $e');
       return 0;
     }
   }

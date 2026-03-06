@@ -6,7 +6,6 @@ import '../datasources/supabase_datasource.dart';
 import '../models/attendance_model.dart';
 
 /// Attendance repository implementation
-///
 /// Implements IAttendanceRepository using Supabase as data source.
 /// Handles all attendance data operations with proper error handling.
 class AttendanceRepositoryImpl implements IAttendanceRepository {

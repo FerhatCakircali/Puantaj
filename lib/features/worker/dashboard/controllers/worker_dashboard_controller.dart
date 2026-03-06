@@ -32,7 +32,7 @@ class WorkerDashboardController {
           .maybeSingle();
 
       if (attendanceResponse != null) {
-        debugPrint('✅ Bugün için attendance kaydı var');
+        debugPrint('Bugün için attendance kaydı var');
         return true;
       }
 
@@ -45,14 +45,14 @@ class WorkerDashboardController {
           .maybeSingle();
 
       if (requestResponse != null) {
-        debugPrint('✅ Bugün için attendance_request kaydı var');
+        debugPrint('Bugün için attendance_request kaydı var');
         return true;
       }
 
-      debugPrint('❌ Bugün için yevmiye kaydı yok');
+      debugPrint('Bugün için yevmiye kaydı yok');
       return false;
     } catch (e) {
-      debugPrint('❌ hasAttendanceToday hata: $e');
+      debugPrint('hasAttendanceToday hata: $e');
       return false;
     }
   }
@@ -61,9 +61,9 @@ class WorkerDashboardController {
   Future<void> cancelNotification(int notificationId) async {
     try {
       await _notificationService.cancelNotification(notificationId);
-      debugPrint('✅ Bildirim iptal edildi: $notificationId');
+      debugPrint('Bildirim iptal edildi: $notificationId');
     } catch (e) {
-      debugPrint('❌ Bildirim iptal hatası: $e');
+      debugPrint('Bildirim iptal hatası: $e');
     }
   }
 
@@ -81,8 +81,7 @@ class WorkerDashboardController {
     final monthStart = DateTime(now.year, now.month, 1);
     final monthEnd = DateTime(now.year, now.month + 1, 0);
 
-    // ✅ Paralel olarak tüm verileri çek (N+1 query problemi çözüldü)
-    final results = await Future.wait([
+        final results = await Future.wait([
       _attendanceService.getMonthlyStatsWithDates(
         workerId: workerId,
         monthStart: monthStart,
@@ -370,13 +369,13 @@ class WorkerDashboardController {
   // Yaklaşan hatırlatıcılar
   Future<List<Map<String, dynamic>>> _getUpcomingReminders(int workerId) async {
     try {
-      debugPrint('🔍 Hatırlatıcılar sorgulanıyor - workerId: $workerId');
+      debugPrint('Hatırlatıcılar sorgulanıyor - workerId: $workerId');
 
       final now = DateTime.now();
       // Bugünün başlangıcını al (00:00:00)
       final todayStart = DateTime(now.year, now.month, now.day);
       debugPrint('🕐 Şu anki zaman: $now');
-      debugPrint('📅 Bugünün başlangıcı: $todayStart');
+      debugPrint('Bugünün başlangıcı: $todayStart');
 
       final response = await _supabase
           .from('employee_reminders')
@@ -394,8 +393,8 @@ class WorkerDashboardController {
           .order('reminder_date', ascending: true)
           .limit(5);
 
-      debugPrint('📊 Sorgu sonucu: ${response.length} hatırlatıcı bulundu');
-      debugPrint('📋 Ham veri: $response');
+      debugPrint('Sorgu sonucu: ${response.length} hatırlatıcı bulundu');
+      debugPrint('Ham veri: $response');
 
       // Yönetici adını birleştir
       final reminders = <Map<String, dynamic>>[];
@@ -415,7 +414,7 @@ class WorkerDashboardController {
       debugPrint('🎯 Toplam ${reminders.length} hatırlatıcı döndürülüyor');
       return reminders;
     } catch (e, stackTrace) {
-      debugPrint('❌ Hatırlatıcılar yüklenemedi: $e');
+      debugPrint('Hatırlatıcılar yüklenemedi: $e');
       debugPrint('Stack trace: $stackTrace');
       return [];
     }

@@ -67,21 +67,27 @@ class DeleteAllEmployeesDialog extends StatelessWidget {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
-      debugPrint('🗑️ DeleteAllEmployeesDialog: Tüm çalışanlar siliniyor');
+      debugPrint('DeleteAllEmployeesDialog: Tüm çalışanlar siliniyor');
 
       await onDeleteAll();
       onComplete();
 
       scaffoldMessenger.showSnackBar(
         const SnackBar(
-          content: Text('Tüm çalışanlar silindi.'),
-          backgroundColor: Colors.green,
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Tüm çalışanlar silindi.', style: const TextStyle(color: Colors.white))),
+              ],
+            ),
+            backgroundColor: Colors.green,
         ),
       );
 
-      debugPrint('✅ DeleteAllEmployeesDialog: Tüm çalışanlar silindi');
+      debugPrint('DeleteAllEmployeesDialog: Tüm çalışanlar silindi');
     } catch (e) {
-      debugPrint('❌ DeleteAllEmployeesDialog: Hata: $e');
+      debugPrint('DeleteAllEmployeesDialog: Hata: $e');
 
       scaffoldMessenger.showSnackBar(
         SnackBar(

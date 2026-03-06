@@ -125,9 +125,9 @@ class ReportControllerPdfOperations {
         ),
       );
 
-      debugPrint('✅ ReportControllerMixin: Rapor oluşturuldu ve açıldı');
+      debugPrint('ReportControllerMixin: Rapor oluşturuldu ve açıldı');
     } catch (e, stackTrace) {
-      debugPrint('❌ ReportControllerMixin: Rapor hatası: $e');
+      debugPrint('ReportControllerMixin: Rapor hatası: $e');
       debugPrint('Stack trace: $stackTrace');
 
       if (!state.mounted) return;

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// Uygulama durumunu tutan sınıf
-///
 /// Theme mode ve authentication durumunu birleştirir.
 /// Bu sayede iç içe ValueListenableBuilder kullanımı önlenir.
 class AppState {

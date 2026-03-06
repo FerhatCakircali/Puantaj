@@ -20,7 +20,6 @@ class ScheduleReminderParams {
 }
 
 /// Schedule reminder use case
-///
 /// Schedules attendance reminder notification.
 /// Business rules:
 /// - User ID must be valid

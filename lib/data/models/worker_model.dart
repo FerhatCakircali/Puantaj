@@ -1,7 +1,6 @@
 import '../../domain/entities/worker.dart';
 
 /// Worker data model
-///
 /// Maps database records to Worker domain entity.
 class WorkerModel {
   final String id;

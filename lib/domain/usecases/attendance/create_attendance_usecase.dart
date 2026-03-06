@@ -20,7 +20,6 @@ class CreateAttendanceParams {
 }
 
 /// Create attendance use case
-///
 /// Validates input, checks for duplicates, and creates attendance record.
 /// Business rules:
 /// - Employee ID must be valid

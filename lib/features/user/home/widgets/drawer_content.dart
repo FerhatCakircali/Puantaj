@@ -111,8 +111,7 @@ class HomeScreenDrawerContent extends ConsumerWidget {
           // Theme toggle
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            // ⚡ PHASE 3: Riverpod ThemeProvider kullanımı
-            child: Builder(
+                        child: Builder(
               builder: (context) {
                 final themeMode = ref.watch(themeStateProvider);
                 final isDark = themeMode == ThemeMode.dark;

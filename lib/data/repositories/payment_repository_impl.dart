@@ -6,7 +6,6 @@ import '../datasources/supabase_datasource.dart';
 import '../models/payment_model.dart';
 
 /// Payment repository implementation
-///
 /// Implements IPaymentRepository using Supabase as data source.
 /// Handles all payment data operations with proper error handling.
 class PaymentRepositoryImpl implements IPaymentRepository {

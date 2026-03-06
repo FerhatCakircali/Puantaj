@@ -3,16 +3,13 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import '../core/error_logger.dart';
 
 /// Önbellek yönetim servisi
-///
 /// Uygulama genelinde kullanılan önbellekleri yönetir:
 /// - Image cache (CachedNetworkImage)
 /// - Data cache (CachedFutureBuilder)
-///
 /// Özellikler:
 /// - Expired cache temizleme
 /// - Cache size limiti kontrolü
 /// - Manuel cache temizleme
-///
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class CacheManagerService {
   static final CacheManagerService _instance = CacheManagerService._internal();
@@ -32,8 +29,7 @@ class CacheManagerService {
   static const int cacheCleanupDays = 7;
 
   /// Uygulama başlangıcında expired cache'leri temizle
-  ///
-  /// Bu metod app başlangıcında çağrılmalıdır (main.dart)
+    /// Bu metod app başlangıcında çağrılmalıdır (main.dart)
   Future<void> initializeCache() async {
     try {
       debugPrint('🧹 Cache temizleme başlatılıyor...');
@@ -44,7 +40,7 @@ class CacheManagerService {
       // Cache boyutunu kontrol et
       await _checkCacheSize();
 
-      debugPrint('✅ Cache temizleme tamamlandı');
+      debugPrint('Cache temizleme tamamlandı');
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'CacheManagerService.initializeCache hatası',
@@ -79,7 +75,7 @@ class CacheManagerService {
     try {
       // Not: flutter_cache_manager cache boyutunu otomatik yönetir
       // maxNrOfCacheObjects ve maxAgeCacheObject parametreleri ile
-      debugPrint('📊 Cache boyutu kontrol ediliyor...');
+      debugPrint('Cache boyutu kontrol ediliyor...');
 
       // Eğer manuel kontrol gerekirse, cache dosyalarının boyutunu hesapla
       // ve maxCacheSizeMB ile karşılaştır
@@ -93,13 +89,12 @@ class CacheManagerService {
   }
 
   /// Tüm image cache'i temizle (manuel temizleme)
-  ///
-  /// Kullanım: Settings ekranında "Cache Temizle" butonu
+    /// Kullanım: Settings ekranında "Cache Temizle" butonu
   Future<void> clearImageCache() async {
     try {
       debugPrint('🧹 Image cache temizleniyor...');
       await _imageCacheManager.emptyCache();
-      debugPrint('✅ Image cache temizlendi');
+      debugPrint('Image cache temizlendi');
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'CacheManagerService.clearImageCache hatası',
@@ -111,8 +106,7 @@ class CacheManagerService {
   }
 
   /// Cache boyutunu al (MB cinsinden)
-  ///
-  /// Kullanım: Settings ekranında cache boyutunu göstermek için
+    /// Kullanım: Settings ekranında cache boyutunu göstermek için
   Future<double> getCacheSizeMB() async {
     try {
       // Not: flutter_cache_manager cache boyutunu doğrudan döndürmez

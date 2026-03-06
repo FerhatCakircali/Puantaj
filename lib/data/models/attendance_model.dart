@@ -1,7 +1,6 @@
 import '../../domain/entities/attendance.dart';
 
 /// Attendance data model
-///
 /// Maps database records to Attendance domain entity.
 class AttendanceModel {
   final int id;

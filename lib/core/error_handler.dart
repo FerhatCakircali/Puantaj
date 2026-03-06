@@ -1,10 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 /// Merkezi hata yönetim sınıfı
-///
 /// Uygulama genelinde tutarlı hata yönetimi sağlar.
 /// Single Responsibility prensibi gereği sadece hata yönetiminden sorumludur.
-///
 /// Kullanım:
 /// ```dart
 /// try {
@@ -23,8 +21,7 @@ class ErrorHandler {
   ErrorHandler._internal();
 
   /// Hata loglama - production'da farklı davranabilir
-  ///
-  /// [context] - Hatanın oluştuğu bağlam (örn: 'NotificationService.init')
+    /// [context] - Hatanın oluştuğu bağlam (örn: 'NotificationService.init')
   /// [error] - Hata nesnesi
   /// [stackTrace] - Stack trace (opsiyonel)
   /// [additionalInfo] - Ek bilgi (opsiyonel)
@@ -38,7 +35,7 @@ class ErrorHandler {
       debugPrint(
         '╔═══════════════════════════════════════════════════════════',
       );
-      debugPrint('║ ❌ HATA: $context');
+      debugPrint('║  HATA: $context');
       debugPrint(
         '╠═══════════════════════════════════════════════════════════',
       );
@@ -70,8 +67,7 @@ class ErrorHandler {
   }
 
   /// Bilgi loglama
-  ///
-  /// [context] - Bilginin oluştuğu bağlam
+    /// [context] - Bilginin oluştuğu bağlam
   /// [message] - Bilgi mesajı
   /// [data] - Ek veri (opsiyonel)
   static void logInfo(
@@ -80,18 +76,17 @@ class ErrorHandler {
     Map<String, dynamic>? data,
   ]) {
     if (kDebugMode) {
-      debugPrint('ℹ️ [$context] $message');
+      debugPrint('ℹ [$context] $message');
       if (data != null && data.isNotEmpty) {
         data.forEach((key, value) {
-          debugPrint('  • $key: $value');
+          debugPrint('• $key: $value');
         });
       }
     }
   }
 
   /// Uyarı loglama
-  ///
-  /// [context] - Uyarının oluştuğu bağlam
+    /// [context] - Uyarının oluştuğu bağlam
   /// [message] - Uyarı mesajı
   /// [data] - Ek veri (opsiyonel)
   static void logWarning(
@@ -100,18 +95,17 @@ class ErrorHandler {
     Map<String, dynamic>? data,
   ]) {
     if (kDebugMode) {
-      debugPrint('⚠️ [$context] $message');
+      debugPrint('[$context] $message');
       if (data != null && data.isNotEmpty) {
         data.forEach((key, value) {
-          debugPrint('  • $key: $value');
+          debugPrint('• $key: $value');
         });
       }
     }
   }
 
   /// Başarı loglama
-  ///
-  /// [context] - Başarının oluştuğu bağlam
+    /// [context] - Başarının oluştuğu bağlam
   /// [message] - Başarı mesajı
   /// [data] - Ek veri (opsiyonel)
   static void logSuccess(
@@ -120,18 +114,17 @@ class ErrorHandler {
     Map<String, dynamic>? data,
   ]) {
     if (kDebugMode) {
-      debugPrint('✅ [$context] $message');
+      debugPrint('[$context] $message');
       if (data != null && data.isNotEmpty) {
         data.forEach((key, value) {
-          debugPrint('  • $key: $value');
+          debugPrint('• $key: $value');
         });
       }
     }
   }
 
   /// Debug loglama (sadece debug modda)
-  ///
-  /// [context] - Debug bilgisinin oluştuğu bağlam
+    /// [context] - Debug bilgisinin oluştuğu bağlam
   /// [message] - Debug mesajı
   /// [data] - Ek veri (opsiyonel)
   static void logDebug(
@@ -140,18 +133,17 @@ class ErrorHandler {
     Map<String, dynamic>? data,
   ]) {
     if (kDebugMode) {
-      debugPrint('🔍 [$context] $message');
+      debugPrint('[$context] $message');
       if (data != null && data.isNotEmpty) {
         data.forEach((key, value) {
-          debugPrint('  • $key: $value');
+          debugPrint('• $key: $value');
         });
       }
     }
   }
 
   /// Hata mesajını kullanıcı dostu formata çevirir
-  ///
-  /// [error] - Hata nesnesi
+    /// [error] - Hata nesnesi
   /// Returns: Kullanıcı dostu hata mesajı
   static String getUserFriendlyMessage(dynamic error) {
     if (error == null) return 'Bilinmeyen bir hata oluştu';
@@ -188,8 +180,7 @@ class ErrorHandler {
   }
 
   /// Hata durumunda güvenli fallback değeri döndürür
-  ///
-  /// [operation] - Çalıştırılacak işlem
+    /// [operation] - Çalıştırılacak işlem
   /// [fallback] - Hata durumunda dönecek değer
   /// [context] - Hata bağlamı
   /// Returns: İşlem sonucu veya fallback değeri
@@ -203,8 +194,7 @@ class ErrorHandler {
   }
 
   /// Async hata durumunda güvenli fallback değeri döndürür
-  ///
-  /// [operation] - Çalıştırılacak async işlem
+    /// [operation] - Çalıştırılacak async işlem
   /// [fallback] - Hata durumunda dönecek değer
   /// [context] - Hata bağlamı
   /// Returns: İşlem sonucu veya fallback değeri

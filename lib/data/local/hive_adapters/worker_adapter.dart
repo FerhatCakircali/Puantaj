@@ -2,7 +2,6 @@ import 'package:hive/hive.dart';
 import '../../../models/worker.dart';
 
 /// Worker modeli için Hive TypeAdapter
-/// 
 /// Offline-first mimari için worker verilerini yerel olarak saklar.
 /// Type ID: 1
 class WorkerAdapter extends TypeAdapter<Worker> {

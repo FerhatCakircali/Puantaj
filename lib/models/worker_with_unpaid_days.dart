@@ -1,9 +1,7 @@
 /// İşçi ve ödenmemiş gün bilgilerini içeren model
-///
 /// RPC fonksiyonu `get_workers_with_unpaid_days` tarafından döndürülen
 /// veri yapısını temsil eder. N+1 query problemini çözmek için
 /// workers, attendance ve paid_days tablolarını tek sorguda birleştirir.
-///
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class WorkerWithUnpaidDays {
   /// İşçi ID'si

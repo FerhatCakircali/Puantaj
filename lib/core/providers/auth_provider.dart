@@ -1,27 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// AuthStateNotifier - Kimlik doğrulama durumunu yöneten Notifier.
-///
 /// Bu sınıf, kullanıcının giriş/çıkış durumunu yönetir ve
 /// uygulama genelinde auth state değişikliklerini bildirir.
-///
 /// **Özellikler:**
 /// - Login/logout işlemleri
 /// - Auth state değişikliklerini dinleme
 /// - Mevcut authStateNotifier ile paralel çalışır (backward compatibility)
-///
 /// **Kullanım:**
 /// ```dart
 /// // Auth state'i okuma
 /// final isAuthenticated = ref.watch(authStateProvider);
-///
 /// // Login işlemi
 /// ref.read(authStateProvider.notifier).login();
-///
 /// // Logout işlemi
 /// ref.read(authStateProvider.notifier).logout();
 /// ```
-///
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class AuthStateNotifier extends Notifier<bool> {
   /// Başlangıç durumu - false (çıkış yapmış)
@@ -31,10 +25,8 @@ class AuthStateNotifier extends Notifier<bool> {
   }
 
   /// Kullanıcı giriş yaptığında çağrılır.
-  ///
-  /// Auth state'i true yapar ve tüm dinleyicilere bildirir.
-  ///
-  /// Örnek:
+    /// Auth state'i true yapar ve tüm dinleyicilere bildirir.
+    /// Örnek:
   /// ```dart
   /// ref.read(authStateProvider.notifier).login();
   /// ```
@@ -43,10 +35,8 @@ class AuthStateNotifier extends Notifier<bool> {
   }
 
   /// Kullanıcı çıkış yaptığında çağrılır.
-  ///
-  /// Auth state'i false yapar ve tüm dinleyicilere bildirir.
-  ///
-  /// Örnek:
+    /// Auth state'i false yapar ve tüm dinleyicilere bildirir.
+    /// Örnek:
   /// ```dart
   /// ref.read(authStateProvider.notifier).logout();
   /// ```
@@ -55,11 +45,9 @@ class AuthStateNotifier extends Notifier<bool> {
   }
 
   /// Auth state'i manuel olarak ayarlar.
-  ///
-  /// Parametreler:
+    /// Parametreler:
   /// - [isAuthenticated]: Yeni auth durumu
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// ref.read(authStateProvider.notifier).setState(true);
   /// ```
@@ -69,9 +57,7 @@ class AuthStateNotifier extends Notifier<bool> {
 }
 
 /// AuthStateProvider - Auth state'i sağlayan global provider.
-///
 /// Bu provider, uygulamanın her yerinden auth durumuna erişim sağlar.
-///
 /// **Kullanım Örnekleri:**
 /// ```dart
 /// // Widget içinde auth state'i dinleme
@@ -82,7 +68,6 @@ class AuthStateNotifier extends Notifier<bool> {
 ///     return Text(isAuthenticated ? 'Giriş Yapıldı' : 'Çıkış Yapıldı');
 ///   }
 /// }
-///
 /// // Auth state değişikliklerini dinleme
 /// ref.listen<bool>(authStateProvider, (previous, next) {
 ///   if (next) {

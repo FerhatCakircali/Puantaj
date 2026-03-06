@@ -46,7 +46,7 @@ class AppRouter {
 
       // Çalışan paneli route'ları için redirect yapma (TAMAMEN BYPASS)
       if (location.startsWith('/worker')) {
-        debugPrint('🛣️ AppRouter: Worker route bypass - $location');
+        debugPrint('🛣 AppRouter: Worker route bypass - $location');
         return null;
       }
 

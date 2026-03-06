@@ -25,15 +25,15 @@ class EmailService {
       );
 
       if (response.status == 200) {
-        debugPrint('✅ Email başarıyla gönderildi: $to');
+        debugPrint('Email başarıyla gönderildi: $to');
         return true;
       } else {
-        debugPrint('❌ Email gönderme hatası: ${response.status}');
-        debugPrint('   Response: ${response.data}');
+        debugPrint('Email gönderme hatası: ${response.status}');
+        debugPrint('Response: ${response.data}');
         return false;
       }
     } catch (e) {
-      debugPrint('❌ Email gönderme exception: $e');
+      debugPrint('Email gönderme exception: $e');
       return false;
     }
   }
@@ -138,11 +138,11 @@ class EmailService {
   }) async {
     try {
       debugPrint('📧 Şifre sıfırlama email\'i gönderiliyor: $email');
-      debugPrint('   User Type: $userType');
+      debugPrint('User Type: $userType');
 
       final userData = await _findUserByEmail(email, userType);
       if (userData == null) {
-        debugPrint('❌ Email bulunamadı: $email (userType: $userType)');
+        debugPrint('Email bulunamadı: $email (userType: $userType)');
         return 'Bu e-posta adresi sistemde kayıtlı değil.';
       }
 
@@ -163,7 +163,7 @@ class EmailService {
         },
       );
 
-      debugPrint('✅ Token oluşturuldu: $token');
+      debugPrint('Token oluşturuldu: $token');
 
       final emailSent = await _sendEmail(
         to: email,
@@ -177,7 +177,7 @@ class EmailService {
 
       return null;
     } catch (e) {
-      debugPrint('❌ Email gönderme hatası: $e');
+      debugPrint('Email gönderme hatası: $e');
       return 'Email gönderilirken bir hata oluştu: $e';
     }
   }
@@ -189,7 +189,7 @@ class EmailService {
   ) async {
     try {
       final table = userType == 'user' ? 'users' : 'workers';
-      debugPrint('🔍 Email araniyor: $email (tablo: $table)');
+      debugPrint('Email araniyor: $email (tablo: $table)');
 
       final result = await _supabase
           .from(table)
@@ -198,7 +198,7 @@ class EmailService {
           .maybeSingle();
 
       if (result == null) {
-        debugPrint('❌ Email bulunamadi: $email');
+        debugPrint('Email bulunamadi: $email');
       } else {
         debugPrint(
           '✅ Email bulundu: ${result['username']} (id: ${result['id']})',
@@ -207,7 +207,7 @@ class EmailService {
 
       return result;
     } catch (e) {
-      debugPrint('❌ Email ile kullanıcı bulma hatası: $e');
+      debugPrint('Email ile kullanıcı bulma hatası: $e');
       return null;
     }
   }
@@ -288,10 +288,10 @@ class EmailService {
         return 'Geçersiz veya süresi dolmuş kod.';
       }
 
-      debugPrint('✅ Şifre başarıyla sıfırlandı');
+      debugPrint('Şifre başarıyla sıfırlandı');
       return null;
     } catch (e) {
-      debugPrint('❌ Şifre sıfırlama hatası: $e');
+      debugPrint('Şifre sıfırlama hatası: $e');
       return 'Şifre sıfırlanırken bir hata oluştu.';
     }
   }
@@ -324,11 +324,11 @@ class EmailService {
         },
       );
 
-      debugPrint('✅ Email doğrulama kodu oluşturuldu: $token');
+      debugPrint('Email doğrulama kodu oluşturuldu: $token');
 
       return null;
     } catch (e) {
-      debugPrint('❌ Email doğrulama kodu gönderme hatası: $e');
+      debugPrint('Email doğrulama kodu gönderme hatası: $e');
       return 'Doğrulama kodu gönderilirken bir hata oluştu.';
     }
   }
@@ -356,10 +356,10 @@ class EmailService {
           .update({'used': true})
           .eq('token', token);
 
-      debugPrint('✅ Email doğrulandı');
+      debugPrint('Email doğrulandı');
       return null;
     } catch (e) {
-      debugPrint('❌ Email doğrulama hatası: $e');
+      debugPrint('Email doğrulama hatası: $e');
       return 'Email doğrulanırken bir hata oluştu.';
     }
   }

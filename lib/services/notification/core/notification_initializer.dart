@@ -36,14 +36,14 @@ class NotificationInitializer {
 
       final hasPermission = await permissionMixin.checkAndRequestPermissions();
       if (!hasPermission) {
-        debugPrint('⚠️ Bildirim izinleri verilmedi');
+        debugPrint('Bildirim izinleri verilmedi');
       }
 
       await _handleColdStart();
 
-      debugPrint('✅ NotificationService başarıyla başlatıldı');
+      debugPrint('NotificationService başarıyla başlatıldı');
     } catch (e, stackTrace) {
-      debugPrint('❌ NotificationService başlatılırken hata: $e');
+      debugPrint('NotificationService başlatılırken hata: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
@@ -58,15 +58,15 @@ class NotificationInitializer {
       try {
         final istanbul = tz.getLocation('Europe/Istanbul');
         tz.setLocalLocation(istanbul);
-        debugPrint('✅ Timezone ayarlandı: ${tz.local.name}');
+        debugPrint('Timezone ayarlandı: ${tz.local.name}');
       } catch (e) {
-        debugPrint('⚠️ Europe/Istanbul timezone ayarlanamadı: $e');
+        debugPrint('Europe/Istanbul timezone ayarlanamadı: $e');
         debugPrint('UTC timezone\'una fallback yapılıyor...');
         tz.setLocalLocation(tz.UTC);
-        debugPrint('✅ Fallback timezone ayarlandı: ${tz.local.name}');
+        debugPrint('Fallback timezone ayarlandı: ${tz.local.name}');
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ Timezone başlatılırken hata: $e');
+      debugPrint('Timezone başlatılırken hata: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
@@ -97,9 +97,9 @@ class NotificationInitializer {
         onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
       );
 
-      debugPrint('✅ Plugin başarıyla başlatıldı');
+      debugPrint('Plugin başarıyla başlatıldı');
     } catch (e, stackTrace) {
-      debugPrint('❌ Plugin başlatılırken hata: $e');
+      debugPrint('Plugin başlatılırken hata: $e');
       debugPrint('Stack trace: $stackTrace');
       rethrow;
     }
@@ -108,7 +108,7 @@ class NotificationInitializer {
   /// Bildirime tıklandığında çağrılır (foreground)
   void _onNotificationTapped(NotificationResponse response) async {
     try {
-      debugPrint('🔔 Bildirime tıklandı (foreground)');
+      debugPrint('Bildirime tıklandı (foreground)');
       debugPrint('ID: ${response.id}');
       debugPrint('Payload: ${response.payload}');
 
@@ -119,9 +119,9 @@ class NotificationInitializer {
         debugPrint('📡 Notification click event gönderildi');
       }
 
-      debugPrint('✅ Bildirim tıklama işlendi (foreground)');
+      debugPrint('Bildirim tıklama işlendi (foreground)');
     } catch (e, stackTrace) {
-      debugPrint('❌ Bildirim tıklama işlenirken hata: $e');
+      debugPrint('Bildirim tıklama işlenirken hata: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
@@ -139,7 +139,7 @@ class NotificationInitializer {
       }
 
       if (details.didNotificationLaunchApp) {
-        debugPrint('🚀 Uygulama bildirimden başlatıldı');
+        debugPrint('Uygulama bildirimden başlatıldı');
 
         final response = details.notificationResponse;
         if (response != null && response.payload != null) {
@@ -152,13 +152,13 @@ class NotificationInitializer {
             debugPrint('📡 Cold start notification click event gönderildi');
           }
 
-          debugPrint('✅ Cold start payload işlendi');
+          debugPrint('Cold start payload işlendi');
         }
       } else {
         debugPrint('Uygulama normal şekilde başlatıldı');
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ Cold start işlenirken hata: $e');
+      debugPrint('Cold start işlenirken hata: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }

@@ -41,7 +41,7 @@ mixin WorkerHomeLifecycleMixin<T extends StatefulWidget> on State<T> {
         );
       }
     } catch (e) {
-      debugPrint('❌ Bildirim dinleme başlatılamadı: $e');
+      debugPrint('Bildirim dinleme başlatılamadı: $e');
     }
   }
 
@@ -50,7 +50,7 @@ mixin WorkerHomeLifecycleMixin<T extends StatefulWidget> on State<T> {
     try {
       await WorkerNotificationListenerService.instance.stopListening();
     } catch (e) {
-      debugPrint('❌ Bildirim dinleme durdurulurken hata: $e');
+      debugPrint('Bildirim dinleme durdurulurken hata: $e');
     }
   }
 
@@ -185,9 +185,9 @@ mixin WorkerHomeLifecycleMixin<T extends StatefulWidget> on State<T> {
         }
       }
 
-      debugPrint('✅ WorkerHomeScreen: Bildirim kontrolü tamamlandı');
+      debugPrint('WorkerHomeScreen: Bildirim kontrolü tamamlandı');
     } catch (e, stackTrace) {
-      debugPrint('❌ WorkerHomeScreen: Bildirim yönlendirmesi hatası: $e');
+      debugPrint('WorkerHomeScreen: Bildirim yönlendirmesi hatası: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
@@ -223,10 +223,10 @@ mixin WorkerHomeLifecycleMixin<T extends StatefulWidget> on State<T> {
           await workerNotificationService.cancelWorkerAttendanceReminder(
             workerId,
           );
-          debugPrint('✅ Çalışan hatırlatıcısı iptal edildi');
+          debugPrint('Çalışan hatırlatıcısı iptal edildi');
         }
       } catch (e) {
-        debugPrint('⚠️ Çalışan hatırlatıcısı iptal edilirken hata: $e');
+        debugPrint('Çalışan hatırlatıcısı iptal edilirken hata: $e');
       }
 
       await localStorage.clearWorkerSession();

@@ -1,5 +1,4 @@
 /// Storage service interface
-///
 /// Defines contract for local storage operations.
 /// Implementations handle platform-specific storage (SharedPreferences, etc.).
 abstract class IStorageService {

@@ -37,8 +37,7 @@ class _UsersTabState extends State<UsersTab> {
 
   @override
   void dispose() {
-    // ⚡ ÖNEMLİ: Memory leak önlemek için listener'ları kaldır
-    _scrollController.removeListener(_onScroll);
+        _scrollController.removeListener(_onScroll);
     _searchController.removeListener(_filterUsers);
     _scrollController.dispose();
     _searchController.dispose();

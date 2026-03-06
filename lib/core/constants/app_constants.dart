@@ -1,5 +1,4 @@
 /// Uygulama genelinde kullanılan sabitler
-///
 /// Single Responsibility: Sadece uygulama sabitlerini tutar
 class AppConstants {
   // Private constructor - utility class

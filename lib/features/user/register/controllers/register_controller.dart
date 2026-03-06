@@ -52,7 +52,7 @@ class RegisterController {
         email: email,
       );
     } catch (e) {
-      debugPrint('❌ Kayıt hatası: $e');
+      debugPrint('Kayıt hatası: $e');
       return 'Kayıt sırasında bir hata oluştu';
     }
   }

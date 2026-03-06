@@ -17,7 +17,7 @@ class ExpenseService {
       final userId = await _authService.getUserId();
       if (userId == null) return [];
 
-      debugPrint('🏗️ Masraflar getiriliyor...');
+      debugPrint('Masraflar getiriliyor...');
 
       final results = await supabase
           .from('expenses')
@@ -27,7 +27,7 @@ class ExpenseService {
 
       final expenses = results.map((map) => Expense.fromMap(map)).toList();
 
-      debugPrint('✅ ${expenses.length} masraf getirildi');
+      debugPrint('${expenses.length} masraf getirildi');
       return expenses;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
@@ -58,7 +58,7 @@ class ExpenseService {
 
       final expenses = results.map((map) => Expense.fromMap(map)).toList();
 
-      debugPrint('✅ ${expenses.length} masraf getirildi');
+      debugPrint('${expenses.length} masraf getirildi');
       return expenses;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
@@ -76,7 +76,7 @@ class ExpenseService {
       final userId = await _authService.getUserId();
       if (userId == null) return {};
 
-      debugPrint('🏗️ Kategori toplamları hesaplanıyor...');
+      debugPrint('Kategori toplamları hesaplanıyor...');
 
       final Map<ExpenseCategory, double> totals = {};
 
@@ -94,7 +94,7 @@ class ExpenseService {
         );
       }
 
-      debugPrint('✅ Kategori toplamları hesaplandı');
+      debugPrint('Kategori toplamları hesaplandı');
       return totals;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
@@ -112,7 +112,7 @@ class ExpenseService {
       final userId = await _authService.getUserId();
       if (userId == null) return null;
 
-      debugPrint('🏗️ En çok harcanan kategori hesaplanıyor...');
+      debugPrint('En çok harcanan kategori hesaplanıyor...');
 
       final result = await supabase.rpc(
         'get_top_expense_category',
@@ -120,7 +120,7 @@ class ExpenseService {
       );
 
       if (result == null || result.isEmpty) {
-        debugPrint('⚠️ Henüz masraf kaydı yok');
+        debugPrint('Henüz masraf kaydı yok');
         return null;
       }
 
@@ -159,7 +159,7 @@ class ExpenseService {
       );
 
       final expenseMap = expense.copyWith(userId: userId).toMap();
-      debugPrint('🏗️ Masraf map: $expenseMap');
+      debugPrint('Masraf map: $expenseMap');
 
       final result = await supabase
           .from('expenses')
@@ -169,7 +169,7 @@ class ExpenseService {
 
       final newExpense = Expense.fromMap(result);
 
-      debugPrint('✅ Masraf başarıyla eklendi (ID: ${newExpense.id})');
+      debugPrint('Masraf başarıyla eklendi (ID: ${newExpense.id})');
 
       return newExpense;
     } catch (e, stackTrace) {
@@ -189,14 +189,14 @@ class ExpenseService {
         throw Exception('Masraf ID bulunamadı');
       }
 
-      debugPrint('🏗️ Masraf güncelleniyor: ID=${expense.id}');
+      debugPrint('Masraf güncelleniyor: ID=${expense.id}');
 
       final expenseMap = expense.toMap();
       expenseMap.remove('id'); // ID'yi güncelleme map'inden çıkar
 
       await supabase.from('expenses').update(expenseMap).eq('id', expense.id!);
 
-      debugPrint('✅ Masraf başarıyla güncellendi');
+      debugPrint('Masraf başarıyla güncellendi');
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'ExpenseService.updateExpense hatası',
@@ -210,11 +210,11 @@ class ExpenseService {
   /// Masraf sil
   Future<void> deleteExpense(int expenseId) async {
     try {
-      debugPrint('🏗️ Masraf siliniyor: ID=$expenseId');
+      debugPrint('Masraf siliniyor: ID=$expenseId');
 
       await supabase.from('expenses').delete().eq('id', expenseId);
 
-      debugPrint('✅ Masraf başarıyla silindi');
+      debugPrint('Masraf başarıyla silindi');
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'ExpenseService.deleteExpense hatası',
@@ -234,7 +234,7 @@ class ExpenseService {
       final userId = await _authService.getUserId();
       if (userId == null) return 0.0;
 
-      debugPrint('🏗️ Aylık masraf hesaplanıyor: $monthStart - $monthEnd');
+      debugPrint('Aylık masraf hesaplanıyor: $monthStart - $monthEnd');
 
       final result = await supabase.rpc(
         'get_monthly_expenses',
@@ -284,7 +284,7 @@ class ExpenseService {
 
       final expenses = results.map((map) => Expense.fromMap(map)).toList();
 
-      debugPrint('✅ ${expenses.length} masraf getirildi');
+      debugPrint('${expenses.length} masraf getirildi');
       return expenses;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(

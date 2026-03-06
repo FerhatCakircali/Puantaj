@@ -10,9 +10,6 @@ import '../../advances/widgets/advances_tab.dart';
 import '../../expenses/widgets/expenses_tab.dart';
 
 /// Finans yönetim ekranı (Ödemeler, Avanslar, Masraflar)
-///
-/// 3 tab'lı yapı ile tüm finans işlemlerini tek ekranda yönetir.
-/// AGENTS.md kurallarına uygun olarak modüler yapıda tasarlanmıştır.
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
 
@@ -69,7 +66,7 @@ class _PaymentScreenState extends State<PaymentScreen>
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('⚠️ Payment data yükleme hatası: $e');
+      debugPrint('Payment data yükleme hatası: $e');
 
       if (!mounted) return;
 
@@ -157,8 +154,7 @@ class _PaymentScreenState extends State<PaymentScreen>
               child: TabBarView(
                 controller: _tabController,
                 physics:
-                    const BouncingScrollPhysics(), // ✅ Kaydırmalı tab geçişi
-                children: [
+                    const BouncingScrollPhysics(),                 children: [
                   _buildPaymentsTab(),
                   const AdvancesTab(),
                   const ExpensesTab(),
@@ -213,8 +209,7 @@ class _PaymentScreenState extends State<PaymentScreen>
                             itemExtent: null,
                             keyboardDismissBehavior:
                                 ScrollViewKeyboardDismissBehavior
-                                    .onDrag, // ✅ Klavye overflow fix
-                            itemBuilder: (context, index) {
+                                    .onDrag,                             itemBuilder: (context, index) {
                               final emp = _filteredEmployees[index];
                               final unpaidDays = _unpaidDays[emp.id]!;
                               final score = _unpaidScores[emp.id] ?? 0;

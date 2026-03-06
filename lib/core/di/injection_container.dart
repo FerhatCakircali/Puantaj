@@ -38,15 +38,12 @@ import '../../presentation/controllers/employee/employee_controller.dart';
 import '../../presentation/controllers/attendance/attendance_controller.dart';
 
 /// Dependency Injection Container
-///
 /// Centralizes all dependency registrations and provides a single initialization point.
 /// Uses GetIt as the service locator.
-///
 /// Usage:
 /// ```dart
 /// // Initialize at app startup
 /// await InjectionContainer.instance.init();
-///
 /// // Retrieve dependencies
 /// final authRepo = InjectionContainer.instance.get<IAuthRepository>();
 /// ```
@@ -59,8 +56,7 @@ class InjectionContainer {
   final GetIt _getIt = GetIt.instance;
 
   /// Initialize all dependencies
-  ///
-  /// Should be called once at app startup before any other operations.
+    /// Should be called once at app startup before any other operations.
   /// Registers dependencies in the correct order:
   /// 1. Data sources
   /// 2. Repositories
@@ -251,8 +247,7 @@ class InjectionContainer {
   }
 
   /// Get a registered dependency
-  ///
-  /// Throws if the dependency is not registered.
+    /// Throws if the dependency is not registered.
   T get<T extends Object>() => _getIt.get<T>();
 
   /// Check if a dependency is registered

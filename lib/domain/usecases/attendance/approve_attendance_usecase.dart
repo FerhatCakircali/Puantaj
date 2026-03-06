@@ -12,7 +12,6 @@ class ApproveAttendanceParams {
 }
 
 /// Approve attendance use case
-///
 /// Approves pending attendance request.
 /// Business rules:
 /// - Attendance must exist

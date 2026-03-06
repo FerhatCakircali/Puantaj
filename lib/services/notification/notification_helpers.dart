@@ -11,7 +11,7 @@ final StreamController<String> notificationClickStream =
 // Arka planda bildirim alındığında çalışacak top-level fonksiyon
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
-  debugPrint('🔥 NOTIFICATION TAP BACKGROUND: ${notificationResponse.payload}');
+  debugPrint('NOTIFICATION TAP BACKGROUND: ${notificationResponse.payload}');
 
   // Bildirim ID'sini al ve kapat
   int notificationId = notificationResponse.id ?? 0;
@@ -34,9 +34,9 @@ Future<void> processNotificationPayloadStatic(String payload) async {
     await prefs.setBool('launched_from_notification', true);
     await prefs.setBool('notification_needs_handling', true);
 
-    debugPrint('✅ Statik bildirim payload işlendi');
+    debugPrint('Statik bildirim payload işlendi');
   } catch (e) {
-    debugPrint('❌ Statik bildirim payload işleme hatası: $e');
+    debugPrint('Statik bildirim payload işleme hatası: $e');
   }
 }
 
@@ -47,7 +47,7 @@ class NotificationHelpers {
     try {
       return tz.TZDateTime.from(dateTime, tz.getLocation('Europe/Istanbul'));
     } catch (e) {
-      debugPrint('⚠️ Timezone dönüşümü başarısız, UTC kullanılıyor: $e');
+      debugPrint('Timezone dönüşümü başarısız, UTC kullanılıyor: $e');
       return tz.TZDateTime.from(dateTime, tz.UTC);
     }
   }
@@ -91,9 +91,9 @@ class NotificationHelpers {
         await prefs.remove(key);
       }
 
-      debugPrint('✅ Çıkış: Tüm bildirimler ve durumlar temizlendi');
+      debugPrint('Çıkış: Tüm bildirimler ve durumlar temizlendi');
     } catch (e) {
-      debugPrint('❌ Çıkış bildirim temizleme hatası: $e');
+      debugPrint('Çıkış bildirim temizleme hatası: $e');
     }
   }
 

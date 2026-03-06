@@ -102,10 +102,10 @@ class ValidationService {
         return 'Bu kullanıcı adı zaten kullanılıyor';
       }
 
-      debugPrint('✅ ValidationService: Kullanıcı adı kullanılabilir');
+      debugPrint('ValidationService: Kullanıcı adı kullanılabilir');
       return null;
     } catch (e) {
-      debugPrint('❌ ValidationService: Kullanıcı adı kontrolü hatası: $e');
+      debugPrint('ValidationService: Kullanıcı adı kontrolü hatası: $e');
       return 'Kullanıcı adı kontrolü sırasında bir hata oluştu';
     }
   }
@@ -122,7 +122,7 @@ class ValidationService {
       if (email.trim().isEmpty) return null;
 
       final lowercaseEmail = email.toLowerCase();
-      debugPrint('🔍 ValidationService: E-posta kontrolü: $lowercaseEmail');
+      debugPrint('ValidationService: E-posta kontrolü: $lowercaseEmail');
 
       // Users tablosunda kontrol et
       var usersQuery = _supabase
@@ -137,7 +137,7 @@ class ValidationService {
       final userResult = await usersQuery.maybeSingle();
 
       if (userResult != null) {
-        debugPrint('✅ ValidationService: E-posta users tablosunda bulundu');
+        debugPrint('ValidationService: E-posta users tablosunda bulundu');
         return 'Bu e-posta adresi zaten kullanılıyor';
       }
 
@@ -154,14 +154,14 @@ class ValidationService {
       final workerResult = await workersQuery.maybeSingle();
 
       if (workerResult != null) {
-        debugPrint('✅ ValidationService: E-posta workers tablosunda bulundu');
+        debugPrint('ValidationService: E-posta workers tablosunda bulundu');
         return 'Bu e-posta adresi zaten kullanılıyor';
       }
 
-      debugPrint('✅ ValidationService: E-posta kullanılabilir');
+      debugPrint('ValidationService: E-posta kullanılabilir');
       return null;
     } catch (e) {
-      debugPrint('❌ ValidationService: E-posta kontrolü hatası: $e');
+      debugPrint('ValidationService: E-posta kontrolü hatası: $e');
       return 'E-posta kontrolü sırasında bir hata oluştu';
     }
   }

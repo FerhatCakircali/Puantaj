@@ -6,7 +6,6 @@ import '../datasources/supabase_datasource.dart';
 import '../models/notification_model.dart';
 
 /// Notification repository implementation
-///
 /// Implements INotificationRepository using Supabase as data source.
 /// Handles all notification data operations with proper error handling.
 class NotificationRepositoryImpl implements INotificationRepository {

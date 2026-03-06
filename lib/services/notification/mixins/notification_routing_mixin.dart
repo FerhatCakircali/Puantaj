@@ -4,18 +4,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../models/notification_payload.dart';
 
 /// Bildirim yönlendirme işlemlerini yöneten mixin
-///
 /// Bu mixin bildirime tıklandığında kullanıcıyı doğru sayfaya yönlendirme
 /// işlemlerini sağlar. Uygulama kapalıyken tıklanan bildirimler için
 /// routing bilgisini saklar ve uygulama açıldığında yönlendirmeyi gerçekleştirir.
-///
 /// Sorumluluklar:
 /// - Bekleyen yönlendirmeleri kontrol etme
 /// - Yevmiye hatırlatıcısı için yönlendirme
 /// - Çalışan hatırlatıcısı için yönlendirme
 /// - Yönlendirme bilgisini temizleme
 /// - SharedPreferences entegrasyonu
-///
 /// Kullanım:
 /// ```dart
 /// class NotificationService with NotificationRoutingMixin {
@@ -24,19 +21,15 @@ import '../../../models/notification_payload.dart';
 /// ```
 mixin NotificationRoutingMixin {
   /// Bekleyen bildirim yönlendirmesini kontrol eder ve işler
-  ///
-  /// Uygulama açıldığında çağrılmalıdır. SharedPreferences'ta bekleyen
+    /// Uygulama açıldığında çağrılmalıdır. SharedPreferences'ta bekleyen
   /// bir yönlendirme varsa, kullanıcıyı ilgili sayfaya yönlendirir.
-  ///
-  /// [context] BuildContext - Yönlendirme için gerekli
-  ///
-  /// İşlem adımları:
+    /// [context] BuildContext - Yönlendirme için gerekli
+    /// İşlem adımları:
   /// 1. SharedPreferences'tan yönlendirme bilgisini oku
   /// 2. Bekleyen yönlendirme var mı kontrol et
   /// 3. Bildirim tipine göre ilgili yönlendirme metodunu çağır
   /// 4. Yönlendirme bilgisini temizle
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// // main.dart veya ana sayfa initState'inde
   /// await notificationService.checkAndHandlePendingNotification(context);
@@ -95,7 +88,7 @@ mixin NotificationRoutingMixin {
                 '✅ Çalışan Hatırlatıcılar sayfasına yönlendirme başarılı',
               );
             } else {
-              debugPrint('❌ Context mounted değil, yönlendirme iptal edildi');
+              debugPrint('Context mounted değil, yönlendirme iptal edildi');
             }
             break;
           case 'payment_received':
@@ -105,8 +98,7 @@ mixin NotificationRoutingMixin {
                 '📍 Çalışan Geçmiş sayfasına (Ödeme Geçmişi) yönlendiriliyor...',
               );
 
-              // ⚡ FIX: Ödeme Geçmişi sekmesine yönlendirmek için tab bilgisini kaydet
-              final prefs = await SharedPreferences.getInstance();
+                            final prefs = await SharedPreferences.getInstance();
               await prefs.setInt(
                 'worker_attendance_initial_tab',
                 1,
@@ -117,7 +109,7 @@ mixin NotificationRoutingMixin {
                 '✅ Çalışan Geçmiş sayfasına (Ödeme Geçmişi sekmesi) yönlendirme başarılı',
               );
             } else {
-              debugPrint('❌ Context mounted değil, yönlendirme iptal edildi');
+              debugPrint('Context mounted değil, yönlendirme iptal edildi');
             }
             break;
           case 'payment_updated':
@@ -134,7 +126,7 @@ mixin NotificationRoutingMixin {
                 '✅ Çalışan Bildirimler sayfasına yönlendirme başarılı',
               );
             } else {
-              debugPrint('❌ Context mounted değil, yönlendirme iptal edildi');
+              debugPrint('Context mounted değil, yönlendirme iptal edildi');
             }
             break;
           default:
@@ -181,10 +173,8 @@ mixin NotificationRoutingMixin {
   }
 
   /// Yevmiye talepleri sayfasına yönlendirme yapar
-  ///
-  /// UserNotificationsScreen'e yönlendirir (HomeScreen'in 9. tab'ı - index 8).
-  ///
-  /// [context] BuildContext - Yönlendirme için gerekli
+    /// UserNotificationsScreen'e yönlendirir (HomeScreen'in 9. tab'ı - index 8).
+    /// [context] BuildContext - Yönlendirme için gerekli
   Future<void> _handleAttendanceRequestsRoute(BuildContext context) async {
     try {
       debugPrint('Kullanıcı bildirimleri sayfasına yönlendiriliyor...');
@@ -203,10 +193,8 @@ mixin NotificationRoutingMixin {
   }
 
   /// Kullanıcı bildirimleri sayfasına yönlendirme yapar
-  ///
-  /// UserNotificationsScreen'e yönlendirir (HomeScreen'in 9. tab'ı - index 8).
-  ///
-  /// [context] BuildContext - Yönlendirme için gerekli
+    /// UserNotificationsScreen'e yönlendirir (HomeScreen'in 9. tab'ı - index 8).
+    /// [context] BuildContext - Yönlendirme için gerekli
   Future<void> _handleUserNotificationsRoute(BuildContext context) async {
     try {
       debugPrint('Kullanıcı bildirimleri sayfasına yönlendiriliyor...');
@@ -225,11 +213,9 @@ mixin NotificationRoutingMixin {
   }
 
   /// Yevmiye hatırlatıcısı için yönlendirme yapar
-  ///
-  /// HomeScreen veya WorkerHomeScreen'e yönlendirir.
+    /// HomeScreen veya WorkerHomeScreen'e yönlendirir.
   /// worker_notification_type'a göre çalışan mı kullanıcı mı olduğunu belirler.
-  ///
-  /// [context] BuildContext - Yönlendirme için gerekli
+    /// [context] BuildContext - Yönlendirme için gerekli
   Future<void> _handleAttendanceReminderRoute(BuildContext context) async {
     try {
       debugPrint('Yevmiye sayfasına yönlendiriliyor...');
@@ -266,13 +252,10 @@ mixin NotificationRoutingMixin {
   }
 
   /// Çalışan hatırlatıcısı için yönlendirme yapar
-  ///
-  /// Kullanıcıyı ilgili hatırlatıcı detay sayfasına yönlendirir.
-  ///
-  /// [context] BuildContext - Yönlendirme için gerekli
+    /// Kullanıcıyı ilgili hatırlatıcı detay sayfasına yönlendirir.
+    /// [context] BuildContext - Yönlendirme için gerekli
   /// [prefs] SharedPreferences - Hatırlatıcı ID'sini almak için
-  ///
-  /// Not: Hatırlatıcı ID'si bulunamazsa yönlendirme yapılmaz.
+    /// Not: Hatırlatıcı ID'si bulunamazsa yönlendirme yapılmaz.
   Future<void> _handleEmployeeReminderRoute(
     BuildContext context,
     SharedPreferences prefs,
@@ -308,11 +291,9 @@ mixin NotificationRoutingMixin {
   }
 
   /// Yönlendirme bilgisini temizler
-  ///
-  /// SharedPreferences'ta saklanan tüm yönlendirme bilgilerini siler.
+    /// SharedPreferences'ta saklanan tüm yönlendirme bilgilerini siler.
   /// Yönlendirme tamamlandıktan sonra veya hata durumunda çağrılmalıdır.
-  ///
-  /// Temizlenen bilgiler:
+    /// Temizlenen bilgiler:
   /// - notification_type: Bildirim tipi
   /// - notification_simple_type: Basit payload tipi
   /// - notification_user_id: Kullanıcı ID'si
@@ -321,8 +302,7 @@ mixin NotificationRoutingMixin {
   /// - worker_notification_type: Çalışan bildirim tipi
   /// - worker_notification_id: Çalışan bildirim ID'si
   /// - has_pending_notification: Bekleyen yönlendirme bayrağı
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// await clearRoutingInfo();
   /// ```

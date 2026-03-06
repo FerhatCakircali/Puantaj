@@ -3,25 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// ThemeStateNotifier - Tema modunu yöneten Notifier.
-///
 /// Bu sınıf, uygulamanın tema modunu (light/dark/system) yönetir ve
 /// SharedPreferences ile kalıcı hale getirir.
-///
 /// **Özellikler:**
 /// - Light, Dark, System tema modları
 /// - SharedPreferences ile kalıcı saklama
 /// - Tema değişikliklerini dinleme
 /// - Mevcut themeModeNotifier ile paralel çalışır (backward compatibility)
-///
 /// **Kullanım:**
 /// ```dart
 /// // Tema modunu okuma
 /// final themeMode = ref.watch(themeStateProvider);
-///
 /// // Tema değiştirme
 /// ref.read(themeStateProvider.notifier).setTheme(ThemeMode.dark);
 /// ```
-///
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class ThemeStateNotifier extends Notifier<ThemeMode> {
   static const String _themeKey = 'theme_mode';
@@ -34,8 +29,7 @@ class ThemeStateNotifier extends Notifier<ThemeMode> {
   }
 
   /// Kaydedilmiş tema tercihini yükler.
-  ///
-  /// SharedPreferences'tan tema modunu okur ve state'i günceller.
+    /// SharedPreferences'tan tema modunu okur ve state'i günceller.
   /// Eğer kaydedilmiş tema yoksa, system modunu kullanır.
   Future<void> _loadSavedTheme() async {
     try {
@@ -62,19 +56,15 @@ class ThemeStateNotifier extends Notifier<ThemeMode> {
   }
 
   /// Tema modunu ayarlar ve SharedPreferences'a kaydeder.
-  ///
-  /// Parametreler:
+    /// Parametreler:
   /// - [themeMode]: Yeni tema modu (light, dark, system)
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// // Koyu tema
   /// ref.read(themeStateProvider.notifier).setTheme(ThemeMode.dark);
-  ///
-  /// // Açık tema
+    /// // Açık tema
   /// ref.read(themeStateProvider.notifier).setTheme(ThemeMode.light);
-  ///
-  /// // Sistem teması
+    /// // Sistem teması
   /// ref.read(themeStateProvider.notifier).setTheme(ThemeMode.system);
   /// ```
   Future<void> setTheme(ThemeMode themeMode) async {
@@ -106,8 +96,7 @@ class ThemeStateNotifier extends Notifier<ThemeMode> {
   }
 
   /// Koyu temaya geçer.
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// ref.read(themeStateProvider.notifier).setDarkTheme();
   /// ```
@@ -116,8 +105,7 @@ class ThemeStateNotifier extends Notifier<ThemeMode> {
   }
 
   /// Açık temaya geçer.
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// ref.read(themeStateProvider.notifier).setLightTheme();
   /// ```
@@ -126,8 +114,7 @@ class ThemeStateNotifier extends Notifier<ThemeMode> {
   }
 
   /// Sistem temasına geçer.
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// ref.read(themeStateProvider.notifier).setSystemTheme();
   /// ```
@@ -136,10 +123,8 @@ class ThemeStateNotifier extends Notifier<ThemeMode> {
   }
 
   /// Tema modunu toggle eder (light ↔ dark).
-  ///
-  /// System modundaysa dark'a geçer.
-  ///
-  /// Örnek:
+    /// System modundaysa dark'a geçer.
+    /// Örnek:
   /// ```dart
   /// ref.read(themeStateProvider.notifier).toggleTheme();
   /// ```
@@ -159,9 +144,7 @@ class ThemeStateNotifier extends Notifier<ThemeMode> {
 }
 
 /// ThemeStateProvider - Tema modunu sağlayan global provider.
-///
 /// Bu provider, uygulamanın her yerinden tema moduna erişim sağlar.
-///
 /// **Kullanım Örnekleri:**
 /// ```dart
 /// // Widget içinde tema modunu dinleme
@@ -175,7 +158,6 @@ class ThemeStateNotifier extends Notifier<ThemeMode> {
 ///     );
 ///   }
 /// }
-///
 /// // Tema değiştirme butonu
 /// ElevatedButton(
 ///   onPressed: () {

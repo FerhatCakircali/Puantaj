@@ -14,12 +14,12 @@ class AttendanceNotificationHandler {
       final notificationService = old_ns.NotificationService();
       final notification = await notificationService.getPendingNotification();
       if (notification != null && notification.isAttendanceReminder) {
-        debugPrint('📋 AttendanceScreen: Yevmiye bildirimi temizleniyor');
+        debugPrint('AttendanceScreen: Yevmiye bildirimi temizleniyor');
         await notificationService.clearPendingNotification();
-        debugPrint('✅ AttendanceScreen: Yevmiye bildirimi temizlendi');
+        debugPrint('AttendanceScreen: Yevmiye bildirimi temizlendi');
       }
     } catch (e) {
-      debugPrint('❌ AttendanceScreen: Bildirim temizleme hatası: $e');
+      debugPrint('AttendanceScreen: Bildirim temizleme hatası: $e');
     }
   }
 
@@ -176,7 +176,7 @@ class AttendanceNotificationHandler {
         'created_at': DateTime.now().toIso8601String(),
       });
 
-      debugPrint('✅ Çalışan $workerName için yevmiye bildirimi kaydedildi');
+      debugPrint('Çalışan $workerName için yevmiye bildirimi kaydedildi');
 
       // NOT: Push notification GÖNDERMİYORUZ
       // Çünkü bu bildirim sadece çalışan için, yönetici kendi yaptığı işlem için bildirim almamalı
@@ -186,7 +186,7 @@ class AttendanceNotificationHandler {
         '✅ Çalışan $workerName için bildirim veritabanına kaydedildi (push notification yok)',
       );
     } catch (e) {
-      debugPrint('❌ Yevmiye bildirimi gönderme hatası: $e');
+      debugPrint('Yevmiye bildirimi gönderme hatası: $e');
       rethrow;
     }
   }

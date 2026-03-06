@@ -1,7 +1,6 @@
 import '../../domain/entities/user.dart';
 
 /// User data model
-///
 /// Maps database records to User domain entity.
 /// Handles type conversions and data transformations.
 class UserModel {

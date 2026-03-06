@@ -6,7 +6,6 @@ import '../datasources/supabase_datasource.dart';
 import '../models/user_model.dart';
 
 /// Authentication repository implementation
-///
 /// Implements IAuthRepository using Supabase as data source.
 /// Handles authentication operations and user session management.
 class AuthRepositoryImpl implements IAuthRepository {

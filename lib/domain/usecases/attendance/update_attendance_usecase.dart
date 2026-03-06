@@ -5,7 +5,6 @@ import '../../repositories/i_attendance_repository.dart';
 import '../usecase.dart';
 
 /// Update attendance use case
-///
 /// Validates input and updates existing attendance record.
 /// Business rules:
 /// - Attendance must exist

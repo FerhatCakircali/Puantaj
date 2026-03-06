@@ -9,7 +9,6 @@ import '../../../../features/worker/services/worker_notification_listener_servic
 import '../../../../widgets/theme_toggle_animation.dart';
 import '../widgets/index.dart';
 
-// ⚡ PHASE 3: ConsumerStatefulWidget'a geçiş
 class LoginScreen extends ConsumerStatefulWidget {
   final bool isFromAccountSwitch;
 
@@ -56,7 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         '🧹 LoginScreen: Çalışan bildirim dinleyicisi durduruluyor...',
       );
       await WorkerNotificationListenerService.instance.stopListening();
-      debugPrint('✅ LoginScreen: Çalışan bildirim dinleyicisi durduruldu');
+      debugPrint('LoginScreen: Çalışan bildirim dinleyicisi durduruldu');
     } catch (e) {
       debugPrint(
         '⚠️ LoginScreen: Çalışan bildirim dinleyicisi durdurulurken hata: $e',
@@ -131,11 +130,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  // ⚡ PHASE 3: _saveThemeMode kaldırıldı, Riverpod ThemeProvider kullanılıyor
-
+  
   void _toggleThemeWithAnimation() async {
-    // ⚡ PHASE 3: Riverpod ThemeProvider kullan
-    final currentMode = ref.read(themeStateProvider);
+        final currentMode = ref.read(themeStateProvider);
     final newMode = currentMode == ThemeMode.dark
         ? ThemeMode.light
         : ThemeMode.dark;
@@ -224,8 +221,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ],
             ),
           ),
-          // ⚡ PHASE 3: Riverpod ThemeProvider kullan
-          Consumer(
+                    Consumer(
             builder: (context, ref, _) {
               final mode = ref.watch(themeStateProvider);
               return ThemeToggleButton(

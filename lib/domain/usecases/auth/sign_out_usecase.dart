@@ -3,7 +3,6 @@ import '../../repositories/i_auth_repository.dart';
 import '../usecase.dart';
 
 /// Sign out use case
-///
 /// Clears user session and local state.
 /// Business rules:
 /// - Clear all cached user data

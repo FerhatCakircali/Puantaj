@@ -8,7 +8,6 @@ import '../models/worker_model.dart';
 import '../models/attendance_model.dart';
 
 /// Worker repository implementation
-///
 /// Implements IWorkerRepository using Supabase as data source.
 /// Handles all worker data operations with proper error handling.
 class WorkerRepositoryImpl implements IWorkerRepository {

@@ -142,7 +142,7 @@ class PdfFinancialSummaryReportService {
     final dateFormat = PdfReportUtils.dateFormat;
 
     // Dönem filtreleme - Sadece dönem içindeki verileri al
-    debugPrint('📊 PDF Finansal Özet: Filtreleme başlıyor...');
+    debugPrint('PDF Finansal Özet: Filtreleme başlıyor...');
     debugPrint(
       '📊 Dönem: ${dateFormat.format(periodStart)} - ${dateFormat.format(periodEnd)}',
     );

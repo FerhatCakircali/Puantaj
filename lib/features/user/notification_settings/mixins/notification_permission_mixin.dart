@@ -6,7 +6,6 @@ import 'helpers/permission_handler.dart';
 import 'helpers/settings_saver.dart';
 
 /// Notification Settings ekranı için permission handling mixin'i - Modüler tasarım
-///
 /// Bu mixin, bildirim izinlerini yönetir.
 mixin NotificationPermissionMixin<T extends StatefulWidget>
     on NotificationStateMixin<T>, NotificationDataMixin<T> {
@@ -60,16 +59,16 @@ mixin NotificationPermissionMixin<T extends StatefulWidget>
   /// Handle toggle changed
   void handleToggleChanged(bool value) async {
     debugPrint('🔄 Toggle değiştirildi: $value');
-    debugPrint('📱 Mevcut izin durumu: $hasNotificationPermission');
+    debugPrint('Mevcut izin durumu: $hasNotificationPermission');
 
     if (value) {
-      debugPrint('✅ Etkinleştirme isteği - izin kontrol ediliyor...');
+      debugPrint('Etkinleştirme isteği - izin kontrol ediliyor...');
       await requestPermissions();
-      debugPrint('📱 İzin kontrolü sonrası: $hasNotificationPermission');
+      debugPrint('İzin kontrolü sonrası: $hasNotificationPermission');
 
       if (!hasNotificationPermission) {
         if (!mounted) return;
-        debugPrint('❌ İzin verilmedi, toggle açılamıyor');
+        debugPrint('İzin verilmedi, toggle açılamıyor');
         showSnackBar('Bildirim izni verilmediği için hatırlatıcı açılamadı.');
         return;
       }
@@ -136,13 +135,13 @@ mixin NotificationPermissionMixin<T extends StatefulWidget>
     debugPrint('🔄 Yevmiye talep bildirimleri toggle değiştirildi: $value');
 
     if (value) {
-      debugPrint('✅ Etkinleştirme isteği - izin kontrol ediliyor...');
+      debugPrint('Etkinleştirme isteği - izin kontrol ediliyor...');
       await requestPermissions();
-      debugPrint('📱 İzin kontrolü sonrası: $hasNotificationPermission');
+      debugPrint('İzin kontrolü sonrası: $hasNotificationPermission');
 
       if (!hasNotificationPermission) {
         if (!mounted) return;
-        debugPrint('❌ İzin verilmedi, toggle açılamıyor');
+        debugPrint('İzin verilmedi, toggle açılamıyor');
         showSnackBar(
           'Bildirim izni verilmediği için yevmiye talep bildirimleri açılamadı.',
         );

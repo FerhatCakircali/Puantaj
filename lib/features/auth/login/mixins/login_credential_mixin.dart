@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Login credential management mixin
-///
 /// Handles remember me, credential saving, and auto-fill
 mixin LoginCredentialMixin<T extends StatefulWidget> on State<T> {
   // Credential Manager (not supported on web)

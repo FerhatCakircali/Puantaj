@@ -108,19 +108,37 @@ class _EditAdvanceDialogState extends State<EditAdvanceDialog> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ Avans güncellendi'),
-          backgroundColor: Colors.green,
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Avans güncellendi', style: const TextStyle(color: Colors.white))),
+              ],
+            ),
+            backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
-      debugPrint('⚠️ Avans güncelleme hatası: $e');
+      debugPrint('Avans güncelleme hatası: $e');
 
       if (!mounted) return;
 
       setState(() => _isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
+        SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Hata: $e', style: const TextStyle(color: Colors.white))),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.all(16),
+          ),
       );
     }
   }

@@ -11,9 +11,7 @@ import '../../../../services/fcm_service.dart';
 import '../../../../core/error_logger.dart';
 
 /// Login authentication mixin
-///
-/// ⚡ PHASE 3: Riverpod AuthProvider kullanır
-/// Handles admin and worker login logic
+//// Handles admin and worker login logic
 mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final AuthService _authService = AuthService();
 
@@ -60,8 +58,7 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           setState(() => _isLoading = false);
         }
 
-        // ⚡ PHASE 3: Riverpod AuthProvider kullan
-        ref.read(authStateProvider.notifier).login();
+                ref.read(authStateProvider.notifier).login();
 
         // Handle navigation
         if (mounted) {
@@ -91,7 +88,7 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             });
           } else {
             // Normal login - router otomatik yönlendirecek
-            debugPrint('✅ Login başarılı, router otomatik yönlendirme yapacak');
+            debugPrint('Login başarılı, router otomatik yönlendirme yapacak');
           }
         }
       }
@@ -176,9 +173,8 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       debugPrint('🧹 Çalışan girişi - Kullanıcı oturumu temizleniyor...');
       try {
         await _authService.signOut();
-        // ⚡ PHASE 3: Riverpod AuthProvider kullan
-        ref.read(authStateProvider.notifier).logout();
-        debugPrint('✅ Kullanıcı oturumu temizlendi');
+                ref.read(authStateProvider.notifier).logout();
+        debugPrint('Kullanıcı oturumu temizlendi');
       } catch (e, stackTrace) {
         ErrorLogger.instance.logError(
           'LoginAuthMixin.workerSignIn - signOut hatası',
@@ -210,9 +206,9 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         final workerId = response['id'] as int;
         debugPrint('💾 FCM token kaydediliyor (Worker: $workerId)...');
         await FCMService.instance.saveTokenForWorker(workerId);
-        debugPrint('✅ FCM token kaydedildi');
+        debugPrint('FCM token kaydedildi');
       } catch (e) {
-        debugPrint('⚠️ FCM token kaydedilemedi (devam ediliyor): $e');
+        debugPrint('FCM token kaydedilemedi (devam ediliyor): $e');
       }
 
       if (!mounted) return;
@@ -247,11 +243,11 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       await Future.any([
         _performAutoLoginCheck(),
         Future.delayed(const Duration(seconds: 2), () {
-          debugPrint('⏱️ Auto login timeout, login ekranında kalınıyor');
+          debugPrint('⏱ Auto login timeout, login ekranında kalınıyor');
         }),
       ]);
     } catch (e, stackTrace) {
-      debugPrint('❌ Otomatik giriş kontrolü hatası: $e');
+      debugPrint('Otomatik giriş kontrolü hatası: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
@@ -263,8 +259,7 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final user = await _authService.currentUser;
     if (user != null && mounted) {
       debugPrint('✅ Yönetici session bulundu, /home\'a yönlendiriliyor');
-      // ⚡ PHASE 3: Riverpod AuthProvider kullan
-      ref.read(authStateProvider.notifier).login();
+            ref.read(authStateProvider.notifier).login();
       context.go('/home');
       return;
     }
@@ -278,6 +273,6 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       return;
     }
 
-    debugPrint('ℹ️ Geçerli session bulunamadı, login ekranında kalınıyor');
+    debugPrint('ℹ Geçerli session bulunamadı, login ekranında kalınıyor');
   }
 }

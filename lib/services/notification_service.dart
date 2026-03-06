@@ -14,22 +14,18 @@ import 'notification/core/notification_settings_handler.dart';
 import 'notification/core/notification_display_helper.dart';
 
 /// Ana bildirim servisi - tüm mixin'leri ve helper'ları birleştirir
-///
 /// Bu servis bildirim sisteminin merkezi orchestrator'ıdır.
 /// Tüm bildirim işlemlerini koordine eder ve dış dünyaya tek bir arayüz sunar.
-///
 /// Özellikler:
 /// - Singleton pattern (tek instance)
 /// - Mixin-based mimari (modüler yapı)
 /// - Timezone-aware zamanlama (Europe/Istanbul)
 /// - Platform-agnostic (Android & iOS)
 /// - Fail-safe hata yönetimi
-///
 /// AGENTS.md uyumlu modüler yapı:
 /// - NotificationInitializer: Başlatma işlemleri
 /// - NotificationSettingsHandler: Ayar yönetimi
 /// - NotificationDisplayHelper: Bildirim gösterme
-///
 /// Kullanım:
 /// ```dart
 /// final notificationService = NotificationService();

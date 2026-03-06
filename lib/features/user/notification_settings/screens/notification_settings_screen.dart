@@ -6,7 +6,6 @@ import '../mixins/notification_permission_mixin.dart';
 import '../../notification_settings/widgets/screen_widgets/index.dart';
 
 /// Bildirim ayarları ekranı
-///
 /// Sadeleştirilmiş versiyon - Tüm business logic Mixin'lerde
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});

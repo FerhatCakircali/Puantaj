@@ -1,19 +1,15 @@
 /// CurrencyFormatter utility sınıfı - Uygulama genelinde tutarlı para birimi formatlama.
-///
 /// Bu utility, servis ve UI dosyalarındaki kod tekrarını ortadan kaldırmak için
 /// standartlaştırılmış para birimi formatlama metodları sağlar.
-///
 /// **Türk Lirası Formatı:**
 /// - Binlik ayırıcı: Nokta (.)
 /// - Ondalık ayırıcı: Virgül (,)
 /// - Para birimi sembolü: ₺
-///
 /// **Örnekler:**
 /// - 1000 → "1.000"
 /// - 1000000 → "1.000.000"
 /// - 1234.56 → "1.234,56"
 /// - 1000 → "₺1.000" (sembol ile)
-///
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class CurrencyFormatter {
   CurrencyFormatter._();
@@ -22,21 +18,17 @@ class CurrencyFormatter {
   static const String currencySymbol = '₺';
 
   /// Tutarı Türk Lirası formatında gösterir (binlik ayırıcı nokta).
-  ///
-  /// Bu metod, tam sayı ve ondalıklı sayıları Türk formatında formatlar:
+    /// Bu metod, tam sayı ve ondalıklı sayıları Türk formatında formatlar:
   /// - Binlik ayırıcı olarak nokta (.) kullanır
   /// - Ondalık kısım varsa virgül (,) ile ayırır
   /// - Ondalık kısım 00 ise göstermez
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final formatted1 = CurrencyFormatter.format(1000);
   /// print(formatted1); // "1.000"
-  ///
-  /// final formatted2 = CurrencyFormatter.format(1234.56);
+    /// final formatted2 = CurrencyFormatter.format(1234.56);
   /// print(formatted2); // "1.234,56"
-  ///
-  /// final formatted3 = CurrencyFormatter.format(1000000);
+    /// final formatted3 = CurrencyFormatter.format(1000000);
   /// print(formatted3); // "1.000.000"
   /// ```
   static String format(double amount) {
@@ -77,31 +69,25 @@ class CurrencyFormatter {
   }
 
   /// Tutarı sembol olmadan formatlar (sadece sayı).
-  ///
-  /// Bu metod, para birimi sembolü olmadan sadece formatlanmış sayıyı döndürür.
+    /// Bu metod, para birimi sembolü olmadan sadece formatlanmış sayıyı döndürür.
   /// Binlik ayırıcı olarak nokta (.) kullanır.
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final formatted = CurrencyFormatter.formatWithoutSymbol(1000);
   /// print(formatted); // "1.000"
   /// ```
-  ///
-  /// Not: Bu metod [format] metodunun alias'ıdır.
+    /// Not: Bu metod [format] metodunun alias'ıdır.
   static String formatWithoutSymbol(double amount) {
     return format(amount);
   }
 
   /// Tutarı Türk Lirası sembolü (₺) ile birlikte formatlar.
-  ///
-  /// Bu metod, formatlanmış tutarın başına ₺ sembolü ekler.
-  ///
-  /// Örnek:
+    /// Bu metod, formatlanmış tutarın başına ₺ sembolü ekler.
+    /// Örnek:
   /// ```dart
   /// final formatted = CurrencyFormatter.formatWithSymbol(1000);
   /// print(formatted); // "₺1.000"
-  ///
-  /// final formatted2 = CurrencyFormatter.formatWithSymbol(1234.56);
+    /// final formatted2 = CurrencyFormatter.formatWithSymbol(1234.56);
   /// print(formatted2); // "₺1.234,56"
   /// ```
   static String formatWithSymbol(double amount) {
@@ -109,23 +95,18 @@ class CurrencyFormatter {
   }
 
   /// Formatlanmış string'i double'a parse eder.
-  ///
-  /// Türk formatındaki para birimi string'ini (nokta ve virgül içeren)
+    /// Türk formatındaki para birimi string'ini (nokta ve virgül içeren)
   /// double değere dönüştürür. Sembol varsa temizler.
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final amount1 = CurrencyFormatter.parse("1.000");
   /// print(amount1); // 1000.0
-  ///
-  /// final amount2 = CurrencyFormatter.parse("1.234,56");
+    /// final amount2 = CurrencyFormatter.parse("1.234,56");
   /// print(amount2); // 1234.56
-  ///
-  /// final amount3 = CurrencyFormatter.parse("₺1.000");
+    /// final amount3 = CurrencyFormatter.parse("₺1.000");
   /// print(amount3); // 1000.0
   /// ```
-  ///
-  /// Geçersiz format durumunda 0.0 döndürür.
+    /// Geçersiz format durumunda 0.0 döndürür.
   static double parse(String formattedAmount) {
     try {
       // Sembolü temizle
@@ -144,11 +125,9 @@ class CurrencyFormatter {
   }
 
   /// Tutarı basit formatta gösterir (sadece tam kısım, binlik ayırıcı ile).
-  ///
-  /// Bu metod, ondalık kısmı göstermeden sadece tam sayı kısmını formatlar.
+    /// Bu metod, ondalık kısmı göstermeden sadece tam sayı kısmını formatlar.
   /// Özellikle UI'da yer tasarrufu için kullanışlıdır.
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final formatted = CurrencyFormatter.formatSimple(1234.56);
   /// print(formatted); // "1.234"

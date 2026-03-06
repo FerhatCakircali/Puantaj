@@ -8,7 +8,6 @@ import '../base_controller.dart';
 import 'attendance_state.dart';
 
 /// Devam kaydı controller'ı
-///
 /// Attendance işlemlerini yönetir ve state'i günceller.
 class AttendanceController extends BaseController {
   final GetAttendanceUseCase _getAttendanceUseCase;

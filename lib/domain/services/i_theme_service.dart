@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// Theme service interface
-///
 /// Defines contract for theme management operations.
 /// Implementations handle theme persistence and switching.
 abstract class IThemeService {

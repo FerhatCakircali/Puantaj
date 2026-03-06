@@ -5,10 +5,8 @@ import '../core/app_globals.dart';
 import 'notification_service.dart';
 
 /// Firebase Cloud Messaging Servisi
-///
 /// Push notification alır ve local notification gösterir.
 /// Uygulama kapalıyken bile çalışır.
-///
 /// Singleton pattern ile tek instance garantisi.
 class FCMService {
   FCMService._();
@@ -25,11 +23,10 @@ class FCMService {
   String? get fcmToken => _fcmToken;
 
   /// FCM servisini başlatır
-  ///
-  /// İzin ister, token alır, listener'ları kurar.
+    /// İzin ister, token alır, listener'ları kurar.
   Future<void> initialize() async {
     try {
-      debugPrint('🔥 FCM servisi başlatılıyor...');
+      debugPrint('FCM servisi başlatılıyor...');
 
       // İzin iste
       final settings = await _messaging.requestPermission(
@@ -39,15 +36,15 @@ class FCMService {
       );
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        debugPrint('✅ FCM izni verildi');
+        debugPrint('FCM izni verildi');
       } else {
-        debugPrint('❌ FCM izni reddedildi');
+        debugPrint('FCM izni reddedildi');
         return;
       }
 
       // FCM token al
       _fcmToken = await _messaging.getToken();
-      debugPrint('📱 FCM Token: $_fcmToken');
+      debugPrint('FCM Token: $_fcmToken');
 
       // Token yenilendiğinde
       _messaging.onTokenRefresh.listen((newToken) async {
@@ -68,7 +65,7 @@ class FCMService {
 
           debugPrint('✅ Yenilenmiş token Supabase\'e kaydedildi');
         } catch (e) {
-          debugPrint('⚠️ Token yenileme kaydedilemedi: $e');
+          debugPrint('Token yenileme kaydedilemedi: $e');
         }
       });
 
@@ -89,9 +86,9 @@ class FCMService {
         _handleMessageOpenedApp(initialMessage);
       }
 
-      debugPrint('✅ FCM servisi başlatıldı');
+      debugPrint('FCM servisi başlatıldı');
     } catch (e, stackTrace) {
-      debugPrint('❌ FCM servisi başlatılamadı: $e');
+      debugPrint('FCM servisi başlatılamadı: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
@@ -99,12 +96,11 @@ class FCMService {
   /// Foreground mesajını işler (uygulama açıkken)
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('📬 FCM Foreground mesaj alındı');
-    debugPrint('  Başlık: ${message.notification?.title}');
-    debugPrint('  Mesaj: ${message.notification?.body}');
-    debugPrint('  Data: ${message.data}');
+    debugPrint('Başlık: ${message.notification?.title}');
+    debugPrint('Mesaj: ${message.notification?.body}');
+    debugPrint('Data: ${message.data}');
 
-    // ⚡ FIX: Uygulama açıkken local notification GÖSTERME
-    // Çünkü Realtime subscription zaten bildirim gösteriyor
+        // Çünkü Realtime subscription zaten bildirim gösteriyor
     debugPrint(
       '  ℹ️ Uygulama açık - Local notification gösterilmiyor (Realtime aktif)',
     );
@@ -116,37 +112,36 @@ class FCMService {
 
   /// Mesaj açıldığında (bildirime tıklandı)
   void _handleMessageOpenedApp(RemoteMessage message) {
-    debugPrint('🔔🔔🔔 FCM mesajına tıklandı!');
-    debugPrint('  📦 Data: ${message.data}');
+    debugPrint('FCM mesajına tıklandı!');
+    debugPrint('📦 Data: ${message.data}');
 
     // Notification type'a göre yönlendirme
     final notificationType = message.data['notification_type'] as String?;
     final relatedId = message.data['related_id'];
 
-    debugPrint('  🏷️ Type: $notificationType');
-    debugPrint('  🔗 Related ID: $relatedId');
+    debugPrint('🏷 Type: $notificationType');
+    debugPrint('🔗 Related ID: $relatedId');
 
     // NotificationService ile routing yap
     if (notificationType != null) {
-      debugPrint('  ✅ NotificationService.handleNotificationTap çağrılıyor...');
+      debugPrint('NotificationService.handleNotificationTap çağrılıyor...');
 
       // Related ID varsa payload'a ekle
       String payload = notificationType;
       if (relatedId != null) {
         payload = '$notificationType:$relatedId';
-        debugPrint('  📦 Payload oluşturuldu: $payload');
+        debugPrint('📦 Payload oluşturuldu: $payload');
       }
 
       NotificationService().handleNotificationTap(payload);
-      debugPrint('  ✅ handleNotificationTap çağrıldı');
+      debugPrint('handleNotificationTap çağrıldı');
     } else {
-      debugPrint('  ❌ notification_type NULL! Yönlendirme yapılamıyor!');
+      debugPrint('notification_type NULL! Yönlendirme yapılamıyor!');
     }
   }
 
   /// FCM token'ı Supabase'e kaydet (User için)
-  ///
-  /// [userId] - Kullanıcı ID'si
+    /// [userId] - Kullanıcı ID'si
   /// [deviceInfo] - Cihaz bilgileri (opsiyonel)
   Future<void> saveTokenForUser(
     int userId, {
@@ -154,7 +149,7 @@ class FCMService {
   }) async {
     try {
       if (_fcmToken == null) {
-        debugPrint('⚠️ FCM token yok, kaydedilemedi');
+        debugPrint('FCM token yok, kaydedilemedi');
         return;
       }
 
@@ -180,7 +175,7 @@ class FCMService {
             })
             .eq('token', _fcmToken!);
 
-        debugPrint('✅ Mevcut FCM token güncellendi');
+        debugPrint('Mevcut FCM token güncellendi');
       } else {
         // Yeni token - ekle
         await supabase.from('fcm_tokens').insert({
@@ -192,17 +187,16 @@ class FCMService {
           'is_active': true,
         });
 
-        debugPrint('✅ Yeni FCM token kaydedildi');
+        debugPrint('Yeni FCM token kaydedildi');
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ FCM token kaydedilemedi: $e');
+      debugPrint('FCM token kaydedilemedi: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
 
   /// FCM token'ı Supabase'e kaydet (Worker için)
-  ///
-  /// [workerId] - Çalışan ID'si
+    /// [workerId] - Çalışan ID'si
   /// [deviceInfo] - Cihaz bilgileri (opsiyonel)
   Future<void> saveTokenForWorker(
     int workerId, {
@@ -210,7 +204,7 @@ class FCMService {
   }) async {
     try {
       if (_fcmToken == null) {
-        debugPrint('⚠️ FCM token yok, kaydedilemedi');
+        debugPrint('FCM token yok, kaydedilemedi');
         return;
       }
 
@@ -238,7 +232,7 @@ class FCMService {
             })
             .eq('token', _fcmToken!);
 
-        debugPrint('✅ Mevcut FCM token güncellendi');
+        debugPrint('Mevcut FCM token güncellendi');
       } else {
         // Yeni token - ekle
         await supabase.from('fcm_tokens').insert({
@@ -250,21 +244,20 @@ class FCMService {
           'is_active': true,
         });
 
-        debugPrint('✅ Yeni FCM token kaydedildi');
+        debugPrint('Yeni FCM token kaydedildi');
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ FCM token kaydedilemedi: $e');
+      debugPrint('FCM token kaydedilemedi: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
 
   /// FCM token'ı Supabase'den sil
-  ///
-  /// Logout veya cihaz değişikliğinde kullanılır.
+    /// Logout veya cihaz değişikliğinde kullanılır.
   Future<void> deleteToken() async {
     try {
       if (_fcmToken == null) {
-        debugPrint('⚠️ FCM token yok, silinemedi');
+        debugPrint('FCM token yok, silinemedi');
         return;
       }
 
@@ -272,33 +265,32 @@ class FCMService {
 
       await supabase.from('fcm_tokens').delete().eq('token', _fcmToken!);
 
-      debugPrint('✅ FCM token silindi');
+      debugPrint('FCM token silindi');
     } catch (e, stackTrace) {
-      debugPrint('❌ FCM token silinemedi: $e');
+      debugPrint('FCM token silinemedi: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
 
   /// FCM token'ı deaktif et (silmeden)
-  ///
-  /// Geçici olarak bildirimleri durdurmak için kullanılır.
+    /// Geçici olarak bildirimleri durdurmak için kullanılır.
   Future<void> deactivateToken() async {
     try {
       if (_fcmToken == null) {
-        debugPrint('⚠️ FCM token yok, deaktif edilemedi');
+        debugPrint('FCM token yok, deaktif edilemedi');
         return;
       }
 
-      debugPrint('⏸️ FCM token deaktif ediliyor...');
+      debugPrint('⏸ FCM token deaktif ediliyor...');
 
       await supabase
           .from('fcm_tokens')
           .update({'is_active': false})
           .eq('token', _fcmToken!);
 
-      debugPrint('✅ FCM token deaktif edildi');
+      debugPrint('FCM token deaktif edildi');
     } catch (e, stackTrace) {
-      debugPrint('❌ FCM token deaktif edilemedi: $e');
+      debugPrint('FCM token deaktif edilemedi: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
@@ -308,9 +300,9 @@ class FCMService {
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('📬 FCM Background mesaj alındı');
-  debugPrint('  Başlık: ${message.notification?.title}');
-  debugPrint('  Mesaj: ${message.notification?.body}');
-  debugPrint('  Data: ${message.data}');
+  debugPrint('Başlık: ${message.notification?.title}');
+  debugPrint('Mesaj: ${message.notification?.body}');
+  debugPrint('Data: ${message.data}');
 
   // Firebase'i initialize et (background'da gerekli)
   // await Firebase.initializeApp();

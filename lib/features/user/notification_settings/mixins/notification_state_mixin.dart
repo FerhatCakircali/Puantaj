@@ -8,7 +8,6 @@ import '../../../../services/worker_service.dart';
 import '../../../../services/auth_service.dart';
 
 /// Notification Settings ekranı için state management mixin'i
-///
 /// Bu mixin, NotificationSettingsScreen'in tüm state değişkenlerini
 /// ve controller'larını yönetir.
 mixin NotificationStateMixin<T extends StatefulWidget>

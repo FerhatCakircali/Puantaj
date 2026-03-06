@@ -43,16 +43,16 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
       final hasAttendance = await _controller.hasAttendanceToday(workerId);
 
       if (hasAttendance) {
-        debugPrint('✅ Bugün için yevmiye yapılmış, bildirim temizleniyor...');
+        debugPrint('Bugün için yevmiye yapılmış, bildirim temizleniyor...');
 
         // Çalışan hatırlatıcısını iptal et
         final notificationId = 1000 + workerId;
         await _controller.cancelNotification(notificationId);
 
-        debugPrint('✅ Çalışan hatırlatıcısı temizlendi');
+        debugPrint('Çalışan hatırlatıcısı temizlendi');
       }
     } catch (e) {
-      debugPrint('❌ Bildirim temizleme hatası: $e');
+      debugPrint('Bildirim temizleme hatası: $e');
     }
   }
 
@@ -82,7 +82,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
     if (homeScreenState != null) {
       homeScreenState.navigateToReminders();
     } else {
-      debugPrint('❌ WorkerHomeScreenState bulunamadı');
+      debugPrint('WorkerHomeScreenState bulunamadı');
     }
   }
 

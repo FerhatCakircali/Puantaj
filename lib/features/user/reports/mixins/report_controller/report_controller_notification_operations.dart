@@ -36,7 +36,7 @@ class ReportControllerNotificationOperations {
       payload: file.path,
     );
 
-    debugPrint('✅ ReportControllerMixin: Bildirim gösterildi');
+    debugPrint('ReportControllerMixin: Bildirim gösterildi');
   }
 
   /// Bildirimleri başlat
@@ -60,6 +60,6 @@ class ReportControllerNotificationOperations {
       },
     );
 
-    debugPrint('✅ ReportControllerMixin: Bildirimler başlatıldı');
+    debugPrint('ReportControllerMixin: Bildirimler başlatıldı');
   }
 }

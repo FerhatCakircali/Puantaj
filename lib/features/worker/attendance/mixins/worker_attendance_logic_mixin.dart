@@ -33,7 +33,7 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
         );
         initialTabIndex = notificationTab;
         await prefs.remove('worker_attendance_initial_tab');
-        debugPrint('✅ WorkerAttendanceScreen: Tab bilgisi temizlendi');
+        debugPrint('WorkerAttendanceScreen: Tab bilgisi temizlendi');
       }
 
       tabController = TabController(
@@ -55,7 +55,7 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
 
       loadData();
     } catch (e) {
-      debugPrint('❌ WorkerAttendanceScreen: Tab başlatma hatası: $e');
+      debugPrint('WorkerAttendanceScreen: Tab başlatma hatası: $e');
       tabController = TabController(length: 2, vsync: this);
       tabController.addListener(onTabChanged);
 
@@ -80,7 +80,7 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
     if (!mounted) return;
 
     if (!isInitialized) {
-      debugPrint('⚠️ TabController henüz hazır değil, _loadData atlanıyor');
+      debugPrint('TabController henüz hazır değil, _loadData atlanıyor');
       return;
     }
 
@@ -111,7 +111,7 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
           endDate: endDate,
         );
 
-        debugPrint('✅ Ödeme geçmişi: ${payments.length} kayıt bulundu');
+        debugPrint('Ödeme geçmişi: ${payments.length} kayıt bulundu');
         for (final payment in payments) {
           debugPrint(
             '  - ID: ${payment['id']}, Tarih: ${payment['payment_date']}, Tutar: ₺${payment['amount']}, Notes: ${payment['notes']}',
@@ -125,7 +125,7 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
         });
       }
     } catch (e) {
-      debugPrint('❌ Geçmiş yükleme hatası: $e');
+      debugPrint('Geçmiş yükleme hatası: $e');
       if (!mounted) return;
       setState(() => isLoading = false);
     }

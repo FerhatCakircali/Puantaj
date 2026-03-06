@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 
 /// Context safety mixin for StatefulWidgets.
-///
 /// Prevents common context-related errors by checking widget mount state
 /// before performing context-dependent operations.
-///
 /// Critical for async operations that may complete after widget disposal.
-///
 /// Usage:
 /// ```dart
 /// class MyScreenState extends State<MyScreen> with ContextSafetyMixin {
@@ -20,8 +17,7 @@ import 'package:flutter/material.dart';
 /// ```
 mixin ContextSafetyMixin<T extends StatefulWidget> on State<T> {
   /// Safely calls setState only if widget is still mounted
-  ///
-  /// Prevents "setState called after dispose" errors
+    /// Prevents "setState called after dispose" errors
   void safeSetState(VoidCallback fn) {
     if (mounted) {
       setState(fn);
@@ -29,8 +25,7 @@ mixin ContextSafetyMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Safely shows a SnackBar only if widget is still mounted
-  ///
-  /// Returns true if SnackBar was shown, false otherwise
+    /// Returns true if SnackBar was shown, false otherwise
   bool safeShowSnackBar(
     String message, {
     Duration duration = const Duration(seconds: 3),
@@ -70,32 +65,28 @@ mixin ContextSafetyMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Safely navigates to a new route only if widget is still mounted
-  ///
-  /// Returns the result from the new route, or null if navigation failed
+    /// Returns the result from the new route, or null if navigation failed
   Future<U?> safeNavigate<U>(Route<U> route) async {
     if (!mounted) return null;
     return Navigator.of(context).push(route);
   }
 
   /// Safely navigates to a named route only if widget is still mounted
-  ///
-  /// Returns the result from the new route, or null if navigation failed
+    /// Returns the result from the new route, or null if navigation failed
   Future<U?> safeNavigateNamed<U>(String routeName, {Object? arguments}) async {
     if (!mounted) return null;
     return Navigator.of(context).pushNamed<U>(routeName, arguments: arguments);
   }
 
   /// Safely replaces current route with a new one
-  ///
-  /// Returns the result from the new route, or null if navigation failed
+    /// Returns the result from the new route, or null if navigation failed
   Future<U?> safeNavigateReplacement<U, V>(Route<U> route, {V? result}) async {
     if (!mounted) return null;
     return Navigator.of(context).pushReplacement<U, V>(route, result: result);
   }
 
   /// Safely replaces current route with a named route
-  ///
-  /// Returns the result from the new route, or null if navigation failed
+    /// Returns the result from the new route, or null if navigation failed
   Future<U?> safeNavigateReplacementNamed<U, V>(
     String routeName, {
     V? result,
@@ -110,8 +101,7 @@ mixin ContextSafetyMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Safely pops the current route only if widget is still mounted
-  ///
-  /// Returns true if pop was successful, false otherwise
+    /// Returns true if pop was successful, false otherwise
   bool safePop<U>([U? result]) {
     if (!mounted) return false;
     Navigator.of(context).pop<U>(result);
@@ -119,8 +109,7 @@ mixin ContextSafetyMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Safely shows a dialog only if widget is still mounted
-  ///
-  /// Returns the result from the dialog, or null if dialog couldn't be shown
+    /// Returns the result from the dialog, or null if dialog couldn't be shown
   Future<U?> safeShowDialog<U>({
     required Widget Function(BuildContext) builder,
     bool barrierDismissible = true,

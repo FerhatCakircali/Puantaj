@@ -1,32 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// UserDataNotifier - Kullanıcı verilerini yöneten Notifier.
-///
 /// Bu sınıf, oturum açmış kullanıcının verilerini (isim, email, role vb.)
 /// yönetir ve uygulama genelinde erişim sağlar.
-///
 /// **Özellikler:**
 /// - Kullanıcı verilerini saklama
 /// - Admin kontrolü (isAdmin getter)
 /// - Veri temizleme (logout)
 /// - Null-safe veri erişimi
 /// - Mevcut userDataNotifier ile paralel çalışır (backward compatibility)
-///
 /// **Kullanım:**
 /// ```dart
 /// // Kullanıcı verilerini okuma
 /// final userData = ref.watch(userDataProvider);
-///
 /// // Admin kontrolü
 /// final isAdmin = ref.read(userDataProvider.notifier).isAdmin;
-///
 /// // Kullanıcı verilerini ayarlama
 /// ref.read(userDataProvider.notifier).setUserData(userData);
-///
 /// // Veri temizleme
 /// ref.read(userDataProvider.notifier).clearUserData();
 /// ```
-///
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   /// Başlangıç durumu - null (oturum açılmamış)
@@ -36,13 +29,10 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   }
 
   /// Kullanıcı verilerini ayarlar.
-  ///
-  /// Login işlemi sonrasında kullanıcı bilgilerini saklamak için kullanılır.
-  ///
-  /// Parametreler:
+    /// Login işlemi sonrasında kullanıcı bilgilerini saklamak için kullanılır.
+    /// Parametreler:
   /// - [userData]: Kullanıcı verileri (Map formatında)
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final userData = {
   ///   'id': '123',
@@ -57,10 +47,8 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   }
 
   /// Kullanıcı verilerini temizler.
-  ///
-  /// Logout işlemi sırasında kullanılır. State'i null yapar.
-  ///
-  /// Örnek:
+    /// Logout işlemi sırasında kullanılır. State'i null yapar.
+    /// Örnek:
   /// ```dart
   /// ref.read(userDataProvider.notifier).clearUserData();
   /// ```
@@ -69,12 +57,10 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   }
 
   /// Kullanıcının admin olup olmadığını kontrol eder.
-  ///
-  /// Returns:
+    /// Returns:
   /// - true: Kullanıcı admin
   /// - false: Kullanıcı admin değil veya oturum açılmamış
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final isAdmin = ref.read(userDataProvider.notifier).isAdmin;
   /// if (isAdmin) {
@@ -89,12 +75,10 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   }
 
   /// Kullanıcının ID'sini döndürür.
-  ///
-  /// Returns:
+    /// Returns:
   /// - String: Kullanıcı ID'si
   /// - null: Oturum açılmamış
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final userId = ref.read(userDataProvider.notifier).userId;
   /// ```
@@ -104,12 +88,10 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   }
 
   /// Kullanıcının email adresini döndürür.
-  ///
-  /// Returns:
+    /// Returns:
   /// - String: Email adresi
   /// - null: Oturum açılmamış veya email yok
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final email = ref.read(userDataProvider.notifier).email;
   /// ```
@@ -119,12 +101,10 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   }
 
   /// Kullanıcının tam adını döndürür.
-  ///
-  /// Returns:
+    /// Returns:
   /// - String: Tam ad
   /// - null: Oturum açılmamış veya isim yok
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final fullName = ref.read(userDataProvider.notifier).fullName;
   /// ```
@@ -134,12 +114,10 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   }
 
   /// Kullanıcının kullanıcı adını döndürür.
-  ///
-  /// Returns:
+    /// Returns:
   /// - String: Kullanıcı adı
   /// - null: Oturum açılmamış veya username yok
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final username = ref.read(userDataProvider.notifier).username;
   /// ```
@@ -149,12 +127,10 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   }
 
   /// Kullanıcının oturum açıp açmadığını kontrol eder.
-  ///
-  /// Returns:
+    /// Returns:
   /// - true: Oturum açık
   /// - false: Oturum kapalı
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final isLoggedIn = ref.read(userDataProvider.notifier).isLoggedIn;
   /// ```
@@ -163,15 +139,12 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
   }
 
   /// Belirli bir alanın değerini döndürür.
-  ///
-  /// Parametreler:
+    /// Parametreler:
   /// - [key]: Alan adı
-  ///
-  /// Returns:
+    /// Returns:
   /// - dynamic: Alan değeri
   /// - null: Alan yok veya oturum kapalı
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// final role = ref.read(userDataProvider.notifier).getField('role');
   /// ```
@@ -182,9 +155,7 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
 }
 
 /// UserDataProvider - Kullanıcı verilerini sağlayan global provider.
-///
 /// Bu provider, uygulamanın her yerinden kullanıcı verilerine erişim sağlar.
-///
 /// **Kullanım Örnekleri:**
 /// ```dart
 /// // Widget içinde kullanıcı verilerini dinleme
@@ -198,13 +169,11 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
 ///     return Text('Hoş geldin, ${userData['full_name']}');
 ///   }
 /// }
-///
 /// // Admin kontrolü
 /// final isAdmin = ref.read(userDataProvider.notifier).isAdmin;
 /// if (isAdmin) {
 ///   // Admin panelini göster
 /// }
-///
 /// // Kullanıcı verilerini ayarlama (login sonrası)
 /// ref.read(userDataProvider.notifier).setUserData({
 ///   'id': '123',
@@ -212,7 +181,6 @@ class UserDataNotifier extends Notifier<Map<String, dynamic>?> {
 ///   'full_name': 'Ahmet Yılmaz',
 ///   'role': 'admin',
 /// });
-///
 /// // Veri temizleme (logout)
 /// ref.read(userDataProvider.notifier).clearUserData();
 /// ```

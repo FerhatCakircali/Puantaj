@@ -18,7 +18,6 @@ class GetNotificationsParams {
 }
 
 /// Get notifications use case
-///
 /// Fetches notifications for a recipient.
 /// Business rules:
 /// - Recipient ID must be valid

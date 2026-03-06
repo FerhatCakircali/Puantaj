@@ -17,7 +17,6 @@ final ValueNotifier<int?> globalSelectedIndexNotifier = ValueNotifier<int?>(
   null,
 );
 
-// ⚡ PHASE 3: ConsumerStatefulWidget'a geçiş
 class HomeScreen extends ConsumerStatefulWidget {
   final int? initialTab;
 
@@ -149,10 +148,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     debugPrint('🔴 HomeScreen FAB TIKLANDI!');
                     final employeeScreenState = _employeeScreenKey.currentState;
                     if (employeeScreenState != null) {
-                      debugPrint('✅ showAddEmployeeDialog çağrılıyor...');
+                      debugPrint('showAddEmployeeDialog çağrılıyor...');
                       employeeScreenState.showAddEmployeeDialog();
                     } else {
-                      debugPrint('❌ EmployeeScreenState bulunamadı!');
+                      debugPrint('EmployeeScreenState bulunamadı!');
                     }
                   },
                   icon: const Icon(Icons.person_add, size: 22),

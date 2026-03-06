@@ -218,7 +218,7 @@ class NotificationSettingsHandler {
       debugPrint('💾 [DB] Insert response: $response');
 
       if (response.isEmpty) {
-        debugPrint('❌ [DB] Response boş!');
+        debugPrint('[DB] Response boş!');
         return null;
       }
 
@@ -229,7 +229,7 @@ class NotificationSettingsHandler {
 
       return savedSettings;
     } catch (e) {
-      debugPrint('❌ [DB] _saveNotificationSettings hatası: $e');
+      debugPrint('[DB] _saveNotificationSettings hatası: $e');
       return null;
     }
   }
@@ -259,9 +259,9 @@ class NotificationSettingsHandler {
         await prefs.remove(key);
       }
 
-      debugPrint('✅ Çıkış: Tüm bildirimler ve durumlar temizlendi');
+      debugPrint('Çıkış: Tüm bildirimler ve durumlar temizlendi');
     } catch (e) {
-      debugPrint('❌ Çıkış bildirim temizleme hatası: $e');
+      debugPrint('Çıkış bildirim temizleme hatası: $e');
     }
   }
 }

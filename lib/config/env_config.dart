@@ -1,10 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 /// Environment Configuration
-///
 /// Hassas bilgileri (API keys, URLs) yönetir.
 /// Production'da environment variables kullanılır.
-///
 /// Kullanım:
 /// ```dart
 /// await SupabaseService.instance.initialize(
@@ -41,7 +39,7 @@ class EnvConfig {
       final secrets = _loadSecrets();
       return secrets['supabaseUrl'] as String;
     } catch (e) {
-      debugPrint('⚠️ EnvConfig: secrets.dart bulunamadı. Lütfen oluşturun.');
+      debugPrint('EnvConfig: secrets.dart bulunamadı. Lütfen oluşturun.');
       return supabaseUrl;
     }
   }
@@ -54,7 +52,7 @@ class EnvConfig {
       final secrets = _loadSecrets();
       return secrets['supabaseAnonKey'] as String;
     } catch (e) {
-      debugPrint('⚠️ EnvConfig: secrets.dart bulunamadı. Lütfen oluşturun.');
+      debugPrint('EnvConfig: secrets.dart bulunamadı. Lütfen oluşturun.');
       return supabaseAnonKey;
     }
   }
@@ -67,7 +65,7 @@ class EnvConfig {
       final secrets = _loadSecrets();
       return secrets['resendApiKey'] as String;
     } catch (e) {
-      debugPrint('⚠️ EnvConfig: secrets.dart bulunamadı.');
+      debugPrint('EnvConfig: secrets.dart bulunamadı.');
       return resendApiKey;
     }
   }

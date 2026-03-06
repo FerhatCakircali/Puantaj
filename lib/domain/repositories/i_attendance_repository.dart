@@ -2,7 +2,6 @@ import '../../core/error/result.dart';
 import '../entities/attendance.dart';
 
 /// Attendance repository interface
-///
 /// Defines contract for attendance data operations.
 abstract class IAttendanceRepository {
   /// Get attendance records by employee ID

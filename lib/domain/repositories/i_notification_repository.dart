@@ -2,7 +2,6 @@ import '../../core/error/result.dart';
 import '../entities/notification.dart';
 
 /// Notification repository interface
-///
 /// Defines contract for notification data operations.
 abstract class INotificationRepository {
   /// Get all notifications for recipient

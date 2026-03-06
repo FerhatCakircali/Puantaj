@@ -1,15 +1,13 @@
 import '../constants/app_constants.dart';
 
 /// Form validasyon utility fonksiyonları
-///
 /// Single Responsibility: Sadece validasyon işlemlerinden sorumlu
 class ValidationUtils {
   // Private constructor - utility class
   ValidationUtils._();
 
   /// Kullanıcı adı validasyonu
-  ///
-  /// [username] - Kontrol edilecek kullanıcı adı
+    /// [username] - Kontrol edilecek kullanıcı adı
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validateUsername(String? username) {
     if (username == null || username.isEmpty) {
@@ -34,8 +32,7 @@ class ValidationUtils {
   }
 
   /// Şifre validasyonu
-  ///
-  /// [password] - Kontrol edilecek şifre
+    /// [password] - Kontrol edilecek şifre
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validatePassword(String? password) {
     if (password == null || password.isEmpty) {
@@ -54,8 +51,7 @@ class ValidationUtils {
   }
 
   /// Güçlü şifre validasyonu
-  ///
-  /// [password] - Kontrol edilecek şifre
+    /// [password] - Kontrol edilecek şifre
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validateStrongPassword(String? password) {
     final basicValidation = validatePassword(password);
@@ -85,8 +81,7 @@ class ValidationUtils {
   }
 
   /// Şifre eşleşme validasyonu
-  ///
-  /// [password] - İlk şifre
+    /// [password] - İlk şifre
   /// [confirmPassword] - Onay şifresi
   /// Returns: Hata mesajı veya null (eşleşiyorsa)
   static String? validatePasswordMatch(
@@ -105,8 +100,7 @@ class ValidationUtils {
   }
 
   /// Telefon numarası validasyonu (opsiyonel)
-  ///
-  /// [phone] - Kontrol edilecek telefon numarası
+    /// [phone] - Kontrol edilecek telefon numarası
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validatePhone(String? phone) {
     if (phone == null || phone.isEmpty) {
@@ -130,8 +124,7 @@ class ValidationUtils {
   }
 
   /// Zorunlu alan validasyonu
-  ///
-  /// [value] - Kontrol edilecek değer
+    /// [value] - Kontrol edilecek değer
   /// [fieldName] - Alan adı (hata mesajı için)
   /// Returns: Hata mesajı veya null (dolu ise)
   static String? validateRequired(String? value, String fieldName) {
@@ -142,8 +135,7 @@ class ValidationUtils {
   }
 
   /// Minimum uzunluk validasyonu
-  ///
-  /// [value] - Kontrol edilecek değer
+    /// [value] - Kontrol edilecek değer
   /// [minLength] - Minimum uzunluk
   /// [fieldName] - Alan adı (hata mesajı için)
   /// Returns: Hata mesajı veya null (geçerli ise)
@@ -164,8 +156,7 @@ class ValidationUtils {
   }
 
   /// Maksimum uzunluk validasyonu
-  ///
-  /// [value] - Kontrol edilecek değer
+    /// [value] - Kontrol edilecek değer
   /// [maxLength] - Maksimum uzunluk
   /// [fieldName] - Alan adı (hata mesajı için)
   /// Returns: Hata mesajı veya null (geçerli ise)
@@ -186,8 +177,7 @@ class ValidationUtils {
   }
 
   /// Sayı validasyonu
-  ///
-  /// [value] - Kontrol edilecek değer
+    /// [value] - Kontrol edilecek değer
   /// [fieldName] - Alan adı (hata mesajı için)
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validateNumber(String? value, String fieldName) {
@@ -203,8 +193,7 @@ class ValidationUtils {
   }
 
   /// Pozitif sayı validasyonu
-  ///
-  /// [value] - Kontrol edilecek değer
+    /// [value] - Kontrol edilecek değer
   /// [fieldName] - Alan adı (hata mesajı için)
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validatePositiveNumber(String? value, String fieldName) {
@@ -220,8 +209,7 @@ class ValidationUtils {
   }
 
   /// Tarih validasyonu
-  ///
-  /// [value] - Kontrol edilecek tarih string'i
+    /// [value] - Kontrol edilecek tarih string'i
   /// [fieldName] - Alan adı (hata mesajı için)
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validateDate(String? value, String fieldName) {
@@ -238,8 +226,7 @@ class ValidationUtils {
   }
 
   /// Gelecek tarih validasyonu
-  ///
-  /// [date] - Kontrol edilecek tarih
+    /// [date] - Kontrol edilecek tarih
   /// [fieldName] - Alan adı (hata mesajı için)
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validateFutureDate(DateTime? date, String fieldName) {
@@ -255,8 +242,7 @@ class ValidationUtils {
   }
 
   /// Geçmiş tarih validasyonu
-  ///
-  /// [date] - Kontrol edilecek tarih
+    /// [date] - Kontrol edilecek tarih
   /// [fieldName] - Alan adı (hata mesajı için)
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validatePastDate(DateTime? date, String fieldName) {
@@ -272,8 +258,7 @@ class ValidationUtils {
   }
 
   /// URL validasyonu
-  ///
-  /// [url] - Kontrol edilecek URL
+    /// [url] - Kontrol edilecek URL
   /// Returns: Hata mesajı veya null (geçerli ise)
   static String? validateUrl(String? url) {
     if (url == null || url.isEmpty) {
@@ -292,8 +277,7 @@ class ValidationUtils {
   }
 
   /// Birden fazla validatör birleştirme
-  ///
-  /// [value] - Kontrol edilecek değer
+    /// [value] - Kontrol edilecek değer
   /// [validators] - Validatör fonksiyonları listesi
   /// Returns: İlk hata mesajı veya null (tümü geçerli ise)
   static String? combineValidators(

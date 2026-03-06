@@ -14,8 +14,7 @@ import 'package:puantaj/features/user/reports/screens/report_screen.dart';
 /// Tüm rota tanımlarını ve navigasyon mantığını merkezileştirir
 class AppRoutes {
   /// Yapılandırılmış GoRouter örneği oluştur
-  ///
-  /// Parametreler:
+    /// Parametreler:
   /// - [isLoggedIn]: Mevcut kimlik doğrulama durumu
   /// - [isCurrentUserAdmin]: Mevcut kullanıcının admin yetkisi olup olmadığı
   /// - [navigatorKey]: Navigasyon yönetimi için navigator anahtarı
@@ -107,7 +106,7 @@ class AppRoutes {
 
         // Çalışan paneli route'ları için redirect yapma (TAMAMEN BYPASS)
         if (location.startsWith('/worker')) {
-          debugPrint('🛣️ AppRoutes: Worker route bypass - $location');
+          debugPrint('🛣 AppRoutes: Worker route bypass - $location');
           return null;
         }
 

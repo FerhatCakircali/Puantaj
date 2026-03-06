@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/theme_provider.dart';
 
 /// Ana ekran drawer widget'ı
-/// ⚡ PHASE 3: Riverpod ThemeProvider kullanır
 class HomeDrawer extends ConsumerWidget {
   final String firstName;
   final String lastName;
@@ -173,7 +172,6 @@ class HomeDrawer extends ConsumerWidget {
             // Theme toggle
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              // ⚡ PHASE 3: Riverpod ThemeProvider kullanımı
               child: Builder(
                 builder: (context) {
                   final themeMode = ref.watch(themeStateProvider);

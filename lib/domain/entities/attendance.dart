@@ -2,7 +2,6 @@
 enum AttendanceStatus { pending, approved, rejected }
 
 /// Attendance domain entity
-///
 /// Represents an attendance record for an employee.
 /// Independent of any data source or UI framework.
 class Attendance {

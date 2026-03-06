@@ -4,7 +4,6 @@ import '../base_controller.dart';
 import 'home_state.dart';
 
 /// Ana ekran controller'ı
-///
 /// Home ekranının durumunu yönetir.
 class HomeController extends BaseController {
   final GetNotificationsUseCase _getNotificationsUseCase;

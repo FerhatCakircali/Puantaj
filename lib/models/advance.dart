@@ -40,8 +40,8 @@ class Advance {
     final formattedDate =
         '${localDate.year}-${localDate.month.toString().padLeft(2, '0')}-${localDate.day.toString().padLeft(2, '0')}';
 
-    debugPrint('📅 Advance toMap - Original date: $advanceDate');
-    debugPrint('📅 Advance toMap - Formatted date: $formattedDate');
+    debugPrint('Advance toMap - Original date: $advanceDate');
+    debugPrint('Advance toMap - Formatted date: $formattedDate');
 
     final map = {
       'user_id': userId,

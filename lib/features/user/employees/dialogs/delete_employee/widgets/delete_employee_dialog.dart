@@ -114,9 +114,9 @@ class DeleteEmployeeDialog extends StatelessWidget {
         ),
       );
 
-      debugPrint('✅ DeleteEmployeeDialog: Çalışan raporla silindi');
+      debugPrint('DeleteEmployeeDialog: Çalışan raporla silindi');
     } catch (e) {
-      debugPrint('❌ DeleteEmployeeDialog: Hata: $e');
+      debugPrint('DeleteEmployeeDialog: Hata: $e');
 
       scaffoldMessenger.showSnackBar(
         SnackBar(
@@ -165,21 +165,27 @@ class DeleteEmployeeDialog extends StatelessWidget {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
-      debugPrint('🗑️ DeleteEmployeeDialog: Çalışan siliniyor (raporsuz)');
+      debugPrint('DeleteEmployeeDialog: Çalışan siliniyor (raporsuz)');
 
       await onDelete(employee.id);
       onComplete();
 
       scaffoldMessenger.showSnackBar(
         SnackBar(
-          content: Text('${employee.name} silindi.'),
-          backgroundColor: Colors.green,
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text('${employee.name} silindi.', style: const TextStyle(color: Colors.white))),
+              ],
+            ),
+            backgroundColor: Colors.green,
         ),
       );
 
-      debugPrint('✅ DeleteEmployeeDialog: Çalışan silindi');
+      debugPrint('DeleteEmployeeDialog: Çalışan silindi');
     } catch (e) {
-      debugPrint('❌ DeleteEmployeeDialog: Hata: $e');
+      debugPrint('DeleteEmployeeDialog: Hata: $e');
 
       scaffoldMessenger.showSnackBar(
         SnackBar(

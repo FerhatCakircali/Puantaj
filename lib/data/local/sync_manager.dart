@@ -5,10 +5,8 @@ import '../../core/error_logger.dart';
 import 'hive_service.dart';
 
 /// Offline-first senkronizasyon yöneticisi
-///
 /// İnternet bağlantısı geldiğinde bekleyen verileri Supabase'e gönderir.
 /// Connectivity_plus ile internet durumunu dinler.
-///
 /// NOT: Circular dependency'yi önlemek için service'leri kullanmaz,
 /// direkt Supabase ile iletişim kurar.
 class SyncManager {

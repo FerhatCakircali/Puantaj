@@ -77,7 +77,7 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
   Future<void> loadEmployees() async {
     if (!mounted) return;
 
-    debugPrint('📋 EmployeeScreenMixin: Çalışanlar yükleniyor');
+    debugPrint('EmployeeScreenMixin: Çalışanlar yükleniyor');
 
     try {
       final loadedEmployees = await workerService.getEmployees();
@@ -91,9 +91,9 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
         isLoading = false;
       });
 
-      debugPrint('✅ EmployeeScreenMixin: ${employees.length} çalışan yüklendi');
+      debugPrint('EmployeeScreenMixin: ${employees.length} çalışan yüklendi');
     } catch (e) {
-      debugPrint('❌ EmployeeScreenMixin: Çalışan yükleme hatası: $e');
+      debugPrint('EmployeeScreenMixin: Çalışan yükleme hatası: $e');
 
       if (!mounted) return;
 
@@ -107,7 +107,7 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
   void filterEmployees(String query) {
     if (!mounted) return;
 
-    debugPrint('🔍 EmployeeScreenMixin: Arama sorgusu: "$query"');
+    debugPrint('EmployeeScreenMixin: Arama sorgusu: "$query"');
 
     setState(() {
       if (query.isEmpty) {
@@ -140,37 +140,37 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
       await workerService.addEmployee(employee);
       await loadEmployees();
 
-      debugPrint('✅ EmployeeScreenMixin: Çalışan başarıyla eklendi');
+      debugPrint('EmployeeScreenMixin: Çalışan başarıyla eklendi');
     } catch (e) {
-      debugPrint('❌ EmployeeScreenMixin: Çalışan ekleme hatası: $e');
+      debugPrint('EmployeeScreenMixin: Çalışan ekleme hatası: $e');
       rethrow;
     }
   }
 
   /// Kullanıcı adı kontrolü
   Future<bool> isUsernameExists(String username) async {
-    debugPrint('🔍 EmployeeScreenMixin: Kullanıcı adı kontrolü: $username');
+    debugPrint('EmployeeScreenMixin: Kullanıcı adı kontrolü: $username');
 
     try {
       final exists = await workerService.isUsernameExists(username);
-      debugPrint('✅ EmployeeScreenMixin: Kullanıcı adı durumu: $exists');
+      debugPrint('EmployeeScreenMixin: Kullanıcı adı durumu: $exists');
       return exists;
     } catch (e) {
-      debugPrint('❌ EmployeeScreenMixin: Kullanıcı adı kontrolü hatası: $e');
+      debugPrint('EmployeeScreenMixin: Kullanıcı adı kontrolü hatası: $e');
       return false;
     }
   }
 
   /// E-posta kontrolü
   Future<bool> isEmailExists(String email) async {
-    debugPrint('🔍 EmployeeScreenMixin: E-posta kontrolü: $email');
+    debugPrint('EmployeeScreenMixin: E-posta kontrolü: $email');
 
     try {
       final exists = await workerService.isEmailExists(email);
-      debugPrint('✅ EmployeeScreenMixin: E-posta durumu: $exists');
+      debugPrint('EmployeeScreenMixin: E-posta durumu: $exists');
       return exists;
     } catch (e) {
-      debugPrint('❌ EmployeeScreenMixin: E-posta kontrolü hatası: $e');
+      debugPrint('EmployeeScreenMixin: E-posta kontrolü hatası: $e');
       return false;
     }
   }
@@ -187,9 +187,9 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
       await workerService.updateEmployee(employee);
       await loadEmployees();
 
-      debugPrint('✅ EmployeeScreenMixin: Çalışan başarıyla güncellendi');
+      debugPrint('EmployeeScreenMixin: Çalışan başarıyla güncellendi');
     } catch (e) {
-      debugPrint('❌ EmployeeScreenMixin: Çalışan güncelleme hatası: $e');
+      debugPrint('EmployeeScreenMixin: Çalışan güncelleme hatası: $e');
       rethrow;
     }
   }
@@ -198,15 +198,15 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
   Future<void> deleteEmployee(int employeeId) async {
     if (!mounted) return;
 
-    debugPrint('🗑️ EmployeeScreenMixin: Çalışan siliniyor: ID=$employeeId');
+    debugPrint('EmployeeScreenMixin: Çalışan siliniyor: ID=$employeeId');
 
     try {
       await workerService.deleteEmployee(employeeId);
       await loadEmployees();
 
-      debugPrint('✅ EmployeeScreenMixin: Çalışan başarıyla silindi');
+      debugPrint('EmployeeScreenMixin: Çalışan başarıyla silindi');
     } catch (e) {
-      debugPrint('❌ EmployeeScreenMixin: Çalışan silme hatası: $e');
+      debugPrint('EmployeeScreenMixin: Çalışan silme hatası: $e');
       rethrow;
     }
   }
@@ -215,15 +215,15 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
   Future<void> deleteAllEmployees() async {
     if (!mounted) return;
 
-    debugPrint('🗑️ EmployeeScreenMixin: TÜM çalışanlar siliniyor');
+    debugPrint('EmployeeScreenMixin: TÜM çalışanlar siliniyor');
 
     try {
       await workerService.deleteAllEmployees();
       await loadEmployees();
 
-      debugPrint('✅ EmployeeScreenMixin: Tüm çalışanlar başarıyla silindi');
+      debugPrint('EmployeeScreenMixin: Tüm çalışanlar başarıyla silindi');
     } catch (e) {
-      debugPrint('❌ EmployeeScreenMixin: Toplu silme hatası: $e');
+      debugPrint('EmployeeScreenMixin: Toplu silme hatası: $e');
       rethrow;
     }
   }
@@ -239,10 +239,10 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
         employeeId,
         date,
       );
-      debugPrint('✅ EmployeeScreenMixin: Kayıt durumu: $hasRecords');
+      debugPrint('EmployeeScreenMixin: Kayıt durumu: $hasRecords');
       return hasRecords;
     } catch (e) {
-      debugPrint('❌ EmployeeScreenMixin: Kayıt kontrolü hatası: $e');
+      debugPrint('EmployeeScreenMixin: Kayıt kontrolü hatası: $e');
       return false;
     }
   }
@@ -257,9 +257,9 @@ mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
 
     try {
       await workerService.deleteRecordsBeforeDate(employeeId, date);
-      debugPrint('✅ EmployeeScreenMixin: Tarih öncesi kayıtlar silindi');
+      debugPrint('EmployeeScreenMixin: Tarih öncesi kayıtlar silindi');
     } catch (e) {
-      debugPrint('❌ EmployeeScreenMixin: Kayıt silme hatası: $e');
+      debugPrint('EmployeeScreenMixin: Kayıt silme hatası: $e');
       rethrow;
     }
   }

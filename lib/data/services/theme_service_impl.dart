@@ -5,7 +5,6 @@ import '../../domain/services/i_storage_service.dart';
 import '../../core/error_handler.dart';
 
 /// Theme service implementation
-///
 /// Implements IThemeService using StorageService for persistence.
 /// Provides reactive theme updates via stream.
 class ThemeServiceImpl implements IThemeService {

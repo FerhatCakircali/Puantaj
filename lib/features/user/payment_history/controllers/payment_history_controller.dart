@@ -16,7 +16,7 @@ class PaymentHistoryController {
         endDate: endDate,
       );
     } catch (e) {
-      debugPrint('❌ Ödeme geçmişi yükleme hatası: $e');
+      debugPrint('Ödeme geçmişi yükleme hatası: $e');
       rethrow;
     }
   }
@@ -51,7 +51,7 @@ class PaymentHistoryController {
         amount: amount,
       );
     } catch (e) {
-      debugPrint('❌ Ödeme güncelleme hatası: $e');
+      debugPrint('Ödeme güncelleme hatası: $e');
       rethrow;
     }
   }
@@ -61,7 +61,7 @@ class PaymentHistoryController {
     try {
       return await _paymentService.deletePayment(paymentId);
     } catch (e) {
-      debugPrint('❌ Ödeme silme hatası: $e');
+      debugPrint('Ödeme silme hatası: $e');
       rethrow;
     }
   }

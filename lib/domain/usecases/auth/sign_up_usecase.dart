@@ -18,7 +18,6 @@ class SignUpParams {
 }
 
 /// Sign up use case
-///
 /// Validates input and creates new user account.
 /// Business rules:
 /// - Username must be unique

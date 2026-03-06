@@ -27,7 +27,7 @@ class ReportControllerDataOperations {
   }) async {
     if (!context.mounted) return;
 
-    debugPrint('📊 ReportControllerMixin: Veriler yükleniyor');
+    debugPrint('ReportControllerMixin: Veriler yükleniyor');
 
     onUpdate([], [], {}, true);
 
@@ -75,7 +75,7 @@ class ReportControllerDataOperations {
         '✅ ReportControllerMixin: ${activeEmployees.length} çalışan yüklendi',
       );
     } catch (e) {
-      debugPrint('❌ ReportControllerMixin: Veri yükleme hatası: $e');
+      debugPrint('ReportControllerMixin: Veri yükleme hatası: $e');
 
       if (!context.mounted) return;
 
@@ -92,7 +92,7 @@ class ReportControllerDataOperations {
   }) {
     if (!context.mounted) return;
 
-    debugPrint('🔍 ReportControllerMixin: Arama sorgusu: "$query"');
+    debugPrint('ReportControllerMixin: Arama sorgusu: "$query"');
 
     List<Employee> filtered;
     if (query.isEmpty) {
@@ -108,6 +108,6 @@ class ReportControllerDataOperations {
 
     onUpdate(filtered);
 
-    debugPrint('✅ ReportControllerMixin: ${filtered.length} sonuç');
+    debugPrint('ReportControllerMixin: ${filtered.length} sonuç');
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Çalışan profil servisi
-///
 /// SQL fonksiyonları:
 /// - change_worker_password: Şifre değiştirme
 /// - UPDATE workers: Profil güncelleme
@@ -20,14 +19,13 @@ class WorkerProfileService {
 
       return response;
     } catch (e) {
-      debugPrint('❌ getWorkerProfile hata: $e');
+      debugPrint('getWorkerProfile hata: $e');
       return null;
     }
   }
 
   /// Profil bilgilerini güncelle
-  ///
-  /// SQL: UPDATE workers SET username = ?, full_name = ?, title = ?, phone = ?
+    /// SQL: UPDATE workers SET username = ?, full_name = ?, title = ?, phone = ?
   /// WHERE id = ?
   Future<bool> updateProfile({
     required int workerId,
@@ -48,17 +46,16 @@ class WorkerProfileService {
           })
           .eq('id', workerId);
 
-      debugPrint('✅ Profil güncellendi');
+      debugPrint('Profil güncellendi');
       return true;
     } catch (e) {
-      debugPrint('❌ updateProfile hata: $e');
+      debugPrint('updateProfile hata: $e');
       return false;
     }
   }
 
   /// Şifre değiştir
-  ///
-  /// SQL: SELECT change_worker_password(worker_id, old_hash, new_hash)
+    /// SQL: SELECT change_worker_password(worker_id, old_hash, new_hash)
   Future<bool> changePassword({
     required int workerId,
     required String oldPasswordHash,
@@ -76,14 +73,14 @@ class WorkerProfileService {
 
       final success = response as bool;
       if (success) {
-        debugPrint('✅ Şifre değiştirildi');
+        debugPrint('Şifre değiştirildi');
       } else {
-        debugPrint('❌ Eski şifre yanlış');
+        debugPrint('Eski şifre yanlış');
       }
 
       return success;
     } catch (e) {
-      debugPrint('❌ changePassword hata: $e');
+      debugPrint('changePassword hata: $e');
       return false;
     }
   }
@@ -98,7 +95,7 @@ class WorkerProfileService {
 
       return true;
     } catch (e) {
-      debugPrint('❌ updateLastLogin hata: $e');
+      debugPrint('updateLastLogin hata: $e');
       return false;
     }
   }

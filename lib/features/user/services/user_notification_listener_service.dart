@@ -5,10 +5,8 @@ import '../../../core/app_globals.dart';
 import '../../../services/notification_service.dart';
 
 /// Yönetici (User) için bildirim dinleme servisi
-///
 /// Supabase Realtime kullanarak notifications tablosunu dinler.
 /// Yeni bildirim geldiğinde local notification gösterir.
-///
 /// Singleton pattern ile tek instance garantisi.
 class UserNotificationListenerService {
   UserNotificationListenerService._();
@@ -27,16 +25,14 @@ class UserNotificationListenerService {
   bool get isListening => _isListening;
 
   /// Yönetici için bildirim dinlemeyi başlatır
-  ///
-  /// [userId] - Dinlenecek yönetici ID'si
-  ///
-  /// Notifications tablosunda bu yöneticiye gelen yeni bildirimleri dinler.
+    /// [userId] - Dinlenecek yönetici ID'si
+    /// Notifications tablosunda bu yöneticiye gelen yeni bildirimleri dinler.
   /// Yeni bildirim geldiğinde local notification gösterir.
   Future<void> startListening(int userId) async {
     try {
       // Zaten dinliyorsa ve aynı user ise, tekrar başlatma
       if (_isListening && _currentUserId == userId) {
-        debugPrint('✅ Bildirim dinleme zaten aktif (user: $userId)');
+        debugPrint('Bildirim dinleme zaten aktif (user: $userId)');
         return;
       }
 
@@ -64,7 +60,7 @@ class UserNotificationListenerService {
               value: userId,
             ),
             callback: (payload) {
-              debugPrint('🔥🔥🔥 REALTIME CALLBACK ÇAĞRILDI! 🔥🔥🔥');
+              debugPrint('REALTIME CALLBACK ÇAĞRILDI!');
               debugPrint('📬 Realtime: Yeni bildirim alındı');
               debugPrint('📬 Payload: ${payload.newRecord}');
               debugPrint('📬 Event type: ${payload.eventType}');
@@ -75,20 +71,20 @@ class UserNotificationListenerService {
           .subscribe((status, error) {
             debugPrint('📡 Subscription status: $status');
             if (error != null) {
-              debugPrint('❌ Subscription error: $error');
+              debugPrint('Subscription error: $error');
             }
 
             if (status == RealtimeSubscribeStatus.subscribed) {
-              debugPrint('✅✅✅ REALTIME SUBSCRIBE BAŞARILI! ✅✅✅');
+              debugPrint('REALTIME SUBSCRIBE BAŞARILI!');
               debugPrint('🎯 User ID: $userId için dinleme aktif');
               debugPrint('🎯 Channel: user_notifications_$userId');
             }
           });
 
       _isListening = true;
-      debugPrint('✅ Bildirim dinleme başlatıldı (user: $userId)');
+      debugPrint('Bildirim dinleme başlatıldı (user: $userId)');
     } catch (e, stackTrace) {
-      debugPrint('❌ Bildirim dinleme başlatılamadı: $e');
+      debugPrint('Bildirim dinleme başlatılamadı: $e');
       debugPrint('Stack trace: $stackTrace');
       _isListening = false;
     }
@@ -103,22 +99,21 @@ class UserNotificationListenerService {
         _channel = null;
         _isListening = false;
         _currentUserId = null;
-        debugPrint('✅ Bildirim dinleme durduruldu');
+        debugPrint('Bildirim dinleme durduruldu');
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ Bildirim dinleme durdurulurken hata: $e');
+      debugPrint('Bildirim dinleme durdurulurken hata: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
 
   /// Yeni bildirim geldiğinde çağrılır
-  ///
-  /// Local notification gösterir ve routing bilgisini kaydeder.
+    /// Local notification gösterir ve routing bilgisini kaydeder.
   /// ÇALIŞAN PANELİ İLE AYNI MANTIK: Payload ile routing bilgisi taşınır
   void _handleNewNotification(Map<String, dynamic> notification) async {
     try {
-      debugPrint('🔥 _handleNewNotification ÇAĞRILDI!');
-      debugPrint('🔥 Notification data: $notification');
+      debugPrint('_handleNewNotification ÇAĞRILDI!');
+      debugPrint('Notification data: $notification');
 
       final notificationId = notification['id'] as int;
       final title = notification['title'] as String? ?? 'Yeni Bildirim';
@@ -136,23 +131,22 @@ class UserNotificationListenerService {
       final relatedId = notification['related_id'] as int?;
 
       debugPrint('📢 Local notification gösteriliyor...');
-      debugPrint('  ID: $notificationId');
-      debugPrint('  Başlık: $title');
-      debugPrint('  Mesaj: $message');
-      debugPrint('  Tip: $notificationType');
-      debugPrint('  Related ID: $relatedId');
+      debugPrint('ID: $notificationId');
+      debugPrint('Başlık: $title');
+      debugPrint('Mesaj: $message');
+      debugPrint('Tip: $notificationType');
+      debugPrint('Related ID: $relatedId');
 
-      // ⚡ FIX: Kullanıcı için payload oluştur
-      // ÇALIŞAN PANELİ İLE AYNI MANTIK: Basit string payload kullan
+            // ÇALIŞAN PANELİ İLE AYNI MANTIK: Basit string payload kullan
       // NotificationPayloadMixin bu payload'ı işleyecek ve routing bilgisini kaydedecek
       String payload = notificationType;
 
       // Related ID varsa payload'a ekle (çalışan panelindeki gibi)
       if (relatedId != null) {
         payload = '$notificationType:$relatedId';
-        debugPrint('  📦 Payload (related ID ile): $payload');
+        debugPrint('📦 Payload (related ID ile): $payload');
       } else {
-        debugPrint('  📦 Payload (sadece tip): $payload');
+        debugPrint('📦 Payload (sadece tip): $payload');
       }
 
       // Local notification göster
@@ -164,21 +158,20 @@ class UserNotificationListenerService {
         payload: payload,
       );
 
-      debugPrint('✅ Local notification gösterildi (Yöneticinin cihazında)');
+      debugPrint('Local notification gösterildi (Yöneticinin cihazında)');
       debugPrint(
         '  🎯 Bildirime tıklandığında NotificationPayloadMixin payload\'ı işleyecek',
       );
       debugPrint('  🎯 Routing bilgisi SharedPreferences\'a kaydedilecek');
-      debugPrint('  🎯 Kullanıcı ilgili sayfaya yönlendirilecek');
+      debugPrint('🎯 Kullanıcı ilgili sayfaya yönlendirilecek');
     } catch (e, stackTrace) {
-      debugPrint('❌ Bildirim işlenirken hata: $e');
+      debugPrint('Bildirim işlenirken hata: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
 
   /// Servisi yeniden başlatır
-  ///
-  /// Bağlantı kopması durumunda kullanılabilir.
+    /// Bağlantı kopması durumunda kullanılabilir.
   Future<void> restart() async {
     if (_currentUserId != null) {
       await stopListening();

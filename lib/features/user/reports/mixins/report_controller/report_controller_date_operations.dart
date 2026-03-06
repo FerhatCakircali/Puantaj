@@ -15,7 +15,7 @@ class ReportControllerDateOperations {
   }) async {
     if (!state.mounted) return;
 
-    debugPrint('📅 ReportControllerMixin: Tarih aralığı seçiliyor');
+    debugPrint('ReportControllerMixin: Tarih aralığı seçiliyor');
 
     final pickedRange = await showDateRangePicker(
       context: context,
@@ -31,7 +31,7 @@ class ReportControllerDateOperations {
       onUpdate(pickedRange.start, pickedRange.end);
       await onLoadData();
 
-      debugPrint('✅ ReportControllerMixin: Tarih aralığı güncellendi');
+      debugPrint('ReportControllerMixin: Tarih aralığı güncellendi');
     }
   }
 
@@ -75,7 +75,7 @@ class ReportControllerDateOperations {
 
       onUpdate(newStart, newEnd);
 
-      debugPrint('✅ ReportControllerMixin: Özel tarih güncellendi');
+      debugPrint('ReportControllerMixin: Özel tarih güncellendi');
     }
   }
 
@@ -128,9 +128,9 @@ class ReportControllerDateOperations {
         break;
     }
 
-    debugPrint('✅ ReportControllerMixin: Dönem tarihleri güncellendi');
-    debugPrint('   Başlangıç: $start');
-    debugPrint('   Bitiş: $end');
+    debugPrint('ReportControllerMixin: Dönem tarihleri güncellendi');
+    debugPrint('Başlangıç: $start');
+    debugPrint('Bitiş: $end');
 
     return {'start': start, 'end': end};
   }

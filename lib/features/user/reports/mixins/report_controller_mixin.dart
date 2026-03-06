@@ -4,7 +4,6 @@ import '../widgets/screen_widgets/index.dart';
 
 /// Rapor ekranı iş mantığı mixin'i
 /// Rapor oluşturma, tarih seçimi ve veri hazırlama işlemlerini yönetir
-///
 /// Bu mixin, rapor işlemlerini modüler alt mixin'lere böler:
 /// - ReportControllerDataMixin: Veri yükleme ve filtreleme
 /// - ReportControllerDateMixin: Tarih seçimi işlemleri

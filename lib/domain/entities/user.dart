@@ -1,5 +1,4 @@
 /// User domain entity
-///
 /// Represents a user in the system (admin or regular user).
 /// Independent of any data source or UI framework.
 class User {

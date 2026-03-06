@@ -102,19 +102,37 @@ class _AddAdvanceDialogState extends State<AddAdvanceDialog> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✅ ${_selectedEmployee!.name} için avans eklendi'),
-          backgroundColor: Colors.green,
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text('${_selectedEmployee!.name} için avans eklendi', style: const TextStyle(color: Colors.white))),
+              ],
+            ),
+            backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
-      debugPrint('⚠️ Avans ekleme hatası: $e');
+      debugPrint('Avans ekleme hatası: $e');
 
       if (!mounted) return;
 
       setState(() => _isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
+        SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Hata: $e', style: const TextStyle(color: Colors.white))),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.all(16),
+          ),
       );
     }
   }

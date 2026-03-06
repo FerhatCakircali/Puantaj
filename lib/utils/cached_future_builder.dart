@@ -2,18 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 /// CachedFutureBuilder - Veri cache'leme özellikli FutureBuilder.
-///
 /// Bu widget, Future sonuçlarını belirli bir süre boyunca cache'ler ve
 /// gereksiz API çağrılarını önler. Network trafiğini azaltır ve
 /// kullanıcı deneyimini iyileştirir.
-///
 /// **Özellikler:**
 /// - Generic type support (CachedFutureBuilder<T>)
 /// - Yapılandırılabilir cache süresi
 /// - Timestamp ile freshness kontrolü
 /// - Otomatik cache invalidation
 /// - Memory-efficient cache yönetimi
-///
 /// **Kullanım:**
 /// ```dart
 /// CachedFutureBuilder<List<Worker>>(
@@ -27,17 +24,14 @@ import 'package:flutter/material.dart';
 ///   },
 /// )
 /// ```
-///
 /// **Cache Stratejisi:**
 /// - İlk çağrıda: Future çalıştırılır, sonuç cache'lenir
 /// - Sonraki çağrılarda: Cache süresi dolmadıysa cache'ten döner
 /// - Cache süresi dolduysa: Future tekrar çalıştırılır
-///
 /// **Performance İyileştirmesi:**
 /// - Network request sayısını %80-90 azaltır
 /// - Sayfa geçişlerinde anlık veri gösterimi
 /// - Offline-first yaklaşım için temel
-///
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class CachedFutureBuilder<T> extends StatefulWidget {
   /// Future fonksiyonu - veriyi çeken asenkron işlem
@@ -110,8 +104,7 @@ class _CachedFutureBuilderState<T> extends State<CachedFutureBuilder<T>> {
   }
 
   /// Cache temizleme timer'ını başlatır
-  ///
-  /// Her 1 dakikada bir expired cache entry'leri temizler.
+    /// Her 1 dakikada bir expired cache entry'leri temizler.
   /// Memory leak'i önler.
   void _startCleanupTimer() {
     if (_cleanupTimer != null) return;
@@ -158,7 +151,7 @@ class _CachedFutureBuilderState<T> extends State<CachedFutureBuilder<T>> {
       setState(() {
         _snapshot = cachedEntry.snapshot as AsyncSnapshot<T>;
       });
-      debugPrint('✅ Cache hit: $_effectiveCacheKey');
+      debugPrint('Cache hit: $_effectiveCacheKey');
       return;
     }
 
@@ -199,21 +192,20 @@ class _CachedFutureBuilderState<T> extends State<CachedFutureBuilder<T>> {
         );
       });
 
-      debugPrint('❌ Future hatası: $_effectiveCacheKey - $error');
+      debugPrint('Future hatası: $_effectiveCacheKey - $error');
     }
   }
 
   /// Cache'i manuel olarak temizler
-  ///
-  /// Kullanıcı pull-to-refresh yaptığında veya
+    /// Kullanıcı pull-to-refresh yaptığında veya
   /// veri güncellendiğinde çağrılabilir.
   static void clearCache([String? key]) {
     if (key != null) {
       _cache.remove(key);
-      debugPrint('🗑️ Cache temizlendi: $key');
+      debugPrint('Cache temizlendi: $key');
     } else {
       _cache.clear();
-      debugPrint('🗑️ Tüm cache temizlendi');
+      debugPrint('Tüm cache temizlendi');
     }
   }
 

@@ -6,7 +6,6 @@ import '../../../../models/worker.dart';
 import '../../../../services/worker_service.dart';
 
 /// Çalışan profil veri yönetimi mixin'i
-///
 /// Profil bilgilerini yükleme, güncelleme ve session yönetimi
 mixin WorkerProfileDataMixin<T extends StatefulWidget> on State<T> {
   ContextSafetyMixin get contextSafety => this as ContextSafetyMixin;
@@ -31,12 +30,12 @@ mixin WorkerProfileDataMixin<T extends StatefulWidget> on State<T> {
     setState(() => _isLoading = true);
 
     try {
-      debugPrint('🔍 loadWorkerData: Başlıyor...');
+      debugPrint('loadWorkerData: Başlıyor...');
       final session = await _localStorage.getWorkerSession();
-      debugPrint('🔍 loadWorkerData: Session = $session');
+      debugPrint('loadWorkerData: Session = $session');
 
       if (session == null) {
-        debugPrint('❌ loadWorkerData: Session null, oturum süresi dolmuş');
+        debugPrint('loadWorkerData: Session null, oturum süresi dolmuş');
         if (mounted) {
           onSessionExpired();
         }
@@ -45,10 +44,10 @@ mixin WorkerProfileDataMixin<T extends StatefulWidget> on State<T> {
 
       final workerId = int.parse(session['workerId']!);
       _username = session['username'];
-      debugPrint('✅ loadWorkerData: workerId=$workerId, username=$_username');
+      debugPrint('loadWorkerData: workerId=$workerId, username=$_username');
 
       final worker = await _workerService.getWorkerById(workerId);
-      debugPrint('🔍 loadWorkerData: Worker = $worker');
+      debugPrint('loadWorkerData: Worker = $worker');
 
       if (!mounted) return;
 
@@ -61,12 +60,12 @@ mixin WorkerProfileDataMixin<T extends StatefulWidget> on State<T> {
           _isLoading = false;
         });
       } else {
-        debugPrint('❌ loadWorkerData: Worker null');
+        debugPrint('loadWorkerData: Worker null');
         setState(() => _isLoading = false);
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ loadWorkerData: Hata: $e');
-      debugPrint('❌ Stack trace: $stackTrace');
+      debugPrint('loadWorkerData: Hata: $e');
+      debugPrint('Stack trace: $stackTrace');
       if (mounted) {
         setState(() => _isLoading = false);
         contextSafety.safeShowErrorSnackBar('Profil bilgileri yüklenemedi: $e');

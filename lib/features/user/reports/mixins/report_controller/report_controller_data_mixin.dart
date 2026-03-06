@@ -31,7 +31,7 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
   Future<void> loadData() async {
     if (!mounted) return;
 
-    debugPrint('📊 ReportControllerMixin: Veriler yükleniyor');
+    debugPrint('ReportControllerMixin: Veriler yükleniyor');
 
     setState(() => isLoading = true);
 
@@ -54,7 +54,7 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
       final allEmployees = await workerService.getEmployees();
       await _processReportData(allEmployees);
     } catch (e) {
-      debugPrint('❌ ReportControllerMixin: Veri yükleme hatası: $e');
+      debugPrint('ReportControllerMixin: Veri yükleme hatası: $e');
 
       if (!mounted) return;
 
@@ -69,20 +69,20 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
       if (!mounted) return;
       await _processReportData(freshEmployees);
     } catch (e) {
-      debugPrint('⚠️ Arka plan güncelleme hatası: $e');
+      debugPrint('Arka plan güncelleme hatası: $e');
     }
   }
 
   /// Report verilerini işle (paralel queries ile optimize edildi)
   Future<void> _processReportData(List<Employee> allEmployees) async {
-    debugPrint('📊 Toplam ${allEmployees.length} çalışan bulundu');
+    debugPrint('Toplam ${allEmployees.length} çalışan bulundu');
 
     final allAttendance = await attendanceService.getAttendanceBetween(
       startDate,
       endDate,
     );
 
-    debugPrint('📊 Dönem içi ${allAttendance.length} yevmiye kaydı bulundu');
+    debugPrint('Dönem içi ${allAttendance.length} yevmiye kaydı bulundu');
 
     final attendanceMap = <int, List<attendance.Attendance>>{};
 
@@ -90,13 +90,12 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
       attendanceMap.putIfAbsent(record.workerId, () => []).add(record);
     }
 
-    // ✅ Paralel olarak tüm unpaid days'leri çek (N+1 query problemi çözüldü)
-    final unpaidDaysFutures = allEmployees.map((emp) async {
+        final unpaidDaysFutures = allEmployees.map((emp) async {
       try {
         final unpaidDays = await paymentService.getUnpaidDays(emp.id);
         return MapEntry(emp.id, unpaidDays);
       } catch (e) {
-        debugPrint('⚠️ ${emp.name} için unpaid days alınamadı: $e');
+        debugPrint('${emp.name} için unpaid days alınamadı: $e');
         return MapEntry(emp.id, {'fullDays': 0, 'halfDays': 0});
       }
     });
@@ -132,14 +131,14 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
       isLoading = false;
     });
 
-    debugPrint('✅ ReportControllerMixin: ${employees.length} çalışan yüklendi');
+    debugPrint('ReportControllerMixin: ${employees.length} çalışan yüklendi');
   }
 
   /// Çalışanları filtrele
   void filterEmployees(String query) {
     if (!mounted) return;
 
-    debugPrint('🔍 ReportControllerMixin: Arama sorgusu: "$query"');
+    debugPrint('ReportControllerMixin: Arama sorgusu: "$query"');
 
     setState(() {
       if (query.isEmpty) {
@@ -154,6 +153,6 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
       }
     });
 
-    debugPrint('✅ ReportControllerMixin: ${filteredEmployees.length} sonuç');
+    debugPrint('ReportControllerMixin: ${filteredEmployees.length} sonuç');
   }
 }

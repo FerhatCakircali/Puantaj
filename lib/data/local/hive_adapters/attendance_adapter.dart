@@ -2,7 +2,6 @@ import 'package:hive/hive.dart';
 import '../../../models/attendance.dart';
 
 /// Attendance modeli için Hive TypeAdapter
-///
 /// Offline-first mimari için attendance verilerini yerel olarak saklar.
 /// Type ID: 0
 class AttendanceAdapter extends TypeAdapter<Attendance> {

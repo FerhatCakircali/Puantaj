@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// Tema uyumlu TextField widget'ı
-///
 /// Dark ve light tema için otomatik olarak uygun renkleri kullanır.
 /// Görünür çerçeve ve filled background ile modern görünüm sağlar.
 class ThemedTextField extends StatelessWidget {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// Notification service interface
-///
 /// Defines contract for notification operations (local notifications).
 /// Implementations handle platform-specific notification logic.
 abstract class INotificationService {

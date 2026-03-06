@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 /// Bildirim tipi enum'ı
-///
 /// Sistemde kullanılan bildirim tiplerini tanımlar:
 /// - attendanceReminder: Yevmiye hatırlatıcısı
 /// - employeeReminder: Çalışan hatırlatıcısı
@@ -14,8 +13,7 @@ enum NotificationType {
   String toJson() => name;
 
   /// JSON string'den enum değerine çevirir
-  ///
-  /// Geçersiz değer durumunda varsayılan olarak attendanceReminder döner
+    /// Geçersiz değer durumunda varsayılan olarak attendanceReminder döner
   static NotificationType fromJson(String value) {
     return NotificationType.values.firstWhere(
       (e) => e.name == value,
@@ -25,7 +23,6 @@ enum NotificationType {
 }
 
 /// Bildirim payload modeli
-///
 /// Bildirimlerde taşınan veri yapısını temsil eder.
 /// Her bildirim tipi için gerekli kullanıcı bilgilerini ve
 /// opsiyonel olarak hatırlatıcı ID'sini içerir.
@@ -46,8 +43,7 @@ class NotificationPayload {
   final int? reminderId;
 
   /// NotificationPayload constructor
-  ///
-  /// [type] Bildirim tipi (zorunlu)
+    /// [type] Bildirim tipi (zorunlu)
   /// [userId] Kullanıcı ID'si (zorunlu)
   /// [username] Kullanıcı adı (zorunlu)
   /// [fullName] Kullanıcının tam adı (zorunlu)
@@ -61,8 +57,7 @@ class NotificationPayload {
   });
 
   /// Payload'ı JSON string'e çevirir
-  ///
-  /// Bildirim zamanlama sırasında payload olarak kullanılır.
+    /// Bildirim zamanlama sırasında payload olarak kullanılır.
   /// reminderId sadece null değilse JSON'a eklenir.
   String toJson() {
     final map = {
@@ -76,16 +71,12 @@ class NotificationPayload {
   }
 
   /// JSON string'den NotificationPayload oluşturur
-  ///
-  /// Bildirime tıklandığında payload'ı ayrıştırmak için kullanılır.
-  ///
-  /// [jsonString] JSON formatında payload string'i
-  ///
-  /// Returns:
+    /// Bildirime tıklandığında payload'ı ayrıştırmak için kullanılır.
+    /// [jsonString] JSON formatında payload string'i
+    /// Returns:
   /// - Başarılı ayrıştırma durumunda NotificationPayload instance'ı
   /// - Hata durumunda null
-  ///
-  /// Hata durumları:
+    /// Hata durumları:
   /// - Geçersiz JSON formatı
   /// - Eksik zorunlu alanlar
   /// - Yanlış veri tipleri

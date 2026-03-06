@@ -1,5 +1,4 @@
 /// Uygulama genelinde kullanılan özel exception sınıfları
-///
 /// Single Responsibility: Sadece exception tanımlarından sorumlu
 /// Open/Closed: Yeni exception tipleri eklenebilir, mevcut olanlar değişmez
 

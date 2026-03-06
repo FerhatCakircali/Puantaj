@@ -3,7 +3,6 @@ import '../entities/worker.dart';
 import '../entities/attendance.dart';
 
 /// Worker repository interface
-///
 /// Defines contract for worker data operations.
 abstract class IWorkerRepository {
   /// Get worker by ID

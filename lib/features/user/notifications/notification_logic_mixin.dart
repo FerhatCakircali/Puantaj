@@ -50,10 +50,10 @@ mixin NotificationLogicMixin<T extends StatefulWidget> on State<T> {
       final todayStartUtc = DateTime.utc(now.year, now.month, now.day);
       final todayStartStr = todayStartUtc.toIso8601String();
 
-      debugPrint('🗑️ Eski bildirimler siliniyor...');
-      debugPrint('  Şu an (UTC): $now');
-      debugPrint('  Bugün başlangıç (UTC): $todayStartUtc');
-      debugPrint('  Silme kriteri: created_at < $todayStartStr');
+      debugPrint('Eski bildirimler siliniyor...');
+      debugPrint('Şu an (UTC): $now');
+      debugPrint('Bugün başlangıç (UTC): $todayStartUtc');
+      debugPrint('Silme kriteri: created_at < $todayStartStr');
 
       await Supabase.instance.client
           .from('notifications')
@@ -63,9 +63,9 @@ mixin NotificationLogicMixin<T extends StatefulWidget> on State<T> {
           .eq('is_read', true)
           .lt('created_at', todayStartStr);
 
-      debugPrint('✅ Eski okunmuş bildirimler silindi');
+      debugPrint('Eski okunmuş bildirimler silindi');
     } catch (e) {
-      debugPrint('⚠️ Eski bildirim silme hatası: $e');
+      debugPrint('Eski bildirim silme hatası: $e');
     }
   }
 

@@ -3,10 +3,8 @@ import 'package:bcrypt/bcrypt.dart';
 import '../../core/errors/app_exception.dart';
 
 /// Şifre hash ve doğrulama servisi
-///
 /// bcrypt algoritması kullanarak güvenli şifre hash'leme ve doğrulama sağlar.
 /// Singleton pattern ile tek instance garantisi.
-///
 /// Kullanım:
 /// ```dart
 /// final hasher = PasswordHasher.instance;
@@ -25,15 +23,11 @@ class PasswordHasher {
   static const int _costFactor = 10;
 
   /// Şifreyi hash'ler
-  ///
-  /// bcrypt algoritması ile güvenli hash oluşturur.
+    /// bcrypt algoritması ile güvenli hash oluşturur.
   /// Salt otomatik olarak eklenir.
-  ///
-  /// [password] - Hash'lenecek şifre (minimum 6 karakter)
-  ///
-  /// Returns: Hash'lenmiş şifre string'i
-  ///
-  /// Throws:
+    /// [password] - Hash'lenecek şifre (minimum 6 karakter)
+    /// Returns: Hash'lenmiş şifre string'i
+    /// Throws:
   /// - [ValidationException] şifre çok kısa ise
   /// - [SecurityException] hash işlemi başarısız ise
   Future<String> hashPassword(String password) async {
@@ -55,15 +49,11 @@ class PasswordHasher {
   }
 
   /// Şifreyi hash ile doğrular
-  ///
-  /// Verilen şifrenin hash ile eşleşip eşleşmediğini kontrol eder.
-  ///
-  /// [password] - Kontrol edilecek şifre
+    /// Verilen şifrenin hash ile eşleşip eşleşmediğini kontrol eder.
+    /// [password] - Kontrol edilecek şifre
   /// [hash] - Veritabanından gelen hash
-  ///
-  /// Returns: true eşleşirse, false eşleşmezse
-  ///
-  /// Throws:
+    /// Returns: true eşleşirse, false eşleşmezse
+    /// Throws:
   /// - [SecurityException] doğrulama işlemi başarısız ise
   Future<bool> verifyPassword(String password, String hash) async {
     try {
@@ -89,10 +79,8 @@ class PasswordHasher {
   }
 
   /// Hash'in geçerli bir bcrypt hash'i olup olmadığını kontrol eder
-  ///
-  /// [hash] - Kontrol edilecek hash string'i
-  ///
-  /// Returns: true geçerli bcrypt hash ise, false değilse
+    /// [hash] - Kontrol edilecek hash string'i
+    /// Returns: true geçerli bcrypt hash ise, false değilse
   bool isValidHash(String hash) {
     try {
       // bcrypt hash formatı: $2a$10$... veya $2b$10$...

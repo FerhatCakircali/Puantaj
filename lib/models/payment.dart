@@ -36,8 +36,8 @@ class Payment {
     final formattedDate =
         '${localDate.year}-${localDate.month.toString().padLeft(2, '0')}-${localDate.day.toString().padLeft(2, '0')}';
 
-    debugPrint('📅 Payment toMap - Original date: $paymentDate');
-    debugPrint('📅 Payment toMap - Formatted date: $formattedDate');
+    debugPrint('Payment toMap - Original date: $paymentDate');
+    debugPrint('Payment toMap - Formatted date: $formattedDate');
 
     final map = {
       'user_id': userId,
@@ -46,8 +46,7 @@ class Payment {
       'half_days': halfDays,
       'payment_date': formattedDate,
       'amount': amount,
-      // ⚡ FIX: 'notes' kolonu database'de yok, kaldırıldı
-    };
+          };
 
     // id değeri varsa ekle, yoksa Supabase'in otomatik atamasına izin ver
     if (id != null) {

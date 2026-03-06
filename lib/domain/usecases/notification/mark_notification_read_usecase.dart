@@ -11,7 +11,6 @@ class MarkNotificationReadParams {
 }
 
 /// Mark notification read use case
-///
 /// Marks a notification as read.
 /// Business rules:
 /// - Notification must exist

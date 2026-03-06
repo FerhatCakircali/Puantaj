@@ -19,12 +19,12 @@ class ServiceInitializer {
     debugPrint('🔧 ServiceInitializer: Timezone başlatılıyor');
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Europe/Istanbul'));
-    debugPrint('✅ ServiceInitializer: Timezone ayarlandı (Europe/Istanbul)');
+    debugPrint('ServiceInitializer: Timezone ayarlandı (Europe/Istanbul)');
 
     // LocalStorage başlatma
     debugPrint('🔧 ServiceInitializer: LocalStorage başlatılıyor');
     await LocalStorageService.instance.initialize();
-    debugPrint('✅ ServiceInitializer: LocalStorage başlatıldı');
+    debugPrint('ServiceInitializer: LocalStorage başlatıldı');
 
     // Supabase başlatma
     debugPrint('🔧 ServiceInitializer: Supabase başlatılıyor');
@@ -33,23 +33,23 @@ class ServiceInitializer {
       anonKey:
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2ZGNlZmF1enhvcmRxZ3Z2d2VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjE5NzEsImV4cCI6MjA4NjM5Nzk3MX0.WWyRB9PfOTgWq55oc1sXDDRomL0D5C6ydILGxTDrqWU',
     );
-    debugPrint('✅ ServiceInitializer: Supabase başlatıldı');
+    debugPrint('ServiceInitializer: Supabase başlatıldı');
 
     // Bildirim servisini başlat
     debugPrint('🔧 ServiceInitializer: Bildirim servisi başlatılıyor');
     await NotificationService().init();
-    debugPrint('✅ ServiceInitializer: Bildirim servisi başlatıldı');
+    debugPrint('ServiceInitializer: Bildirim servisi başlatıldı');
 
     // FCM servisini başlat
     debugPrint('🔧 ServiceInitializer: FCM servisi başlatılıyor');
     await FCMService.instance.initialize();
-    debugPrint('✅ ServiceInitializer: FCM servisi başlatıldı');
+    debugPrint('ServiceInitializer: FCM servisi başlatıldı');
 
     // Cache manager'ı başlat ve expired cache'leri temizle
     debugPrint('🔧 ServiceInitializer: Cache manager başlatılıyor');
     await CacheManagerService.instance.initializeCache();
-    debugPrint('✅ ServiceInitializer: Cache manager başlatıldı');
+    debugPrint('ServiceInitializer: Cache manager başlatıldı');
 
-    debugPrint('✅ ServiceInitializer: Tüm servisler başarıyla başlatıldı');
+    debugPrint('ServiceInitializer: Tüm servisler başarıyla başlatıldı');
   }
 }

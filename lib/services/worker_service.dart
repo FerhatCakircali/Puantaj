@@ -104,7 +104,7 @@ class WorkerService {
       debugPrint('🔄 Hive cache güncellendi: ${employees.length} employee');
     } catch (e) {
       // Sessizce başarısız ol (cache güncellenemedi ama UI etkilenmedi)
-      debugPrint('⚠️ Cache güncelleme başarısız: $e');
+      debugPrint('Cache güncelleme başarısız: $e');
     }
   }
 
@@ -133,11 +133,9 @@ class WorkerService {
   }
 
   /// Ödenmemiş gün bilgileriyle birlikte işçileri getirir (RPC)
-  ///
-  /// N+1 query problemini çözmek için Supabase RPC fonksiyonu kullanır.
+    /// N+1 query problemini çözmek için Supabase RPC fonksiyonu kullanır.
   /// Performans: 15+ query → 1 query (%93 azalma)
-  ///
-  /// Saat Dilimi: Europe/Istanbul (UTC+3)
+    /// Saat Dilimi: Europe/Istanbul (UTC+3)
   Future<List<WorkerWithUnpaidDays>> getWorkersWithUnpaidDays() async {
     try {
       final userId = await _authService.getUserId();
@@ -145,14 +143,14 @@ class WorkerService {
         throw Exception('Kullanıcı oturumu bulunamadı');
       }
 
-      debugPrint('🔍 getWorkersWithUnpaidDays: RPC çağrısı başlatılıyor...');
+      debugPrint('getWorkersWithUnpaidDays: RPC çağrısı başlatılıyor...');
 
       final List<dynamic> data = await supabase.rpc(
         'get_workers_with_unpaid_days',
         params: {'p_user_id': userId},
       );
 
-      debugPrint('✅ getWorkersWithUnpaidDays: ${data.length} işçi getirildi');
+      debugPrint('getWorkersWithUnpaidDays: ${data.length} işçi getirildi');
 
       return data
           .map(
@@ -173,7 +171,7 @@ class WorkerService {
   // ID'ye göre çalışan getir (Worker) - Worker kendi profilini görüntülüyor
   Future<Worker?> getWorkerById(int workerId) async {
     try {
-      debugPrint('🔍 getWorkerById: workerId=$workerId');
+      debugPrint('getWorkerById: workerId=$workerId');
 
       // Worker kendi profilini görüntülüyorsa user_id kontrolü yapmaya gerek yok
       final data = await supabase
@@ -210,7 +208,7 @@ class WorkerService {
           worker.email!.isNotEmpty) {
         final emailCheck = await _checkEmailAvailability(worker.email!);
         if (emailCheck != null) {
-          debugPrint('❌ addWorker: Email hatası: $emailCheck');
+          debugPrint('addWorker: Email hatası: $emailCheck');
           throw Exception(emailCheck);
         }
       }
@@ -327,14 +325,14 @@ class WorkerService {
   // Kullanıcı adı kontrolü (ValidationService kullanarak)
   Future<bool> isUsernameExists(String username) async {
     try {
-      debugPrint('🔍 isUsernameExists: Kontrol ediliyor: $username');
+      debugPrint('isUsernameExists: Kontrol ediliyor: $username');
 
       final result = await _validationService.checkUsernameAvailability(
         username.toLowerCase(),
       );
 
       final exists = result != null;
-      debugPrint('✅ isUsernameExists: Sonuç: $exists');
+      debugPrint('isUsernameExists: Sonuç: $exists');
       return exists;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
@@ -352,14 +350,14 @@ class WorkerService {
       // Boş email kontrolü
       if (email.trim().isEmpty) return false;
 
-      debugPrint('🔍 isEmailExists: Kontrol ediliyor: $email');
+      debugPrint('isEmailExists: Kontrol ediliyor: $email');
 
       final result = await _validationService.checkEmailAvailability(
         email.toLowerCase(),
       );
 
       final exists = result != null;
-      debugPrint('✅ isEmailExists: Sonuç: $exists');
+      debugPrint('isEmailExists: Sonuç: $exists');
       return exists;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
@@ -374,7 +372,7 @@ class WorkerService {
   // Çalışan güncelle (Worker) - Worker kendi profilini güncelliyor
   Future<bool> updateWorker(Worker worker) async {
     try {
-      debugPrint('🔍 updateWorker: Güncelleniyor: ${worker.fullName}');
+      debugPrint('updateWorker: Güncelleniyor: ${worker.fullName}');
 
       // Email kontrolü (eğer email varsa)
       if (worker.email != null && worker.email!.isNotEmpty) {
@@ -383,7 +381,7 @@ class WorkerService {
           workerId: worker.id,
         );
         if (emailCheck != null) {
-          debugPrint('❌ updateWorker: Email hatası: $emailCheck');
+          debugPrint('updateWorker: Email hatası: $emailCheck');
           throw Exception(emailCheck);
         }
       }
@@ -394,7 +392,7 @@ class WorkerService {
           .update(worker.toMap())
           .eq('id', worker.id!);
 
-      debugPrint('✅ updateWorker: Başarıyla güncellendi');
+      debugPrint('updateWorker: Başarıyla güncellendi');
       return true;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(

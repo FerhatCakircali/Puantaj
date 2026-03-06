@@ -68,9 +68,9 @@ class _AdvancesTabState extends State<AdvancesTab> {
         _isLoading = false;
       });
 
-      debugPrint('✅ Avans verileri yüklendi: ${_advances.length} avans');
+      debugPrint('Avans verileri yüklendi: ${_advances.length} avans');
     } catch (e) {
-      debugPrint('⚠️ Avans verileri yükleme hatası: $e');
+      debugPrint('Avans verileri yükleme hatası: $e');
 
       if (!mounted) return;
 
@@ -158,8 +158,7 @@ class _AdvancesTabState extends State<AdvancesTab> {
                               cacheExtent: h * 0.5,
                               keyboardDismissBehavior:
                                   ScrollViewKeyboardDismissBehavior
-                                      .onDrag, // ✅ Klavye overflow fix
-                              itemBuilder: (context, index) {
+                                      .onDrag,                               itemBuilder: (context, index) {
                                 final advance = _filteredAdvances[index];
                                 final workerName = _getWorkerName(
                                   advance.workerId,

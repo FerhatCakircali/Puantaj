@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/notification_service.dart';
 
 /// Çalışan bildirim servisi
-///
 /// SQL tabloları:
 /// - notifications: Bildirimler
 /// - notification_settings_workers: Hatırlatıcı ayarları
@@ -12,8 +11,7 @@ class WorkerNotificationService {
   final NotificationService _notificationService = NotificationService();
 
   /// Okunmamış bildirimleri getir
-  ///
-  /// SQL: SELECT * FROM notifications
+    /// SQL: SELECT * FROM notifications
   /// WHERE recipient_id = ? AND recipient_type = 'worker' AND is_read = FALSE
   Future<List<Map<String, dynamic>>> getUnreadNotifications(
     int workerId,
@@ -29,7 +27,7 @@ class WorkerNotificationService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      debugPrint('❌ getUnreadNotifications hata: $e');
+      debugPrint('getUnreadNotifications hata: $e');
       return [];
     }
   }
@@ -48,7 +46,7 @@ class WorkerNotificationService {
       final notifications = List<Map<String, dynamic>>.from(response);
 
       // Debug: is_read durumlarını logla
-      debugPrint('📊 Bildirimler yüklendi: ${notifications.length} adet');
+      debugPrint('Bildirimler yüklendi: ${notifications.length} adet');
       for (var notif in notifications) {
         debugPrint(
           '  - ${notif['title']}: is_read=${notif['is_read']} (ID: ${notif['id']})',
@@ -57,14 +55,13 @@ class WorkerNotificationService {
 
       return notifications;
     } catch (e) {
-      debugPrint('❌ getAllNotifications hata: $e');
+      debugPrint('getAllNotifications hata: $e');
       return [];
     }
   }
 
   /// Bildirimi okundu işaretle
-  ///
-  /// SQL: UPDATE notifications SET is_read = TRUE WHERE id = ?
+    /// SQL: UPDATE notifications SET is_read = TRUE WHERE id = ?
   Future<bool> markAsRead(int notificationId) async {
     try {
       await supabase
@@ -72,10 +69,10 @@ class WorkerNotificationService {
           .update({'is_read': true})
           .eq('id', notificationId);
 
-      debugPrint('✅ Bildirim okundu işaretlendi');
+      debugPrint('Bildirim okundu işaretlendi');
       return true;
     } catch (e) {
-      debugPrint('❌ markAsRead hata: $e');
+      debugPrint('markAsRead hata: $e');
       return false;
     }
   }
@@ -90,17 +87,16 @@ class WorkerNotificationService {
           .eq('recipient_type', 'worker')
           .eq('is_read', false);
 
-      debugPrint('✅ Tüm bildirimler okundu işaretlendi');
+      debugPrint('Tüm bildirimler okundu işaretlendi');
       return true;
     } catch (e) {
-      debugPrint('❌ markAllAsRead hata: $e');
+      debugPrint('markAllAsRead hata: $e');
       return false;
     }
   }
 
   /// Hatırlatıcı ayarlarını getir
-  ///
-  /// SQL: SELECT * FROM notification_settings_workers WHERE worker_id = ?
+    /// SQL: SELECT * FROM notification_settings_workers WHERE worker_id = ?
   Future<Map<String, dynamic>?> getReminderSettings(int workerId) async {
     try {
       final response = await supabase
@@ -111,14 +107,13 @@ class WorkerNotificationService {
 
       return response;
     } catch (e) {
-      debugPrint('❌ getReminderSettings hata: $e');
+      debugPrint('getReminderSettings hata: $e');
       return null;
     }
   }
 
   /// Hatırlatıcı ayarlarını kaydet/güncelle (UPSERT)
-  ///
-  /// SQL: INSERT INTO notification_settings_workers (worker_id, time, enabled)
+    /// SQL: INSERT INTO notification_settings_workers (worker_id, time, enabled)
   /// VALUES (?, ?, ?)
   /// ON CONFLICT (worker_id)
   /// DO UPDATE SET time = EXCLUDED.time, enabled = EXCLUDED.enabled
@@ -135,17 +130,16 @@ class WorkerNotificationService {
         'last_updated': DateTime.now().toIso8601String(),
       }, onConflict: 'worker_id');
 
-      debugPrint('✅ Hatırlatıcı ayarları kaydedildi');
+      debugPrint('Hatırlatıcı ayarları kaydedildi');
       return true;
     } catch (e) {
-      debugPrint('❌ saveReminderSettings hata: $e');
+      debugPrint('saveReminderSettings hata: $e');
       return false;
     }
   }
 
   /// Hatırlatıcı ayarlarını sil
-  ///
-  /// SQL: DELETE FROM notification_settings_workers WHERE worker_id = ?
+    /// SQL: DELETE FROM notification_settings_workers WHERE worker_id = ?
   Future<bool> deleteReminderSettings(int workerId) async {
     try {
       await supabase
@@ -153,17 +147,16 @@ class WorkerNotificationService {
           .delete()
           .eq('worker_id', workerId);
 
-      debugPrint('✅ Hatırlatıcı ayarları silindi');
+      debugPrint('Hatırlatıcı ayarları silindi');
       return true;
     } catch (e) {
-      debugPrint('❌ deleteReminderSettings hata: $e');
+      debugPrint('deleteReminderSettings hata: $e');
       return false;
     }
   }
 
   /// Çalışan için yevmiye hatırlatıcısını zamanla
-  ///
-  /// Kullanıcı panelindeki sistemi kullanarak çalışan için bildirim zamanlar.
+    /// Kullanıcı panelindeki sistemi kullanarak çalışan için bildirim zamanlar.
   /// NotificationPayload objesi ile JSON payload oluşturur.
   Future<void> scheduleWorkerAttendanceReminder({
     required int workerId,
@@ -171,7 +164,7 @@ class WorkerNotificationService {
     required TimeOfDay time,
   }) async {
     try {
-      debugPrint('🔔🔔🔔 ÇALIŞAN HATIRLATıCıSı ZAMANLANIYOR 🔔🔔🔔');
+      debugPrint('ÇALIŞAN HATIRLATıCıSı ZAMANLANIYOR');
       debugPrint('Worker ID: $workerId');
       debugPrint('İsim: $workerName');
       debugPrint('Saat: ${time.hour}:${time.minute}');
@@ -186,27 +179,26 @@ class WorkerNotificationService {
         time: time,
       );
 
-      debugPrint('✅✅✅ ÇALIŞAN HATIRLATıCıSı ZAMANLANDIIII ✅✅✅');
+      debugPrint('ÇALIŞAN HATIRLATıCıSı ZAMANLANDIIII');
 
       // Zamanlanmış bildirimleri kontrol et
       final pendingNotifications = await _notificationService
           .flutterLocalNotificationsPlugin
           .pendingNotificationRequests();
-      debugPrint('📋 Bekleyen bildirim sayısı: ${pendingNotifications.length}');
+      debugPrint('Bekleyen bildirim sayısı: ${pendingNotifications.length}');
       for (var notif in pendingNotifications) {
         debugPrint(
           '  - ID: ${notif.id}, Başlık: ${notif.title}, Body: ${notif.body}',
         );
       }
     } catch (e, stackTrace) {
-      debugPrint('❌❌❌ ÇALIŞAN HATIRLATıCıSı HATA: $e');
+      debugPrint('ÇALIŞAN HATIRLATıCıSı HATA: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
 
   /// Çalışan için yevmiye hatırlatıcısını iptal et
-  ///
-  /// Zamanlanmış bildirimi iptal eder.
+    /// Zamanlanmış bildirimi iptal eder.
   /// Bildirim ID'si: 1000 + workerId
   Future<void> cancelWorkerAttendanceReminder(int workerId) async {
     try {
@@ -218,15 +210,14 @@ class WorkerNotificationService {
       await _notificationService.cancelNotification(notificationId);
 
       debugPrint('Bildirim iptal edildi: $notificationId');
-      debugPrint('✅ Çalışan hatırlatıcısı iptal edildi');
+      debugPrint('Çalışan hatırlatıcısı iptal edildi');
     } catch (e) {
-      debugPrint('❌ Çalışan hatırlatıcısı iptal edilirken hata: $e');
+      debugPrint('Çalışan hatırlatıcısı iptal edilirken hata: $e');
     }
   }
 
   /// Bugün için yevmiye girişi yapılmış mı kontrol et
-  ///
-  /// Bildirim gösterilmeden önce kontrol için kullanılır
+    /// Bildirim gösterilmeden önce kontrol için kullanılır
   Future<bool> hasAttendanceToday(int workerId) async {
     try {
       final today = DateTime.now();
@@ -242,7 +233,7 @@ class WorkerNotificationService {
           .maybeSingle();
 
       if (attendanceResponse != null) {
-        debugPrint('✅ Bugün için attendance kaydı var');
+        debugPrint('Bugün için attendance kaydı var');
         return true;
       }
 
@@ -255,14 +246,14 @@ class WorkerNotificationService {
           .maybeSingle();
 
       if (requestResponse != null) {
-        debugPrint('✅ Bugün için attendance_request kaydı var');
+        debugPrint('Bugün için attendance_request kaydı var');
         return true;
       }
 
-      debugPrint('❌ Bugün için yevmiye kaydı yok');
+      debugPrint('Bugün için yevmiye kaydı yok');
       return false;
     } catch (e) {
-      debugPrint('❌ hasAttendanceToday hata: $e');
+      debugPrint('hasAttendanceToday hata: $e');
       return false;
     }
   }

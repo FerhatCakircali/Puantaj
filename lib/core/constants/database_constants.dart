@@ -1,5 +1,4 @@
 /// Veritabanı tablo ve alan isimleri
-///
 /// Single Responsibility: Sadece veritabanı sabitlerini tutar
 /// Bu sayede tablo/alan isimleri değiştiğinde tek yerden güncellenir
 class DatabaseConstants {

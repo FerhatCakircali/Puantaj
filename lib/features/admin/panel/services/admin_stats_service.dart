@@ -27,7 +27,7 @@ class AdminStatsService {
     }
 
     try {
-      debugPrint('📊 İstatistikler yenileniyor...');
+      debugPrint('İstatistikler yenileniyor...');
 
       // Paralel olarak tüm istatistikleri çek
       final futures = await Future.wait([
@@ -55,10 +55,10 @@ class AdminStatsService {
       _cachedStats = stats;
       _lastCacheTime = DateTime.now();
 
-      debugPrint('✅ İstatistikler güncellendi');
+      debugPrint('İstatistikler güncellendi');
       return stats;
     } catch (e) {
-      debugPrint('❌ AdminStatsService hata: $e');
+      debugPrint('AdminStatsService hata: $e');
       rethrow;
     }
   }
@@ -162,7 +162,7 @@ class AdminStatsService {
     }
 
     try {
-      debugPrint('🔍 Sistem durumu kontrol ediliyor...');
+      debugPrint('Sistem durumu kontrol ediliyor...');
 
       // Veritabanı bağlantı testi
       final dbTest = await _testDatabaseConnection();
@@ -190,10 +190,10 @@ class AdminStatsService {
       _cachedSystemStatus = systemStatus;
       _lastSystemStatusCacheTime = DateTime.now();
 
-      debugPrint('✅ Sistem durumu güncellendi');
+      debugPrint('Sistem durumu güncellendi');
       return systemStatus;
     } catch (e) {
-      debugPrint('❌ Sistem durumu kontrol hatası: $e');
+      debugPrint('Sistem durumu kontrol hatası: $e');
       return _getErrorSystemStatus(e.toString());
     }
   }
@@ -318,21 +318,21 @@ class AdminStatsService {
     _lastCacheTime = null;
     _cachedSystemStatus = null;
     _lastSystemStatusCacheTime = null;
-    debugPrint('🗑️ Tüm cache temizlendi');
+    debugPrint('Tüm cache temizlendi');
   }
 
   /// Sadece istatistik cache'ini temizle
   void clearStatsCache() {
     _cachedStats = null;
     _lastCacheTime = null;
-    debugPrint('🗑️ İstatistik cache temizlendi');
+    debugPrint('İstatistik cache temizlendi');
   }
 
   /// Sadece sistem durumu cache'ini temizle
   void clearSystemStatusCache() {
     _cachedSystemStatus = null;
     _lastSystemStatusCacheTime = null;
-    debugPrint('🗑️ Sistem durumu cache temizlendi');
+    debugPrint('Sistem durumu cache temizlendi');
   }
 
   /// Cache durumunu kontrol et

@@ -1,7 +1,6 @@
 import '../../../domain/entities/employee.dart';
 
 /// Çalışan yönetimi state'i
-///
 /// Employee ekranının durumunu yönetir.
 class EmployeeState {
   final List<Employee> employees;

@@ -59,8 +59,7 @@ class WorkerAttendanceTab extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(w * 0.06, h * 0.015, w * 0.06, h * 0.1),
         itemCount: attendanceHistory.length,
         itemExtent:
-            110.0, // ⚡ Performans: Sabit yükseklik belirtilerek scroll optimizasyonu
-        itemBuilder: (context, index) {
+            110.0,         itemBuilder: (context, index) {
           final record = attendanceHistory[index];
           final date = DateTime.parse(record['attendance_date']);
           final status = record['status'] as String;

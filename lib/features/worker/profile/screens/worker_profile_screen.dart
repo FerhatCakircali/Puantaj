@@ -11,7 +11,6 @@ import '../widgets/profile_edit_dialog.dart';
 import '../widgets/password_change_dialog.dart';
 
 /// Çalışan profil ekranı
-///
 /// Admin panel gibi basitleştirilmiş versiyon
 class WorkerProfileScreen extends StatefulWidget {
   const WorkerProfileScreen({super.key});
@@ -56,19 +55,19 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen>
 
   Future<void> _handleProfileEdit() async {
     if (worker == null) {
-      debugPrint('❌ Worker is null, cannot edit profile');
+      debugPrint('Worker is null, cannot edit profile');
       return;
     }
 
     if (worker!.id == null) {
-      debugPrint('❌ Worker ID is null, cannot edit profile');
+      debugPrint('Worker ID is null, cannot edit profile');
       contextSafety.safeShowErrorSnackBar(
         'Profil düzenlenemedi: ID bulunamadı',
       );
       return;
     }
 
-    debugPrint('✅ Opening profile edit dialog for: ${worker!.fullName}');
+    debugPrint('Opening profile edit dialog for: ${worker!.fullName}');
 
     final result = await showDialog<bool>(
       context: context,
@@ -107,7 +106,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen>
     );
 
     if (result == true && mounted) {
-      debugPrint('✅ Profile updated, reloading data');
+      debugPrint('Profile updated, reloading data');
       await _loadData();
     }
   }

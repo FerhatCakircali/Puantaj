@@ -9,7 +9,6 @@ enum NotificationType {
 }
 
 /// Notification domain entity
-///
 /// Represents a notification in the system.
 /// Independent of any data source or UI framework.
 class Notification {

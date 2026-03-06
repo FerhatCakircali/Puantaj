@@ -3,10 +3,8 @@ import 'package:flutter/foundation.dart';
 import '../errors/app_exception.dart';
 
 /// Error state management mixin for ViewModels and Orchestrators.
-///
 /// Provides centralized error handling with user-friendly messages.
 /// Follows Single Responsibility Principle by handling only error state logic.
-///
 /// Usage:
 /// ```dart
 /// class MyViewModel extends ChangeNotifier with ErrorHandlingMixin {
@@ -29,8 +27,7 @@ mixin ErrorHandlingMixin {
   bool get hasError => _errorMessage != null;
 
   /// Sets the error message
-  ///
-  /// Should be called by subclass to trigger UI updates
+    /// Should be called by subclass to trigger UI updates
   void notifyError();
 
   /// Sets an error message and notifies listeners
@@ -48,11 +45,9 @@ mixin ErrorHandlingMixin {
   }
 
   /// Handles an exception and converts it to a user-friendly error message
-  ///
-  /// Automatically converts AppException types to their messages.
+    /// Automatically converts AppException types to their messages.
   /// For unknown exceptions, provides a generic error message.
-  ///
-  /// Optionally logs the error with stack trace for debugging.
+    /// Optionally logs the error with stack trace for debugging.
   void handleError(Object error, [StackTrace? stackTrace]) {
     String message;
 
@@ -71,8 +66,7 @@ mixin ErrorHandlingMixin {
   }
 
   /// Protected method to update internal error state
-  ///
-  /// Subclasses should call this from their notifyError implementation
+    /// Subclasses should call this from their notifyError implementation
   void updateErrorState(String? message) {
     _errorMessage = message;
   }

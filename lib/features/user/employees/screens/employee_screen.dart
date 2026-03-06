@@ -38,8 +38,7 @@ class EmployeeScreenState extends State<EmployeeScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // ⚡ ÖNEMLİ: Memory leak önlemek için listener'ı kaldır
-    _searchController.removeListener(_onSearchChanged);
+        _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
@@ -139,8 +138,7 @@ class EmployeeScreenState extends State<EmployeeScreen>
                       child: ListView.separated(
                         itemCount: filteredEmployees.length,
                         padding: EdgeInsets.only(bottom: h * 0.12),
-                        // ⚡ PHASE 4: ListView optimizasyonları
-                        addAutomaticKeepAlives: false, // Memory optimizasyonu
+                                                addAutomaticKeepAlives: false, // Memory optimizasyonu
                         addRepaintBoundaries: true, // Repaint optimizasyonu
                         separatorBuilder: (context, i) =>
                             SizedBox(height: h * 0.02),

@@ -6,7 +6,6 @@ import '../datasources/supabase_datasource.dart';
 import '../models/employee_model.dart';
 
 /// Employee repository implementation
-///
 /// Implements IEmployeeRepository using Supabase as data source.
 /// Handles all employee data operations with proper error handling.
 class EmployeeRepositoryImpl implements IEmployeeRepository {

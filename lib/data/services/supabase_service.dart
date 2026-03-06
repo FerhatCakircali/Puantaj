@@ -4,10 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/errors/app_exception.dart';
 
 /// Supabase client service - Singleton pattern
-///
 /// Manages Supabase client initialization and provides access to the client.
 /// Follows Singleton pattern to ensure single instance across the app.
-///
 /// Usage:
 /// ```dart
 /// final client = SupabaseService.instance.client;
@@ -24,8 +22,7 @@ class SupabaseService {
   SupabaseClient? _client;
 
   /// Supabase client instance
-  ///
-  /// Throws [DatabaseException] if not initialized
+    /// Throws [DatabaseException] if not initialized
   SupabaseClient get client {
     if (_client == null) {
       throw DatabaseException('Supabase client not initialized');
@@ -37,11 +34,9 @@ class SupabaseService {
   bool get isInitialized => _client != null;
 
   /// Initializes Supabase client
-  ///
-  /// Should be called once at app startup before any database operations.
+    /// Should be called once at app startup before any database operations.
   /// Pass url and anonKey from your environment configuration.
-  ///
-  /// Throws [DatabaseException] if parameters are invalid.
+    /// Throws [DatabaseException] if parameters are invalid.
   Future<void> initialize({
     required String url,
     required String anonKey,
@@ -70,7 +65,7 @@ class SupabaseService {
       _client = Supabase.instance.client;
 
       if (kDebugMode) {
-        debugPrint('✅ Supabase initialized successfully');
+        debugPrint('Supabase initialized successfully');
       }
     } catch (e) {
       if (e is DatabaseException) {
@@ -81,8 +76,7 @@ class SupabaseService {
   }
 
   /// Checks if the client is connected to Supabase
-  ///
-  /// Returns true if client is initialized and can communicate with server
+    /// Returns true if client is initialized and can communicate with server
   Future<bool> checkConnection() async {
     try {
       if (!isInitialized) return false;

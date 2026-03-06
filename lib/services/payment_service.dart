@@ -45,7 +45,7 @@ class PaymentService {
       if (_syncManager.isOnline) {
         try {
           final paymentMap = payment.toMap();
-          debugPrint('💰 Ödeme map: $paymentMap');
+          debugPrint('Ödeme map: $paymentMap');
 
           final paymentResponse = await supabase
               .from('payments')
@@ -53,7 +53,7 @@ class PaymentService {
               .select('id, payment_date')
               .single();
 
-          debugPrint('💰 Veritabanına kaydedilen: $paymentResponse');
+          debugPrint('Veritabanına kaydedilen: $paymentResponse');
 
           final paymentId = paymentResponse['id'] as int;
 
@@ -67,7 +67,7 @@ class PaymentService {
             payment.workerId,
           );
 
-          debugPrint('💰 Ödenmemiş gün sayısı: ${attendance.length}');
+          debugPrint('Ödenmemiş gün sayısı: ${attendance.length}');
 
           // Ödenecek tam ve yarım günlerin sayısı
           int fullDaysToMark = payment.fullDays;
@@ -79,18 +79,18 @@ class PaymentService {
                 fullDaysToMark > 0) {
               await _markDayAsPaid(record, paymentId);
               fullDaysToMark--;
-              debugPrint('💰 Tam gün işaretlendi: ${record.date}');
+              debugPrint('Tam gün işaretlendi: ${record.date}');
             } else if (record.status == AttendanceStatus.halfDay &&
                 halfDaysToMark > 0) {
               await _markDayAsPaid(record, paymentId);
               halfDaysToMark--;
-              debugPrint('💰 Yarım gün işaretlendi: ${record.date}');
+              debugPrint('Yarım gün işaretlendi: ${record.date}');
             }
 
             if (fullDaysToMark <= 0 && halfDaysToMark <= 0) break;
           }
 
-          debugPrint('✅ Ödeme başarıyla tamamlandı (ID: $paymentId)');
+          debugPrint('Ödeme başarıyla tamamlandı (ID: $paymentId)');
 
           // Çalışana ödeme bildirimi gönder
           await _sendPaymentNotification(payment);
@@ -160,7 +160,7 @@ class PaymentService {
         'scheduled_time': null,
       });
 
-      debugPrint('✅ Ödeme bildirimi gönderildi');
+      debugPrint('Ödeme bildirimi gönderildi');
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'PaymentService._sendPaymentNotification hatası',
@@ -341,8 +341,7 @@ class PaymentService {
   }
 
   /// Belirli bir ödemeyi hariç tutarak ödenmemiş günleri getir
-  ///
-  /// Ödeme düzenlenirken kullanılır. Düzenlenen ödemenin günlerini
+    /// Ödeme düzenlenirken kullanılır. Düzenlenen ödemenin günlerini
   /// ödenmemiş günlere ekleyerek maksimum değeri hesaplar.
   Future<Map<String, int>> getUnpaidDaysExcludingPayment(
     int workerId,
@@ -380,7 +379,7 @@ class PaymentService {
     debugPrint(
       '🔍 [getUnpaidDaysExcludingPayment] excludePaymentId: $excludePaymentId',
     );
-    debugPrint('🔍 Toplam yevmiye: ${allAttendanceResults.length}');
+    debugPrint('Toplam yevmiye: ${allAttendanceResults.length}');
     debugPrint(
       '🔍 Ödenmiş günler (excludePaymentId hariç): ${paidDays.length}',
     );
@@ -463,7 +462,7 @@ class PaymentService {
     required double amount,
   }) async {
     try {
-      debugPrint('💰 Ödeme güncelleniyor: ID=$paymentId');
+      debugPrint('Ödeme güncelleniyor: ID=$paymentId');
 
       final result = await supabase.rpc(
         'update_payment',
@@ -476,10 +475,10 @@ class PaymentService {
       );
 
       if (result == true) {
-        debugPrint('✅ Ödeme başarıyla güncellendi');
+        debugPrint('Ödeme başarıyla güncellendi');
         return true;
       } else {
-        debugPrint('❌ Ödeme güncellenemedi');
+        debugPrint('Ödeme güncellenemedi');
         return false;
       }
     } catch (e, stackTrace) {
@@ -495,7 +494,7 @@ class PaymentService {
   /// Ödeme kaydını sil ve çalışana bildirim gönder
   Future<bool> deletePayment(int paymentId) async {
     try {
-      debugPrint('💰 Ödeme siliniyor: ID=$paymentId');
+      debugPrint('Ödeme siliniyor: ID=$paymentId');
 
       final result = await supabase.rpc(
         'delete_payment',
@@ -503,10 +502,10 @@ class PaymentService {
       );
 
       if (result == true) {
-        debugPrint('✅ Ödeme başarıyla silindi');
+        debugPrint('Ödeme başarıyla silindi');
         return true;
       } else {
-        debugPrint('❌ Ödeme silinemedi');
+        debugPrint('Ödeme silinemedi');
         return false;
       }
     } catch (e, stackTrace) {
@@ -529,7 +528,7 @@ class PaymentService {
       final userId = await _authService.getUserId();
       if (userId == null) return [];
 
-      debugPrint('💰 Ödeme geçmişi getiriliyor: $startDate - $endDate');
+      debugPrint('Ödeme geçmişi getiriliyor: $startDate - $endDate');
 
       // Ödemeleri getir
       var paymentsQuery = supabase
@@ -593,7 +592,7 @@ class PaymentService {
           );
         }).toList();
 
-        debugPrint('✅ Filtrelenmiş kayıt sayısı: ${filtered.length}');
+        debugPrint('Filtrelenmiş kayıt sayısı: ${filtered.length}');
         return filtered;
       }
 
@@ -612,11 +611,9 @@ class PaymentService {
   }
 
   /// Ödeme özet bilgilerini getirir (RPC)
-  ///
-  /// N+1 query problemini çözmek için Supabase RPC fonksiyonu kullanır.
+    /// N+1 query problemini çözmek için Supabase RPC fonksiyonu kullanır.
   /// Performans: 10+ query → 1 query (%90 azalma)
-  ///
-  /// Saat Dilimi: Europe/Istanbul (UTC+3)
+    /// Saat Dilimi: Europe/Istanbul (UTC+3)
   Future<PaymentSummary?> getPaymentSummary({
     required DateTime startDate,
     required DateTime endDate,
@@ -627,7 +624,7 @@ class PaymentService {
         throw Exception('Kullanıcı oturumu bulunamadı');
       }
 
-      debugPrint('💰 Ödeme özeti getiriliyor: $startDate - $endDate');
+      debugPrint('Ödeme özeti getiriliyor: $startDate - $endDate');
 
       final List<dynamic> data = await supabase.rpc(
         'get_payment_summary',
@@ -639,14 +636,14 @@ class PaymentService {
       );
 
       if (data.isEmpty) {
-        debugPrint('⚠️ Ödeme özeti bulunamadı');
+        debugPrint('Ödeme özeti bulunamadı');
         return null;
       }
 
       final summary = PaymentSummary.fromMap(
         data.first as Map<String, dynamic>,
       );
-      debugPrint('✅ Ödeme özeti getirildi: ${summary.totalPayments} ödeme');
+      debugPrint('Ödeme özeti getirildi: ${summary.totalPayments} ödeme');
 
       return summary;
     } catch (e, stackTrace) {

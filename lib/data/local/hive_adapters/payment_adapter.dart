@@ -2,7 +2,6 @@ import 'package:hive/hive.dart';
 import '../../../models/payment.dart';
 
 /// Payment modeli için Hive TypeAdapter
-/// 
 /// Offline-first mimari için payment verilerini yerel olarak saklar.
 /// Type ID: 2
 class PaymentAdapter extends TypeAdapter<Payment> {

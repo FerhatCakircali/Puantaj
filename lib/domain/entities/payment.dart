@@ -1,5 +1,4 @@
 /// Payment domain entity
-///
 /// Represents a payment record for an employee.
 /// Independent of any data source or UI framework.
 class Payment {

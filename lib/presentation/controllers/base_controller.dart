@@ -1,17 +1,14 @@
 import 'package:flutter/foundation.dart';
 
 /// Base controller sınıfı
-///
 /// Tüm controller'ların extend edeceği base class.
 /// ChangeNotifier kullanarak state yönetimi sağlar.
-///
 /// Kullanım:
 /// ```dart
 /// class MyController extends BaseController {
 ///   MyData? _data;
 ///   bool _isLoading = false;
 ///   String? _error;
-///
 ///   Future<void> loadData() async {
 ///     setLoading();
 ///     try {

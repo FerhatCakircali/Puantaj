@@ -83,8 +83,7 @@ class AppDrawer extends ConsumerWidget {
                   endIndent: 20,
                   color: Colors.grey,
                 ),
-                // ⚡ PHASE 3: Riverpod ThemeProvider kullanımı
-                Builder(
+                                Builder(
                   builder: (context) {
                     final themeMode = ref.watch(themeStateProvider);
                     final isDark = themeMode == ThemeMode.dark;
@@ -293,8 +292,7 @@ class AppDrawer extends ConsumerWidget {
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               await _authService.signOut();
-              // ⚡ PHASE 3: Riverpod AuthProvider kullan
-              // Consumer ile ref'e erişim sağlanıyor
+                            // Consumer ile ref'e erişim sağlanıyor
               if (context.mounted) {
                 final container = ProviderScope.containerOf(context);
                 container.read(authStateProvider.notifier).logout();

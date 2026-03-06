@@ -75,11 +75,11 @@ mixin AuthLoginMixin {
 
         // Çalışan bildirim dinleyicisini durdur
         await WorkerNotificationListenerService.instance.stopListening();
-        debugPrint('✅ Çalışan bildirim dinleyicisi durduruldu');
+        debugPrint('Çalışan bildirim dinleyicisi durduruldu');
 
         // Çalışan oturumunu temizle
         await LocalStorageService.instance.clearWorkerSession();
-        debugPrint('✅ Çalışan oturumu temizlendi');
+        debugPrint('Çalışan oturumu temizlendi');
       } catch (e) {
         debugPrint(
           '⚠️ Çalışan oturumu temizlenirken hata (devam ediliyor): $e',
@@ -94,9 +94,9 @@ mixin AuthLoginMixin {
       try {
         debugPrint('💾 FCM token kaydediliyor (User: $userId)...');
         await FCMService.instance.saveTokenForUser(userId);
-        debugPrint('✅ FCM token kaydedildi');
+        debugPrint('FCM token kaydedildi');
       } catch (e) {
-        debugPrint('⚠️ FCM token kaydedilemedi (devam ediliyor): $e');
+        debugPrint('FCM token kaydedilemedi (devam ediliyor): $e');
       }
 
       // Giriş logu kaydet
@@ -109,7 +109,7 @@ mixin AuthLoginMixin {
           targetUsername: lowercaseUsername,
         );
       } catch (e) {
-        debugPrint('⚠️ Giriş logu kaydedilemedi: $e');
+        debugPrint('Giriş logu kaydedilemedi: $e');
       }
 
       return null;
@@ -150,16 +150,16 @@ mixin AuthLoginMixin {
           );
         }
       } catch (e) {
-        debugPrint('⚠️ Çıkış logu kaydedilemedi: $e');
+        debugPrint('Çıkış logu kaydedilemedi: $e');
       }
 
       // FCM token'ı sil
       try {
-        debugPrint('🗑️ FCM token siliniyor...');
+        debugPrint('FCM token siliniyor...');
         await FCMService.instance.deleteToken();
-        debugPrint('✅ FCM token silindi');
+        debugPrint('FCM token silindi');
       } catch (e) {
-        debugPrint('⚠️ FCM token silinemedi (devam ediliyor): $e');
+        debugPrint('FCM token silinemedi (devam ediliyor): $e');
       }
 
       userDataNotifier.value = null;
@@ -212,7 +212,7 @@ mixin AuthLoginMixin {
               return recoveredUserId;
             }
           } catch (e) {
-            debugPrint('❌ getUserId: cached_user_data parse edilemedi: $e');
+            debugPrint('getUserId: cached_user_data parse edilemedi: $e');
           }
         }
 
@@ -229,7 +229,7 @@ mixin AuthLoginMixin {
           await clearSessionData();
           return null;
         }
-        debugPrint('✅ getUserId: Kullanıcı ID başarıyla alındı: $userId');
+        debugPrint('getUserId: Kullanıcı ID başarıyla alındı: $userId');
         return userId;
       } catch (e) {
         // İnternet bağlantısı yoksa veya Supabase'e erişilemiyorsa
@@ -255,14 +255,14 @@ mixin AuthLoginMixin {
       // Doğrulama: Gerçekten kaydedildi mi?
       final savedId = prefs.getInt(userKey);
       if (savedId == id) {
-        debugPrint('✅ Kullanıcı ID başarıyla kaydedildi ve doğrulandı: $id');
+        debugPrint('Kullanıcı ID başarıyla kaydedildi ve doğrulandı: $id');
       } else {
         debugPrint(
           '⚠️ Kullanıcı ID kaydedildi ama doğrulanamadı! Beklenen: $id, Okunan: $savedId',
         );
       }
     } catch (e) {
-      debugPrint('❌ Kullanıcı ID kaydedilemedi: $e');
+      debugPrint('Kullanıcı ID kaydedilemedi: $e');
       rethrow;
     }
   }

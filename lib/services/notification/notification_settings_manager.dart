@@ -125,7 +125,7 @@ class NotificationSettingsManager {
       debugPrint('💾 [DB] Insert response: $response');
 
       if (response.isEmpty) {
-        debugPrint('❌ [DB] Response boş!');
+        debugPrint('[DB] Response boş!');
         return null;
       }
 
@@ -136,7 +136,7 @@ class NotificationSettingsManager {
 
       return savedSettings;
     } catch (e) {
-      debugPrint('❌ [DB] saveNotificationSettings hatası: $e');
+      debugPrint('[DB] saveNotificationSettings hatası: $e');
       return null;
     }
   }

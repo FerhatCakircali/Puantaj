@@ -4,7 +4,6 @@ import '../../repositories/i_employee_repository.dart';
 import '../usecase.dart';
 
 /// Get employees use case
-///
 /// Fetches all employees and applies business rules.
 /// Business rules:
 /// - Sort by full name alphabetically

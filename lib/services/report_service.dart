@@ -251,7 +251,7 @@ class ReportService {
       };
     } catch (e, stackTrace) {
       // ErrorLogger import edilmeli
-      debugPrint('❌ ReportService.getEmployeeAttendanceSummary hatası: $e');
+      debugPrint('ReportService.getEmployeeAttendanceSummary hatası: $e');
       debugPrint('Stack trace: $stackTrace');
       return {
         'employee': employee,
@@ -343,7 +343,7 @@ class ReportService {
         },
       };
     } catch (e, stackTrace) {
-      debugPrint('❌ ReportService.getPeriodSummaryReport hatası: $e');
+      debugPrint('ReportService.getPeriodSummaryReport hatası: $e');
       debugPrint('Stack trace: $stackTrace');
       return {
         'periodRange': calculatePeriodRange(

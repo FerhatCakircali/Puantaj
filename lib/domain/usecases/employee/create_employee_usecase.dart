@@ -20,7 +20,6 @@ class CreateEmployeeParams {
 }
 
 /// Create employee use case
-///
 /// Validates input and creates new employee.
 /// Business rules:
 /// - Full name cannot be empty

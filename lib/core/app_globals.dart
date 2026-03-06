@@ -3,9 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'error_handler.dart';
 
 /// Uygulama global değişkenleri ve helper fonksiyonları
-///
-/// ⚡ PHASE 3 TAMAMLANDI:
-/// - authStateNotifier → authStateProvider (Riverpod)
+//// - authStateNotifier → authStateProvider (Riverpod)
 /// - themeModeNotifier → themeStateProvider (Riverpod)
 /// - userDataNotifier → userDataProvider (Riverpod)
 
@@ -20,7 +18,6 @@ final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
 final GlobalKey<ScaffoldState> globalScaffoldKey = GlobalKey<ScaffoldState>();
 
 /// Kaydedilmiş tema tercihini yükle
-///
 /// ⚠️ DEPRECATED: Bu fonksiyon artık kullanılmıyor.
 /// Tema yükleme işlemi ThemeStateProvider tarafından otomatik yapılıyor.
 @Deprecated('Use ThemeStateProvider instead')

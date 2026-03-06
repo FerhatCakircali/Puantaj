@@ -1,7 +1,6 @@
 import '../../../domain/entities/user.dart';
 
 /// Kimlik doğrulama state'i
-///
 /// Auth ekranlarının durumunu yönetir.
 class AuthState {
   final User? user;

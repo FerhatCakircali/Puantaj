@@ -1,5 +1,4 @@
 /// Worker domain entity
-///
 /// Represents a worker (employee with login credentials) in the system.
 /// Independent of any data source or UI framework.
 class Worker {

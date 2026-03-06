@@ -13,7 +13,6 @@ class SignInParams {
 }
 
 /// Sign in use case
-///
 /// Validates credentials and authenticates user.
 /// Business rules:
 /// - Username and password cannot be empty

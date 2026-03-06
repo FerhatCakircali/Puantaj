@@ -1,7 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Local data source interface
-///
 /// Defines contract for local storage operations.
 abstract class LocalDataSource {
   /// Save string data
@@ -33,7 +32,6 @@ abstract class LocalDataSource {
 }
 
 /// Local data source implementation
-///
 /// Uses SharedPreferences directly for local storage operations.
 class LocalDataSourceImpl implements LocalDataSource {
   SharedPreferences? _prefs;

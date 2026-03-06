@@ -5,7 +5,6 @@ import '../../../../core/mixins/context_safety_mixin.dart';
 import '../../../../data/services/local_storage_service.dart';
 
 /// Çalışan şifre değiştirme mixin'i
-///
 /// Şifre değiştirme ve doğrulama işlemleri
 mixin WorkerPasswordMixin<T extends StatefulWidget> on State<T> {
   ContextSafetyMixin get contextSafety => this as ContextSafetyMixin;

@@ -13,7 +13,7 @@ class NotificationDisplayHelper {
     try {
       return tz.TZDateTime.from(dateTime, tz.getLocation('Europe/Istanbul'));
     } catch (e) {
-      debugPrint('⚠️ Timezone dönüşümü başarısız, UTC kullanılıyor: $e');
+      debugPrint('Timezone dönüşümü başarısız, UTC kullanılıyor: $e');
       return tz.TZDateTime.from(dateTime, tz.UTC);
     }
   }
@@ -30,8 +30,7 @@ class NotificationDisplayHelper {
   }
 
   /// Anlık bildirim gösterir
-  ///
-  /// Tüm Android cihazlar için optimize edilmiştir.
+    /// Tüm Android cihazlar için optimize edilmiştir.
   Future<void> showInstantNotification({
     required int id,
     required String title,
@@ -40,10 +39,10 @@ class NotificationDisplayHelper {
   }) async {
     try {
       debugPrint('📢 Anlık bildirim gösteriliyor...');
-      debugPrint('  ID: $id');
-      debugPrint('  Başlık: $title');
-      debugPrint('  Mesaj: $body');
-      debugPrint('  Payload: $payload');
+      debugPrint('ID: $id');
+      debugPrint('Başlık: $title');
+      debugPrint('Mesaj: $body');
+      debugPrint('Payload: $payload');
 
       const androidDetails = AndroidNotificationDetails(
         'attendance_channel',
@@ -70,9 +69,9 @@ class NotificationDisplayHelper {
 
       await plugin.show(id, title, body, details, payload: payload);
 
-      debugPrint('✅ Anlık bildirim gösterildi');
+      debugPrint('Anlık bildirim gösterildi');
     } catch (e, stackTrace) {
-      debugPrint('❌ Anlık bildirim gösterilemedi: $e');
+      debugPrint('Anlık bildirim gösterilemedi: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
@@ -86,23 +85,23 @@ class NotificationDisplayHelper {
     String? payload,
   }) async {
     try {
-      debugPrint('📅 Zamanlanmış bildirim ayarlanıyor...');
-      debugPrint('  ID: $id');
-      debugPrint('  Başlık: $title');
-      debugPrint('  Mesaj: $body');
-      debugPrint('  Zamanlanacak saat (Local): ${scheduledTime.toString()}');
-      debugPrint('  Payload: $payload');
+      debugPrint('Zamanlanmış bildirim ayarlanıyor...');
+      debugPrint('ID: $id');
+      debugPrint('Başlık: $title');
+      debugPrint('Mesaj: $body');
+      debugPrint('Zamanlanacak saat (Local): ${scheduledTime.toString()}');
+      debugPrint('Payload: $payload');
 
       final now = DateTime.now();
       if (scheduledTime.isBefore(now)) {
-        debugPrint('⚠️⚠️⚠️ UYARI: Zamanlama GEÇMİŞTE!');
-        debugPrint('  Şimdi: ${now.toString()}');
-        debugPrint('  Zamanlanan: ${scheduledTime.toString()}');
+        debugPrint('UYARI: Zamanlama GEÇMİŞTE!');
+        debugPrint('Şimdi: ${now.toString()}');
+        debugPrint('Zamanlanan: ${scheduledTime.toString()}');
         debugPrint(
           '  Fark: ${now.difference(scheduledTime).inSeconds} saniye önce',
         );
         scheduledTime = now.add(const Duration(seconds: 5));
-        debugPrint('  Yeni zamanlama: ${scheduledTime.toString()}');
+        debugPrint('Yeni zamanlama: ${scheduledTime.toString()}');
       }
 
       final pendingBefore = await plugin.pendingNotificationRequests();
@@ -117,10 +116,10 @@ class NotificationDisplayHelper {
         debugPrint(
           '⚠️ UYARI: Aynı ID ($id) ile zaten zamanlanmış bildirim var!',
         );
-        debugPrint('  Mevcut: ${existingWithSameId.first.title}');
-        debugPrint('  Yeni: $title');
+        debugPrint('Mevcut: ${existingWithSameId.first.title}');
+        debugPrint('Yeni: $title');
         await plugin.cancel(id);
-        debugPrint('  ✅ Eski bildirim iptal edildi');
+        debugPrint('Eski bildirim iptal edildi');
       }
 
       const channelId = 'attendance_requests';
@@ -151,14 +150,14 @@ class NotificationDisplayHelper {
 
       final tzScheduledTime = toTZDateTime(scheduledTime);
 
-      debugPrint('  TZ Scheduled Time: ${tzScheduledTime.toString()}');
-      debugPrint('  TZ Location: ${tzScheduledTime.location.name}');
+      debugPrint('TZ Scheduled Time: ${tzScheduledTime.toString()}');
+      debugPrint('TZ Location: ${tzScheduledTime.location.name}');
 
       final tzNow = tz.TZDateTime.now(tz.getLocation('Europe/Istanbul'));
       if (tzScheduledTime.isBefore(tzNow)) {
-        debugPrint('⚠️⚠️⚠️ UYARI: TZ Zamanlama GEÇMİŞTE!');
-        debugPrint('  TZ Şimdi: ${tzNow.toString()}');
-        debugPrint('  TZ Zamanlanan: ${tzScheduledTime.toString()}');
+        debugPrint('UYARI: TZ Zamanlama GEÇMİŞTE!');
+        debugPrint('TZ Şimdi: ${tzNow.toString()}');
+        debugPrint('TZ Zamanlanan: ${tzScheduledTime.toString()}');
         debugPrint(
           '  Fark: ${tzNow.difference(tzScheduledTime).inSeconds} saniye önce',
         );
@@ -168,9 +167,9 @@ class NotificationDisplayHelper {
 
       try {
         await plugin.cancel(id);
-        debugPrint('  ✅ Eski bildirim iptal edildi (varsa)');
+        debugPrint('Eski bildirim iptal edildi (varsa)');
       } catch (e) {
-        debugPrint('  ⚠️ Eski bildirim iptal hatası (devam ediliyor): $e');
+        debugPrint('Eski bildirim iptal hatası (devam ediliyor): $e');
       }
 
       await Future.delayed(const Duration(milliseconds: 100));
@@ -185,7 +184,7 @@ class NotificationDisplayHelper {
         payload: payload,
       );
 
-      debugPrint('✅ Zamanlanmış bildirim ayarlandı');
+      debugPrint('Zamanlanmış bildirim ayarlandı');
 
       final pendingAfter = await plugin.pendingNotificationRequests();
       debugPrint(
@@ -197,20 +196,20 @@ class NotificationDisplayHelper {
 
       final newNotification = pendingAfter.where((p) => p.id == id).toList();
       if (newNotification.isEmpty) {
-        debugPrint('❌❌❌ HATA: Bildirim zamanlandı ama pending listesinde YOK!');
+        debugPrint('HATA: Bildirim zamanlandı ama pending listesinde YOK!');
       } else {
-        debugPrint('✅ Bildirim pending listesinde bulundu:');
-        debugPrint('  - ID: ${newNotification.first.id}');
-        debugPrint('  - Title: ${newNotification.first.title}');
-        debugPrint('  - Body: ${newNotification.first.body}');
+        debugPrint('Bildirim pending listesinde bulundu:');
+        debugPrint('- ID: ${newNotification.first.id}');
+        debugPrint('- Title: ${newNotification.first.title}');
+        debugPrint('- Body: ${newNotification.first.body}');
       }
 
-      debugPrint('📋 Tüm zamanlanmış bildirimler:');
+      debugPrint('Tüm zamanlanmış bildirimler:');
       for (final p in pendingAfter) {
-        debugPrint('  - ID: ${p.id}, Title: ${p.title}');
+        debugPrint('- ID: ${p.id}, Title: ${p.title}');
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ Zamanlanmış bildirim ayarlanamadı: $e');
+      debugPrint('Zamanlanmış bildirim ayarlanamadı: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }

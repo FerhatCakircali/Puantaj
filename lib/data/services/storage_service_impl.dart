@@ -3,7 +3,6 @@ import '../../domain/services/i_storage_service.dart';
 import '../../core/error_handler.dart';
 
 /// Storage service implementation
-///
 /// Implements IStorageService using SharedPreferences.
 /// Provides persistent local storage with error handling and logging.
 class StorageServiceImpl implements IStorageService {
@@ -22,8 +21,7 @@ class StorageServiceImpl implements IStorageService {
   }
 
   /// SharedPreferences instance'ını döndürür
-  ///
-  /// Initialize edilmemişse hata fırlatır
+    /// Initialize edilmemişse hata fırlatır
   SharedPreferences get _instance {
     if (_prefs == null) {
       throw StateError(

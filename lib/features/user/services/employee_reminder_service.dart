@@ -5,7 +5,6 @@ import '../../../services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 /// Çalışan hatırlatıcıları servisi - Orchestrator
-///
 /// Bu servis, ReminderDataMixin ve ReminderLogicMixin'leri birleştirerek
 /// çalışan hatırlatıcıları için tam bir yönetim çözümü sunar.
 class EmployeeReminderService with ReminderDataMixin, ReminderLogicMixin {
@@ -108,10 +107,10 @@ class EmployeeReminderService with ReminderDataMixin, ReminderLogicMixin {
         }
       }
 
-      debugPrint('✅ Toplam $deletedCount eski hatırlatıcı temizlendi');
+      debugPrint('Toplam $deletedCount eski hatırlatıcı temizlendi');
       return deletedCount;
     } catch (e) {
-      debugPrint('❌ Eski hatırlatıcılar temizlenirken hata: $e');
+      debugPrint('Eski hatırlatıcılar temizlenirken hata: $e');
       return 0;
     }
   }
@@ -144,10 +143,10 @@ class EmployeeReminderService with ReminderDataMixin, ReminderLogicMixin {
         }
       }
 
-      debugPrint('✅ Toplam $deletedCount tamamlanmış hatırlatıcı temizlendi');
+      debugPrint('Toplam $deletedCount tamamlanmış hatırlatıcı temizlendi');
       return deletedCount;
     } catch (e) {
-      debugPrint('❌ Tamamlanmış hatırlatıcılar temizlenirken hata: $e');
+      debugPrint('Tamamlanmış hatırlatıcılar temizlenirken hata: $e');
       return 0;
     }
   }
@@ -182,7 +181,7 @@ class EmployeeReminderService with ReminderDataMixin, ReminderLogicMixin {
         '✅ Çalışan hatırlatıcısı yeni sistem ile zamanlandı: ID=${reminder.id}',
       );
     } catch (e) {
-      debugPrint('❌ Çalışan hatırlatıcısı zamanlanırken hata: $e');
+      debugPrint('Çalışan hatırlatıcısı zamanlanırken hata: $e');
     }
   }
 
@@ -191,10 +190,10 @@ class EmployeeReminderService with ReminderDataMixin, ReminderLogicMixin {
     try {
       if (reminder.id != null) {
         await _notificationServiceV2.cancelNotification(reminder.id!);
-        debugPrint('✅ Çalışan hatırlatıcısı iptal edildi: ID=${reminder.id}');
+        debugPrint('Çalışan hatırlatıcısı iptal edildi: ID=${reminder.id}');
       }
     } catch (e) {
-      debugPrint('❌ Çalışan hatırlatıcısı iptal edilirken hata: $e');
+      debugPrint('Çalışan hatırlatıcısı iptal edilirken hata: $e');
     }
   }
 }

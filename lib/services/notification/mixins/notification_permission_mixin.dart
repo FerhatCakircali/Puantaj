@@ -4,10 +4,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:android_intent_plus/android_intent.dart';
 
 /// Bildirim izinlerini yöneten mixin
-///
 /// Bu mixin bildirim sisteminin çalışması için gerekli tüm izinleri kontrol eder ve ister.
 /// Android ve iOS platformları için farklı izin yönetimi sağlar.
-///
 /// Sorumluluklar:
 /// - POST_NOTIFICATIONS izni kontrolü ve isteme (Android 13+)
 /// - SCHEDULE_EXACT_ALARM izni kontrolü ve isteme (Android 12+)
@@ -16,18 +14,14 @@ import 'package:android_intent_plus/android_intent.dart';
 /// - Hata yönetimi ve loglama
 mixin NotificationPermissionMixin {
   /// Bildirim izinlerini kontrol eder ve gerekirse ister
-  ///
-  /// Bu metod tüm gerekli izinleri kontrol eder ve kullanıcıdan ister.
+    /// Bu metod tüm gerekli izinleri kontrol eder ve kullanıcıdan ister.
   /// İzinler verilmezse false döner ve bildirim sistemi çalışmaz.
-  ///
-  /// Android için:
+    /// Android için:
   /// - POST_NOTIFICATIONS izni (Android 13+/API 33+)
   /// - SCHEDULE_EXACT_ALARM izni (Android 12+/API 31+)
-  ///
-  /// iOS için:
+    /// iOS için:
   /// - Bildirim izni (alert, badge, sound)
-  ///
-  /// Returns: İzinler verilirse true, reddedilirse false
+    /// Returns: İzinler verilirse true, reddedilirse false
   Future<bool> checkAndRequestPermissions() async {
     try {
       if (Platform.isAndroid) {
@@ -47,11 +41,9 @@ mixin NotificationPermissionMixin {
   }
 
   /// Android için bildirim izinlerini kontrol eder ve ister
-  ///
-  /// Android 13+ (API 33+) için POST_NOTIFICATIONS izni gereklidir.
+    /// Android 13+ (API 33+) için POST_NOTIFICATIONS izni gereklidir.
   /// Android 12+ (API 31+) için SCHEDULE_EXACT_ALARM izni gereklidir.
-  ///
-  /// Returns: Tüm izinler verilirse true, herhangi biri reddedilirse false
+    /// Returns: Tüm izinler verilirse true, herhangi biri reddedilirse false
   Future<bool> _checkAndRequestAndroidPermissions() async {
     try {
       // POST_NOTIFICATIONS izni (Android 13+/API 33+)
@@ -75,8 +67,8 @@ mixin NotificationPermissionMixin {
       final alarmStatus = await Permission.scheduleExactAlarm.status;
 
       if (!alarmStatus.isGranted) {
-        debugPrint('⚠️ SCHEDULE_EXACT_ALARM izni verilmemiş!');
-        debugPrint('📱 Kullanıcı ayarlardan manuel olarak vermelidir.');
+        debugPrint('SCHEDULE_EXACT_ALARM izni verilmemiş!');
+        debugPrint('Kullanıcı ayarlardan manuel olarak vermelidir.');
 
         // Kullanıcıyı ayarlara yönlendir
         debugPrint('🔧 Ayarlar sayfası açılıyor...');
@@ -91,14 +83,14 @@ mixin NotificationPermissionMixin {
         final newStatus = await Permission.scheduleExactAlarm.status;
 
         if (!newStatus.isGranted) {
-          debugPrint('❌ SCHEDULE_EXACT_ALARM izni hala verilmedi');
-          debugPrint('⚠️ Hatırlatıcılar çalışmayabilir!');
+          debugPrint('SCHEDULE_EXACT_ALARM izni hala verilmedi');
+          debugPrint('Hatırlatıcılar çalışmayabilir!');
           // Yine de devam et, belki inexact alarm çalışır
         } else {
-          debugPrint('✅ SCHEDULE_EXACT_ALARM izni verildi!');
+          debugPrint('SCHEDULE_EXACT_ALARM izni verildi!');
         }
       } else {
-        debugPrint('✅ SCHEDULE_EXACT_ALARM izni zaten verilmiş');
+        debugPrint('SCHEDULE_EXACT_ALARM izni zaten verilmiş');
       }
 
       return true;
@@ -119,7 +111,7 @@ mixin NotificationPermissionMixin {
           await Permission.ignoreBatteryOptimizations.status;
 
       if (ignoringBatteryOptimizations.isGranted) {
-        debugPrint('✅ Pil optimizasyonu zaten devre dışı');
+        debugPrint('Pil optimizasyonu zaten devre dışı');
         return;
       }
 
@@ -159,7 +151,7 @@ mixin NotificationPermissionMixin {
           await intent.launch();
           debugPrint('🔋 Pil optimizasyonu ayarları açıldı');
         } catch (e) {
-          debugPrint('⚠️ Pil optimizasyonu ayarları açılamadı: $e');
+          debugPrint('Pil optimizasyonu ayarları açılamadı: $e');
           // Genel ayarları aç
           await openAppSettings();
         }
@@ -208,9 +200,9 @@ mixin NotificationPermissionMixin {
             data: 'package:com.example.puantaj',
           );
           await intent.launch();
-          debugPrint('🚀 Uygulama ayarları açıldı');
+          debugPrint('Uygulama ayarları açıldı');
         } catch (e) {
-          debugPrint('⚠️ Uygulama ayarları açılamadı: $e');
+          debugPrint('Uygulama ayarları açılamadı: $e');
           await openAppSettings();
         }
       }
@@ -228,7 +220,7 @@ mixin NotificationPermissionMixin {
       final notificationGranted = await _checkAndRequestAndroidPermissions();
 
       if (!notificationGranted) {
-        debugPrint('❌ Bildirim izinleri verilmedi');
+        debugPrint('Bildirim izinleri verilmedi');
         return;
       }
 
@@ -238,17 +230,15 @@ mixin NotificationPermissionMixin {
       // 3. Otomatik başlatma iznini al
       await requestAutoStartPermission(context);
 
-      debugPrint('✅ Tüm izin ve ayar kontrolleri tamamlandı');
+      debugPrint('Tüm izin ve ayar kontrolleri tamamlandı');
     } catch (e) {
       debugPrint('Tüm izinler kontrol edilirken hata: $e');
     }
   }
 
   /// iOS için bildirim izinlerini kontrol eder ve ister
-  ///
-  /// iOS'ta bildirim izni alert, badge ve sound yetkilerini içerir.
-  ///
-  /// Returns: İzin verilirse true, reddedilirse false
+    /// iOS'ta bildirim izni alert, badge ve sound yetkilerini içerir.
+    /// Returns: İzin verilirse true, reddedilirse false
   Future<bool> _checkAndRequestIOSPermissions() async {
     try {
       final notificationStatus = await Permission.notification.status;
@@ -276,10 +266,8 @@ mixin NotificationPermissionMixin {
   }
 
   /// Bildirim izinlerinin durumunu kontrol eder (istemeden)
-  ///
-  /// Bu metod sadece mevcut izin durumunu kontrol eder, kullanıcıdan izin istemez.
-  ///
-  /// Returns: İzinler verilmişse true, verilmemişse false
+    /// Bu metod sadece mevcut izin durumunu kontrol eder, kullanıcıdan izin istemez.
+    /// Returns: İzinler verilmişse true, verilmemişse false
   Future<bool> checkPermissionStatus() async {
     try {
       if (Platform.isAndroid) {

@@ -2,7 +2,6 @@ import '../../core/error/result.dart';
 import '../entities/payment.dart';
 
 /// Payment repository interface
-///
 /// Defines contract for payment data operations.
 abstract class IPaymentRepository {
   /// Get payments by employee ID

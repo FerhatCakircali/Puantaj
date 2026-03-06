@@ -12,7 +12,6 @@ import 'package:puantaj/config/index.dart';
 import 'package:puantaj/core/app_bootstrap.dart';
 import 'package:puantaj/core/app_globals.dart';
 import 'package:puantaj/core/app_notification_handler.dart';
-// ⚡ PHASE 3: app_state.dart artık kullanılmıyor (Riverpod'a geçildi)
 // import 'package:puantaj/core/app_state.dart'; // DEPRECATED
 import 'package:puantaj/core/error_handler.dart';
 // ignore: deprecated_member_use
@@ -28,7 +27,6 @@ import 'package:puantaj/services/notification/notification_helpers.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// ⚡ Performans: Const breakpoints tanımı
 const kResponsiveBreakpoints = [
   Breakpoint(start: 0, end: 450, name: 'MOBILE'),
   Breakpoint(start: 451, end: 800, name: 'TABLET'),
@@ -62,17 +60,16 @@ void main() async {
   // Firebase'i başlat
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // 🔥 Firebase Crashlytics'i yapılandır
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
 
-  // 🗄️ Hive yerel veritabanını başlat
+  // Hive yerel veritabanını başlat
   await HiveService.instance.initialize();
 
-  // 🔄 Sync Manager'ı başlat
+  // Sync Manager'ı başlat
   await SyncManager.instance.initialize();
 
   // Initialize all services
@@ -88,11 +85,9 @@ void main() async {
   // FCM servisini başlat
   await FCMService.instance.initialize();
 
-  // ⚡ PHASE 3: Riverpod ProviderScope ile sarmalama
-  runApp(const ProviderScope(child: MyApp()));
+    runApp(const ProviderScope(child: MyApp()));
 }
 
-// ⚡ PHASE 3: ConsumerStatefulWidget'a geçiş
 class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
@@ -114,8 +109,7 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   StreamSubscription<String>? _notificationClickSubscription;
 
-  // ⚡ PHASE 3: AppState notifier kaldırıldı, Riverpod kullanılacak
-  // late final ValueNotifier<AppState> _appStateNotifier; // DEPRECATED
+    // late final ValueNotifier<AppState> _appStateNotifier; // DEPRECATED
 
   @override
   void initState() {
@@ -123,27 +117,24 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     _navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'appNavigator');
 
-    // ⚡ PHASE 3: Riverpod ThemeProvider kullanılacak, AppState notifier kaldırıldı
-    // _appStateNotifier artık gerekli değil, Riverpod watch ile dinlenecek
+        // _appStateNotifier artık gerekli değil, Riverpod watch ile dinlenecek
 
     _bootstrapSession();
 
     // Bildirim tıklama olaylarını dinle
     _notificationClickSubscription = notificationClickStream.stream.listen(
       (payload) {
-        debugPrint('📱 Notification click event alındı: $payload');
+        debugPrint('Notification click event alındı: $payload');
         _handleNotificationClick(payload);
       },
       onError: (error) {
-        debugPrint('❌ Notification click stream hatası: $error');
+        debugPrint('Notification click stream hatası: $error');
       },
     );
 
-    // ⚡ PHASE 3: Riverpod AuthProvider listener - ref.listen ile
-    // authStateNotifier.addListener(_onAuthStateChanged); // DEPRECATED
+        // authStateNotifier.addListener(_onAuthStateChanged); // DEPRECATED
 
-    // ⚡ PHASE 3: userDataNotifier → userDataProvider senkronizasyonu
-    // Service katmanı hala userDataNotifier kullanıyor, UI katmanı UserDataProvider kullanıyor
+        // Service katmanı hala userDataNotifier kullanıyor, UI katmanı UserDataProvider kullanıyor
     // ignore: deprecated_member_use
     userDataNotifier.addListener(_syncUserDataToProvider);
 
@@ -173,8 +164,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       if (workerSession != null) {
         _isLoggedIn = false;
         _isCurrentUserAdmin = false;
-        // ⚡ PHASE 3: Riverpod AuthProvider kullan
-        ref.read(authStateProvider.notifier).logout();
+                ref.read(authStateProvider.notifier).logout();
 
         setState(() {
           _isBootstrappingSession = false;
@@ -188,20 +178,17 @@ class _MyAppState extends ConsumerState<MyApp> {
       final userSession = await AppBootstrap.checkUserSession();
 
       if (userSession == null) {
-        // ⚡ PHASE 3: Riverpod AuthProvider kullan
-        ref.read(authStateProvider.notifier).logout();
+                ref.read(authStateProvider.notifier).logout();
         _isLoggedIn = false;
         _isCurrentUserAdmin = false;
       } else {
         _isCurrentUserAdmin = userSession['isAdmin'] as bool;
         _isLoggedIn = true;
-        // ⚡ PHASE 3: Riverpod AuthProvider kullan
-        ref.read(authStateProvider.notifier).login();
+                ref.read(authStateProvider.notifier).login();
       }
     } catch (e, stack) {
       ErrorHandler.logError('Bootstrap.session', e, stack);
-      // ⚡ PHASE 3: Riverpod AuthProvider kullan
-      ref.read(authStateProvider.notifier).logout();
+            ref.read(authStateProvider.notifier).logout();
       _isLoggedIn = false;
       _isCurrentUserAdmin = false;
     }
@@ -235,16 +222,15 @@ class _MyAppState extends ConsumerState<MyApp> {
     _initializeRouter();
   }
 
-  // ⚡ PHASE 3: Riverpod AuthProvider listener
-  void _onAuthStateChanged(bool? previous, bool next) {
-    debugPrint('🔔 Auth state listener tetiklendi: $_isLoggedIn -> $next');
+    void _onAuthStateChanged(bool? previous, bool next) {
+    debugPrint('Auth state listener tetiklendi: $_isLoggedIn -> $next');
 
     // Sadece login durumu değiştiyse işlem yap
     if (_isLoggedIn != next) {
       _isLoggedIn = next;
 
       if (_isLoggedIn) {
-        debugPrint('🔐 Auth state değişti: Giriş yapıldı');
+        debugPrint('Auth state değişti: Giriş yapıldı');
 
         // Admin durumunu güncelle - UserDataProvider'dan al
         final userData = ref.read(userDataProvider);
@@ -259,7 +245,7 @@ class _MyAppState extends ConsumerState<MyApp> {
           _initializeRouter();
         }
       } else {
-        debugPrint('🔐 Auth state değişti: Çıkış yapıldı');
+        debugPrint('Auth state değişti: Çıkış yapıldı');
 
         // State'i temizle
         _isCurrentUserAdmin = false;
@@ -273,18 +259,16 @@ class _MyAppState extends ConsumerState<MyApp> {
           _initializeRouter(forceInitialLocation: '/login');
         }
 
-        debugPrint('✅ Çıkış işlemi tamamlandı');
+        debugPrint('Çıkış işlemi tamamlandı');
       }
     } else {
-      debugPrint('⚠️ Auth state değişmedi, işlem yapılmıyor');
+      debugPrint('Auth state değişmedi, işlem yapılmıyor');
     }
   }
 
-  // ⚡ PHASE 3: _onThemeChanged kaldırıldı, Riverpod kullanılacak
-  // void _onThemeChanged() { ... } // DEPRECATED
+    // void _onThemeChanged() { ... } // DEPRECATED
 
-  /// ⚡ PHASE 3: userDataNotifier → userDataProvider senkronizasyonu
-  /// Service katmanı hala userDataNotifier kullanıyor, bu fonksiyon değişiklikleri
+  /  /// Service katmanı hala userDataNotifier kullanıyor, bu fonksiyon değişiklikleri
   /// UserDataProvider'a aktarıyor. UI katmanı sadece UserDataProvider kullanmalı.
   void _syncUserDataToProvider() {
     // ignore: deprecated_member_use
@@ -300,7 +284,7 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   void _initializeRouter({String? forceInitialLocation}) {
     try {
-      debugPrint('🛣️ Router yapılandırılıyor...');
+      debugPrint('🛣 Router yapılandırılıyor...');
 
       // UserDataProvider'dan userData al
       final userData = ref.read(userDataProvider);
@@ -324,7 +308,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         });
       }
 
-      debugPrint('✅ Router yapılandırması tamamlandı');
+      debugPrint('Router yapılandırması tamamlandı');
     } catch (e, stack) {
       ErrorHandler.logError('InitializeRouter', e, stack);
       if (mounted) {
@@ -395,8 +379,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void dispose() {
     _notificationClickSubscription?.cancel();
-    // ⚡ PHASE 3: Tüm ValueNotifier listener'ları
-    // authStateNotifier.removeListener(_onAuthStateChanged); // DEPRECATED
+        // authStateNotifier.removeListener(_onAuthStateChanged); // DEPRECATED
     // ignore: deprecated_member_use
     userDataNotifier.removeListener(_syncUserDataToProvider);
     super.dispose();
@@ -406,11 +389,9 @@ class _MyAppState extends ConsumerState<MyApp> {
   Widget build(BuildContext context) {
     final appRouter = _router;
 
-    // ⚡ PHASE 3: Riverpod ThemeProvider'dan tema modunu al
-    final themeMode = ref.watch(themeStateProvider);
+        final themeMode = ref.watch(themeStateProvider);
 
-    // ⚡ PHASE 3: Riverpod AuthProvider'ı dinle
-    ref.listen<bool>(authStateProvider, (previous, next) {
+        ref.listen<bool>(authStateProvider, (previous, next) {
       _onAuthStateChanged(previous, next);
     });
 
@@ -421,20 +402,17 @@ class _MyAppState extends ConsumerState<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: themeMode, // ⚡ PHASE 3: Riverpod'dan gelen tema
-        home: Scaffold(body: Center(child: CircularProgressIndicator())),
+        themeMode: themeMode,         home: Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
 
-    // ⚡ PHASE 3: ValueListenableBuilder kaldırıldı, direkt Riverpod watch kullanılıyor
-    return MaterialApp.router(
+        return MaterialApp.router(
       scaffoldMessengerKey: appScaffoldMessengerKey,
       title: 'Puantaj',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode, // ⚡ PHASE 3: Riverpod'dan gelen tema
-      routerConfig: appRouter,
+      themeMode: themeMode,       routerConfig: appRouter,
       builder: (context, child) {
         return ResponsiveBreakpoints.builder(
           child: child!,

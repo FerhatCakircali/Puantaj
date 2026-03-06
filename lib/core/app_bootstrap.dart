@@ -59,7 +59,7 @@ class AppBootstrap {
               '🧹 Çalışan oturumu aktif - Kullanıcı oturumu temizleniyor...',
             );
             await authService.signOut();
-            debugPrint('✅ Kullanıcı oturumu temizlendi');
+            debugPrint('Kullanıcı oturumu temizlendi');
           }
         } catch (e) {
           debugPrint(
@@ -105,7 +105,7 @@ class AppBootstrap {
         await WorkerNotificationListenerService.instance.stopListening();
         await LocalStorageService.instance.clearWorkerSession();
 
-        debugPrint('✅ Çalışan oturumu ve bildirim dinleyicisi temizlendi');
+        debugPrint('Çalışan oturumu ve bildirim dinleyicisi temizlendi');
       } catch (e) {
         debugPrint(
           '⚠️ Çalışan oturumu temizlenirken hata (devam ediliyor): $e',

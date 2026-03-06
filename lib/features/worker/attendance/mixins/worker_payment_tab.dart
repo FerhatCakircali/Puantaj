@@ -271,7 +271,7 @@ class WorkerPaymentTab extends StatelessWidget {
     } else if (dateRaw is DateTime) {
       return dateRaw;
     }
-    debugPrint('⚠️ Geçersiz tarih formatı: $dateRaw');
+    debugPrint('Geçersiz tarih formatı: $dateRaw');
     return DateTime.now();
   }
 

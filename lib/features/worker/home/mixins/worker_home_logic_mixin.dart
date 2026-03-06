@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Worker home ekranı iş mantığı
-///
 /// ⚠️ DEPRECATED: Bu mixin themeModeNotifier kullanıyor (eski yöntem)
 /// Widget'ı ConsumerStatefulWidget'a çevirip ThemeProvider kullanmalısınız
 @Deprecated('Convert widget to ConsumerStatefulWidget and use ThemeProvider')

@@ -10,7 +10,6 @@ import '../../../../services/auth_service.dart';
 import 'home_notification_handler.dart';
 
 /// Ana ekran business logic mixin'i
-/// ⚡ PHASE 3: Riverpod AuthProvider ve ThemeProvider kullanır
 mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final AuthService authService = AuthService();
   final HomeNotificationHandler notificationHandler = HomeNotificationHandler();
@@ -24,8 +23,7 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Tema değiştirme fonksiyonu
-  /// ⚡ PHASE 3: Riverpod ThemeProvider kullanır
-  void toggleTheme() async {
+  /  void toggleTheme() async {
     final currentMode = ref.read(themeStateProvider);
     final newMode = currentMode == ThemeMode.dark
         ? ThemeMode.light
@@ -89,8 +87,7 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 // Çıkış yap
                 await authService.signOut();
 
-                // ⚡ PHASE 3: Riverpod AuthProvider kullan
-                ref.read(authStateProvider.notifier).logout();
+                                ref.read(authStateProvider.notifier).logout();
 
                 debugPrint(
                   '✅ Çıkış işlemi tamamlandı, login ekranına yönlendiriliyor',
@@ -101,7 +98,7 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   error: e,
                   stackTrace: stackTrace,
                 );
-                debugPrint('❌ Çıkış işlemi sırasında hata: $e');
+                debugPrint('Çıkış işlemi sırasında hata: $e');
 
                 // Hata durumunda bile login ekranına yönlendir
                 if (mounted && context.mounted) {
@@ -126,7 +123,7 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Sekme durumunu doğru öncelik sırasıyla başlatan fonksiyon
   Future<void> initializeTabState() async {
-    debugPrint('🔍 HomeScreen: initializeTabState başlatıldı');
+    debugPrint('HomeScreen: initializeTabState başlatıldı');
 
     // ÖNCELİK 1: initialTab parametresi
     if (initialTab != null) {
@@ -136,7 +133,7 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (tabIndex >= 0 && selectedIndexNotifier != null) {
         selectedIndexNotifier!.value = tabIndex;
         await saveSelectedIndex(tabIndex);
-        debugPrint('✅ HomeScreen: initialTab ile sekme $tabIndex açıldı');
+        debugPrint('HomeScreen: initialTab ile sekme $tabIndex açıldı');
         return;
       }
     }

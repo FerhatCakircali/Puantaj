@@ -125,9 +125,9 @@ mixin ReportControllerPdfMixin<T extends StatefulWidget> on State<T> {
         ),
       );
 
-      debugPrint('✅ ReportControllerMixin: Rapor oluşturuldu ve açıldı');
+      debugPrint('ReportControllerMixin: Rapor oluşturuldu ve açıldı');
     } catch (e, stackTrace) {
-      debugPrint('❌ ReportControllerMixin: Rapor hatası: $e');
+      debugPrint('ReportControllerMixin: Rapor hatası: $e');
       debugPrint('Stack trace: $stackTrace');
 
       if (!mounted) return;
@@ -168,8 +168,7 @@ mixin ReportControllerPdfMixin<T extends StatefulWidget> on State<T> {
       periodStart: customStartDate,
       periodEnd: customEndDate,
       attendances: await attendanceService.getAttendanceBetween(
-        customStartDate, // ✅ Dönem başlangıcı kullan
-        customEndDate,
+        customStartDate,         customEndDate,
         workerId: selectedEmployee!.id,
       ),
       payments: await paymentService.getPaymentsByWorkerId(
@@ -337,8 +336,7 @@ mixin ReportControllerPdfMixin<T extends StatefulWidget> on State<T> {
       'allAttendances': await Future.wait(
         employees.map(
           (emp) async => (await attendanceService.getAttendanceBetween(
-            customStartDate, // ✅ Dönem başlangıcı kullan
-            customEndDate,
+            customStartDate,             customEndDate,
             workerId: emp.id,
           )).map((a) => a.toMap()).toList(),
         ),
@@ -370,7 +368,7 @@ mixin ReportControllerPdfMixin<T extends StatefulWidget> on State<T> {
   Future<void> createFinancialSummaryReport(BuildContext context) async {
     if (!mounted) return;
 
-    debugPrint('📊 ReportControllerMixin: Finansal özet raporu oluşturuluyor');
+    debugPrint('ReportControllerMixin: Finansal özet raporu oluşturuluyor');
 
     setState(() => isLoading = true);
     progressNotifier.value = 0;
@@ -408,7 +406,7 @@ mixin ReportControllerPdfMixin<T extends StatefulWidget> on State<T> {
 
       progressNotifier.value = 0.3;
 
-      debugPrint('📊 Finansal Özet: Ödemeler çekiliyor...');
+      debugPrint('Finansal Özet: Ödemeler çekiliyor...');
       debugPrint(
         '📊 Dönem: ${customStartDate.toIso8601String()} - ${customEndDate.toIso8601String()}',
       );
@@ -419,34 +417,34 @@ mixin ReportControllerPdfMixin<T extends StatefulWidget> on State<T> {
         final payments = await paymentService.getPaymentsByWorkerId(
           employee.id,
         );
-        debugPrint('📊 ${employee.name}: ${payments.length} ödeme bulundu');
+        debugPrint('${employee.name}: ${payments.length} ödeme bulundu');
         allPayments.addAll(payments);
       }
-      debugPrint('📊 Toplam ${allPayments.length} ödeme bulundu');
+      debugPrint('Toplam ${allPayments.length} ödeme bulundu');
 
       progressNotifier.value = 0.5;
 
-      debugPrint('📊 Finansal Özet: Avanslar çekiliyor...');
+      debugPrint('Finansal Özet: Avanslar çekiliyor...');
 
       // Tüm avansları çek
       final allAdvances = <Advance>[];
       for (var employee in employees) {
         final advances = await advanceService.getWorkerAdvances(employee.id);
-        debugPrint('📊 ${employee.name}: ${advances.length} avans bulundu');
+        debugPrint('${employee.name}: ${advances.length} avans bulundu');
         allAdvances.addAll(advances);
       }
-      debugPrint('📊 Toplam ${allAdvances.length} avans bulundu');
+      debugPrint('Toplam ${allAdvances.length} avans bulundu');
 
       progressNotifier.value = 0.7;
 
-      debugPrint('📊 Finansal Özet: Masraflar çekiliyor...');
+      debugPrint('Finansal Özet: Masraflar çekiliyor...');
 
       // Tüm masrafları çek
       final allExpenses = await expenseService.getExpensesByDateRange(
         customStartDate,
         customEndDate,
       );
-      debugPrint('📊 Toplam ${allExpenses.length} masraf bulundu (dönem içi)');
+      debugPrint('Toplam ${allExpenses.length} masraf bulundu (dönem içi)');
 
       progressNotifier.value = 0.9;
 
@@ -488,7 +486,7 @@ mixin ReportControllerPdfMixin<T extends StatefulWidget> on State<T> {
         '✅ ReportControllerMixin: Finansal özet raporu oluşturuldu ve açıldı',
       );
     } catch (e, stackTrace) {
-      debugPrint('❌ ReportControllerMixin: Finansal özet raporu hatası: $e');
+      debugPrint('ReportControllerMixin: Finansal özet raporu hatası: $e');
       debugPrint('Stack trace: $stackTrace');
 
       if (!mounted) return;

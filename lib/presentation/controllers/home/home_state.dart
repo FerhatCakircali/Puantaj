@@ -1,7 +1,6 @@
 import '../../../domain/entities/notification.dart';
 
 /// Ana ekran state'i
-///
 /// Home ekranının durumunu yönetir.
 class HomeState {
   final int selectedTab;

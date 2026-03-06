@@ -5,7 +5,6 @@ import '../../../../data/services/local_storage_service.dart';
 import '../../services/worker_notification_service.dart';
 
 /// Çalışan bildirimleri ekranı - Enhanced
-///
 /// Özellikler:
 /// 1. İstatistik kartları (Okunmamış, Bugün, Toplam)
 /// 2. Filtreleme (Tümü, Okunmamış, Okunmuş)
@@ -532,8 +531,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(w * 0.04, h * 0.01, w * 0.04, h * 0.12),
       itemCount: filteredNotifications.length,
-      // ⚡ PHASE 4: ListView optimizasyonları
-      itemExtent: 120.0, // Sabit yükseklik - scroll performansı
+            itemExtent: 120.0, // Sabit yükseklik - scroll performansı
       addAutomaticKeepAlives: false, // Memory optimizasyonu
       addRepaintBoundaries: true, // Repaint optimizasyonu
       itemBuilder: (context, index) {
@@ -678,24 +676,24 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
 
   /// Bildirime tıklandığında ilgili sayfaya yönlendir
   void _handleNotificationTap(String notificationType, int? relatedId) {
-    debugPrint('🔔 Bildirime tıklandı: $notificationType (ID: $relatedId)');
+    debugPrint('Bildirime tıklandı: $notificationType (ID: $relatedId)');
 
     switch (notificationType) {
       case 'attendance_approved':
       case 'attendance_rejected':
       case 'attendance_reminder':
-        debugPrint('  📍 Bildirimler sayfasında kalınıyor');
+        debugPrint('📍 Bildirimler sayfasında kalınıyor');
         break;
       case 'payment_received':
-        debugPrint('  📍 Ödeme geçmişi sayfasına yönlendiriliyor...');
+        debugPrint('📍 Ödeme geçmişi sayfasına yönlendiriliyor...');
         _navigateToPaymentHistory();
         break;
       case 'payment_updated':
       case 'payment_deleted':
-        debugPrint('  📍 Bildirimler sayfasında kalınıyor');
+        debugPrint('📍 Bildirimler sayfasında kalınıyor');
         break;
       default:
-        debugPrint('  ⚠️ Bilinmeyen bildirim tipi');
+        debugPrint('Bilinmeyen bildirim tipi');
     }
   }
 
@@ -705,7 +703,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
       await prefs.setInt('worker_attendance_initial_tab', 1);
       await prefs.setString('worker_notification_type', 'payment_received');
       await prefs.setBool('has_pending_notification', true);
-      debugPrint('✅ Ödeme geçmişi yönlendirmesi için bilgi kaydedildi');
+      debugPrint('Ödeme geçmişi yönlendirmesi için bilgi kaydedildi');
 
       // Ana ekrana geri dön ve tab değişimini tetikle
       if (mounted) {
@@ -713,7 +711,7 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
-      debugPrint('❌ Yönlendirme bilgisi kaydedilemedi: $e');
+      debugPrint('Yönlendirme bilgisi kaydedilemedi: $e');
     }
   }
 

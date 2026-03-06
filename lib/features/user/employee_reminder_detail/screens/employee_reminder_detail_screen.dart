@@ -135,7 +135,7 @@ class _EmployeeReminderDetailScreenState
         '✅ EmployeeReminderDetail: Hatırlatıcı tamamlandı olarak işaretlendi',
       );
     } catch (e, stackTrace) {
-      debugPrint('❌ EmployeeReminderDetail: Hatırlatıcı yükleme hatası: $e');
+      debugPrint('EmployeeReminderDetail: Hatırlatıcı yükleme hatası: $e');
       debugPrint('Stack trace: $stackTrace');
       if (mounted) {
         _showSnackBar('Hatırlatıcı yüklenirken bir hata oluştu');
@@ -215,14 +215,13 @@ class _EmployeeReminderDetailScreenState
                     try {
                       final authService = AuthService();
                       await authService.signOut();
-                      // ⚡ PHASE 3: Riverpod AuthProvider kullan
-                      if (mounted && context.mounted) {
+                                            if (mounted && context.mounted) {
                         final container = ProviderScope.containerOf(context);
                         container.read(authStateProvider.notifier).logout();
                         context.go('/login');
                       }
                     } catch (e) {
-                      debugPrint('❌ Çıkış hatası: $e');
+                      debugPrint('Çıkış hatası: $e');
                       if (mounted) {
                         context.go('/login');
                       }
@@ -300,7 +299,7 @@ class _EmployeeReminderDetailScreenState
       if (!mounted) return;
 
       if (success) {
-        debugPrint('✅ EmployeeReminderDetail: Hatırlatıcı başarıyla silindi');
+        debugPrint('EmployeeReminderDetail: Hatırlatıcı başarıyla silindi');
 
         // Hatırlatıcı silindikten sonra bildirim durumunu temizle
         try {
@@ -337,7 +336,7 @@ class _EmployeeReminderDetailScreenState
 
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
-          debugPrint('✅ EmployeeReminderDetail: Navigator.pop başarılı');
+          debugPrint('EmployeeReminderDetail: Navigator.pop başarılı');
         } else {
           // Eğer pop yapılamazsa, home'a git
           debugPrint(
@@ -346,13 +345,13 @@ class _EmployeeReminderDetailScreenState
           context.go('/home');
         }
       } else {
-        debugPrint('❌ EmployeeReminderDetail: Silme işlemi başarısız');
+        debugPrint('EmployeeReminderDetail: Silme işlemi başarısız');
         if (mounted) {
           _showSnackBar('Hatırlatıcı silinirken bir hata oluştu');
         }
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ EmployeeReminderDetail: Silme hatası: $e');
+      debugPrint('EmployeeReminderDetail: Silme hatası: $e');
       debugPrint('Stack trace: $stackTrace');
       if (mounted) {
         _showSnackBar('Hatırlatıcı silinirken bir hata oluştu: $e');

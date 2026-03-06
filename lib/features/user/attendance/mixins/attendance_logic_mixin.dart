@@ -48,7 +48,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
         '📥 [Attendance] Veritabanından ${allAttendance.length} kayıt geldi',
       );
       for (var record in allAttendance) {
-        debugPrint('  • Worker ${record.workerId}: ${record.status}');
+        debugPrint('• Worker ${record.workerId}: ${record.status}');
       }
 
       // Çalışanları isme göre A'dan Z'ye sırala
@@ -73,7 +73,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
         });
       }
 
-      debugPrint('✅ [Attendance] State güncellendi');
+      debugPrint('[Attendance] State güncellendi');
       debugPrint('Tarih: ${DateFormat('dd/MM/yyyy').format(selectedDate)}');
       debugPrint('Toplam çalışan sayısı: ${allEmployees.length}');
       debugPrint(
@@ -81,7 +81,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
       );
       debugPrint('Devam kaydı sayısı: ${allAttendance.length}');
     } catch (e, stackTrace) {
-      debugPrint('❌ [Attendance] Çalışan verileri yüklenirken hata oluştu: $e');
+      debugPrint('[Attendance] Çalışan verileri yüklenirken hata oluştu: $e');
       debugPrint('Hata ayrıntıları: $stackTrace');
       if (mounted) {
         setState(() {
@@ -179,7 +179,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
       );
 
       if (confirmed != true) {
-        debugPrint('⚠️ [Attendance] Kullanıcı işlemi iptal etti');
+        debugPrint('[Attendance] Kullanıcı işlemi iptal etti');
         return;
       }
 
@@ -193,7 +193,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
     }
 
     if (pendingChanges.isEmpty) {
-      debugPrint('⚠️ [Attendance] Kaydedilecek değişiklik yok');
+      debugPrint('[Attendance] Kaydedilecek değişiklik yok');
       return;
     }
 
@@ -208,7 +208,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
           date: selectedDate,
           status: entry.value,
         );
-        debugPrint('✅ [Attendance] Kaydedildi: Worker ${entry.key}');
+        debugPrint('[Attendance] Kaydedildi: Worker ${entry.key}');
       }
 
       // Bugün için yevmiye girişi yapıldığını işaretle
@@ -222,9 +222,9 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
 
       // Eğer bugünün yevmiye kaydı yapılıyorsa, bildirim durumunu güncelle
       if (selectedDateNorm.isAtSameMomentAs(selectedToday)) {
-        debugPrint('📅 [Attendance] Bugünün yevmiye kaydı yapıldı');
+        debugPrint('[Attendance] Bugünün yevmiye kaydı yapıldı');
         await AttendanceNotificationHandler.markTodayAttendanceDone();
-        debugPrint('✅ [Attendance] Bildirim durumu güncellendi');
+        debugPrint('[Attendance] Bildirim durumu güncellendi');
       }
 
       // Çalışanlara bildirim gönder (her zaman, hangi tarih olursa olsun)
@@ -234,9 +234,9 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
 
       try {
         await _sendAttendanceNotificationsToWorkers();
-        debugPrint('✅✅✅ [Attendance] Bildirim gönderme tamamlandı');
+        debugPrint('[Attendance] Bildirim gönderme tamamlandı');
       } catch (e, stackTrace) {
-        debugPrint('❌❌❌ [Attendance] Bildirim gönderme HATASI: $e');
+        debugPrint('[Attendance] Bildirim gönderme HATASI: $e');
         debugPrint('Stack trace: $stackTrace');
       }
 
@@ -257,7 +257,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
         );
       }
     } catch (e) {
-      debugPrint('❌ [Attendance] Yevmiye kaydetme hatası: $e');
+      debugPrint('[Attendance] Yevmiye kaydetme hatası: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -275,7 +275,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
   /// Çalışanlara yevmiye girişi yapıldı bildirimi gönder
   Future<void> _sendAttendanceNotificationsToWorkers() async {
     try {
-      debugPrint('🔔🔔🔔 _sendAttendanceNotificationsToWorkers BAŞLADI');
+      debugPrint('_sendAttendanceNotificationsToWorkers BAŞLADI');
 
       final now = DateTime.now();
       // Yevmiye girişi yapılan tarihi kullan (selectedDate)
@@ -285,7 +285,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
       ).format(selectedDate);
       final formattedTime = DateFormat('HH:mm', 'tr_TR').format(now);
 
-      debugPrint('📅 Tarih: $formattedDate, Saat: $formattedTime');
+      debugPrint('Tarih: $formattedDate, Saat: $formattedTime');
       debugPrint(
         '👥 Bildirim gönderilecek çalışan sayısı: ${pendingChanges.length}',
       );
@@ -310,7 +310,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
 
         // Eğer durum değişmemişse bildirim gönderme
         if (isUpdate && oldStatus == newStatus) {
-          debugPrint('  ⏭️ Durum değişmedi, bildirim gönderilmiyor');
+          debugPrint('⏭ Durum değişmedi, bildirim gönderilmiyor');
           continue;
         }
 
@@ -326,17 +326,17 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
             newStatus: newStatus,
           );
 
-          debugPrint('✅✅✅ Bildirim gönderildi: ${employee.name}');
+          debugPrint('Bildirim gönderildi: ${employee.name}');
         } catch (e, stackTrace) {
-          debugPrint('❌❌❌ ${employee.name} için bildirim HATASI: $e');
+          debugPrint('${employee.name} için bildirim HATASI: $e');
           debugPrint('Stack trace: $stackTrace');
         }
       }
 
       debugPrint('');
-      debugPrint('✅ [Attendance] Tüm bildirimler gönderildi');
+      debugPrint('[Attendance] Tüm bildirimler gönderildi');
     } catch (e, stackTrace) {
-      debugPrint('❌ [Attendance] Bildirim gönderme hatası: $e');
+      debugPrint('[Attendance] Bildirim gönderme hatası: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }

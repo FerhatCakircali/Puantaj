@@ -3,16 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/errors/app_exception.dart';
 
 /// Local storage service - Singleton pattern
-///
 /// Manages worker session persistence using SharedPreferences.
 /// Follows Singleton pattern to ensure single instance across the app.
-///
 /// Session data includes:
 /// - Worker ID
 /// - Username
 /// - Full name
 /// - Login timestamp
-///
 /// Usage:
 /// ```dart
 /// final storage = LocalStorageService.instance;
@@ -40,15 +37,13 @@ class LocalStorageService {
   static const Duration _sessionDuration = Duration(days: 365);
 
   /// Initializes SharedPreferences
-  ///
-  /// Should be called once at app startup
+    /// Should be called once at app startup
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
   }
 
   /// Gets SharedPreferences instance
-  ///
-  /// Throws [StorageException] if not initialized
+    /// Throws [StorageException] if not initialized
   SharedPreferences get _preferences {
     if (_prefs == null) {
       throw StorageException('LocalStorageService not initialized');
@@ -57,8 +52,7 @@ class LocalStorageService {
   }
 
   /// Saves worker session data
-  ///
-  /// Stores worker ID, user ID, username, full name, and login timestamp.
+    /// Stores worker ID, user ID, username, full name, and login timestamp.
   /// Session is valid for 365 days (1 year) from login time.
   Future<void> saveWorkerSession({
     required String workerId,
@@ -87,11 +81,9 @@ class LocalStorageService {
   }
 
   /// Gets worker session data
-  ///
-  /// Returns a map with worker data if session exists and is valid.
+    /// Returns a map with worker data if session exists and is valid.
   /// Returns null if no session or session expired.
-  ///
-  /// Map keys: 'workerId', 'userId', 'username', 'fullName', 'loginTimestamp'
+    /// Map keys: 'workerId', 'userId', 'username', 'fullName', 'loginTimestamp'
   Future<Map<String, String>?> getWorkerSession() async {
     try {
       final workerId = _preferences.getString(_keyWorkerId);
@@ -132,8 +124,7 @@ class LocalStorageService {
   }
 
   /// Checks if current session is valid
-  ///
-  /// Session is valid if:
+    /// Session is valid if:
   /// - Login timestamp exists
   /// - Less than 365 days have passed since login
   bool isSessionValid() {
@@ -152,8 +143,7 @@ class LocalStorageService {
   }
 
   /// Clears worker session data
-  ///
-  /// Removes all session-related data from storage.
+    /// Removes all session-related data from storage.
   Future<void> clearSession() async {
     try {
       await Future.wait([
@@ -174,22 +164,19 @@ class LocalStorageService {
   }
 
   /// Gets worker ID from session
-  ///
-  /// Returns null if no session exists
+    /// Returns null if no session exists
   String? getWorkerId() {
     return _preferences.getString(_keyWorkerId);
   }
 
   /// Gets username from session
-  ///
-  /// Returns null if no session exists
+    /// Returns null if no session exists
   String? getUsername() {
     return _preferences.getString(_keyUsername);
   }
 
   /// Checks if worker is logged in
-  ///
-  /// Returns true if valid session exists
+    /// Returns true if valid session exists
   bool isLoggedIn() {
     return getWorkerId() != null && isSessionValid();
   }

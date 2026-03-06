@@ -18,9 +18,9 @@ class HomeNotificationHandler {
       final notificationService = old_ns.NotificationService();
       await notificationService.checkAndHandlePendingNotification(context);
 
-      debugPrint('✅ HomeScreen: Bildirim kontrolü tamamlandı');
+      debugPrint('HomeScreen: Bildirim kontrolü tamamlandı');
     } catch (e, stackTrace) {
-      debugPrint('❌ HomeScreen: Bildirim yönlendirmesi hatası: $e');
+      debugPrint('HomeScreen: Bildirim yönlendirmesi hatası: $e');
       debugPrint('Stack trace: $stackTrace');
     }
   }
@@ -34,7 +34,7 @@ class HomeNotificationHandler {
           '🧹 Kullanıcı bildirim dinleyicisi başlatılmadan önce çalışan dinleyicisi kontrol ediliyor...',
         );
         await WorkerNotificationListenerService.instance.stopListening();
-        debugPrint('✅ Çalışan bildirim dinleyicisi durduruldu');
+        debugPrint('Çalışan bildirim dinleyicisi durduruldu');
       } catch (e) {
         debugPrint(
           '⚠️ Çalışan bildirim dinleyicisi durdurulurken hata (devam ediliyor): $e',
@@ -46,10 +46,10 @@ class HomeNotificationHandler {
         final userId = user['id'] as int;
         debugPrint('🎧 Bildirim dinleme başlatılıyor (user: $userId)');
         await UserNotificationListenerService.instance.startListening(userId);
-        debugPrint('✅ Bildirim dinleme başlatıldı');
+        debugPrint('Bildirim dinleme başlatıldı');
       }
     } catch (e) {
-      debugPrint('❌ Bildirim dinleme başlatılamadı: $e');
+      debugPrint('Bildirim dinleme başlatılamadı: $e');
     }
   }
 
@@ -58,9 +58,9 @@ class HomeNotificationHandler {
     try {
       debugPrint('🛑 Bildirim dinleme durduruluyor');
       await UserNotificationListenerService.instance.stopListening();
-      debugPrint('✅ Bildirim dinleme durduruldu');
+      debugPrint('Bildirim dinleme durduruldu');
     } catch (e) {
-      debugPrint('❌ Bildirim dinleme durdurulurken hata: $e');
+      debugPrint('Bildirim dinleme durdurulurken hata: $e');
     }
   }
 

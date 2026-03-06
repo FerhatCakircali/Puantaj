@@ -1,7 +1,6 @@
 import '../../../domain/entities/attendance.dart';
 
 /// Devam kaydı state'i
-///
 /// Attendance ekranının durumunu yönetir.
 class AttendanceState {
   final List<Attendance> records;

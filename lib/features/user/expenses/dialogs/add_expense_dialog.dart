@@ -101,19 +101,37 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✅ ${expense.expenseType} masrafı eklendi'),
-          backgroundColor: Colors.green,
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text('${expense.expenseType} masrafı eklendi', style: const TextStyle(color: Colors.white))),
+              ],
+            ),
+            backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
-      debugPrint('⚠️ Masraf ekleme hatası: $e');
+      debugPrint('Masraf ekleme hatası: $e');
 
       if (!mounted) return;
 
       setState(() => _isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
+        SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Hata: $e', style: const TextStyle(color: Colors.white))),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.all(16),
+          ),
       );
     }
   }

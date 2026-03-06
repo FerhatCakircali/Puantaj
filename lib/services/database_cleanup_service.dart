@@ -24,10 +24,10 @@ class DatabaseCleanupService {
           .lt('created_at', cutoffDate.toIso8601String());
 
       final deletedCount = response.count ?? 0;
-      debugPrint('✅ Toplam $deletedCount activity_log kaydı temizlendi');
+      debugPrint('Toplam $deletedCount activity_log kaydı temizlendi');
       return deletedCount;
     } catch (e) {
-      debugPrint('❌ Activity_logs temizlenirken hata: $e');
+      debugPrint('Activity_logs temizlenirken hata: $e');
       return 0;
     }
   }
@@ -41,8 +41,8 @@ class DatabaseCleanupService {
     // Activity logs temizle
     results['activityLogs'] = await cleanupOldActivityLogs();
 
-    debugPrint('✅ Tam veritabanı temizliği tamamlandı');
-    debugPrint('  📊 Sonuçlar:');
+    debugPrint('Tam veritabanı temizliği tamamlandı');
+    debugPrint('Sonuçlar:');
     debugPrint('    - Activity Logs: ${results['activityLogs']} kayıt');
 
     return results;

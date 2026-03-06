@@ -1,7 +1,6 @@
 import '../../domain/entities/payment.dart';
 
 /// Payment data model
-///
 /// Maps database records to Payment domain entity.
 class PaymentModel {
   final int id;

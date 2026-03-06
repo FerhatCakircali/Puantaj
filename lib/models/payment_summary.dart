@@ -1,9 +1,7 @@
 /// Ödeme özet bilgilerini içeren model
-///
 /// RPC fonksiyonu `get_payment_summary` tarafından döndürülen
 /// veri yapısını temsil eder. N+1 query problemini çözmek için
 /// payments ve workers tablolarını tek sorguda birleştirir.
-///
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class PaymentSummary {
   /// Toplam ödeme sayısı

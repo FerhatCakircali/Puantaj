@@ -1,5 +1,4 @@
 /// Employee domain entity
-///
 /// Represents an employee in the attendance tracking system.
 /// Independent of any data source or UI framework.
 class Employee {

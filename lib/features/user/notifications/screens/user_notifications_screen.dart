@@ -349,8 +349,7 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen>
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(w * 0.04, h * 0.01, w * 0.04, h * 0.12),
       itemCount: groupedNotifications.length * 2,
-      // ⚡ PHASE 4: ListView optimizasyonları
-      addAutomaticKeepAlives: false, // Memory optimizasyonu
+            addAutomaticKeepAlives: false, // Memory optimizasyonu
       addRepaintBoundaries: true, // Repaint optimizasyonu
       itemBuilder: (context, index) {
         if (index.isEven) {

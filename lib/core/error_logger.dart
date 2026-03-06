@@ -2,18 +2,15 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 /// ErrorLogger singleton sınıfı - Merkezi hata loglama sistemi.
-///
 /// Bu sınıf, uygulama genelinde tutarlı hata loglama sağlar ve
 /// boş catch bloklarını ortadan kaldırır. Tüm hata, uyarı ve bilgi
 /// mesajları bu sınıf üzerinden loglanır.
-///
 /// **Özellikler:**
 /// - Singleton pattern (tek instance)
 /// - Context bilgisi ile loglama
 /// - Stack trace desteği
 /// - Emoji indicator'lar (❌, ⚠️, ℹ️)
 /// - Firebase Crashlytics entegrasyonu (production'da otomatik)
-///
 /// **Kullanım Örnekleri:**
 /// ```dart
 /// // Hata loglama
@@ -23,20 +20,17 @@ import 'package:flutter/foundation.dart';
 ///   stackTrace: stackTrace,
 ///   context: 'PaymentService.addPayment',
 /// );
-///
 /// // Uyarı loglama
 /// ErrorLogger.instance.logWarning(
 ///   'Kullanıcı oturumu bulunamadı',
 ///   context: 'WorkerService.getEmployees',
 /// );
-///
 /// // Bilgi loglama
 /// ErrorLogger.instance.logInfo(
 ///   'Ödeme başarıyla tamamlandı',
 ///   context: 'PaymentService.addPayment',
 /// );
 /// ```
-///
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class ErrorLogger {
   ErrorLogger._();
@@ -48,17 +42,14 @@ class ErrorLogger {
   factory ErrorLogger() => instance;
 
   /// Hata loglar (❌ emoji ile).
-  ///
-  /// Bu metod, kritik hataları loglar ve production'da Firebase Crashlytics'e
+    /// Bu metod, kritik hataları loglar ve production'da Firebase Crashlytics'e
   /// otomatik olarak gönderir.
-  ///
-  /// Parametreler:
+    /// Parametreler:
   /// - [message]: Hata mesajı (zorunlu)
   /// - [error]: Hata objesi (opsiyonel)
   /// - [stackTrace]: Stack trace (opsiyonel)
   /// - [context]: Hatanın oluştuğu yer (örn: 'PaymentService.addPayment')
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// try {
   ///   // Riskli işlem
@@ -80,14 +71,13 @@ class ErrorLogger {
     final contextPrefix = context != null ? '[$context] ' : '';
     final errorSuffix = error != null ? ': $error' : '';
 
-    debugPrint('❌ $contextPrefix$message$errorSuffix');
+    debugPrint('$contextPrefix$message$errorSuffix');
 
     if (stackTrace != null) {
-      debugPrint('❌ Stack trace: $stackTrace');
+      debugPrint('Stack trace: $stackTrace');
     }
 
-    // 🔥 Firebase Crashlytics'e gönder (production'da)
-    if (kReleaseMode && error != null) {
+        if (kReleaseMode && error != null) {
       FirebaseCrashlytics.instance.recordError(
         error,
         stackTrace,
@@ -98,16 +88,13 @@ class ErrorLogger {
   }
 
   /// Uyarı loglar (⚠️ emoji ile).
-  ///
-  /// Bu metod, kritik olmayan ama dikkat edilmesi gereken durumları loglar.
+    /// Bu metod, kritik olmayan ama dikkat edilmesi gereken durumları loglar.
   /// Örneğin: null değer, boş liste, eksik veri gibi.
-  ///
-  /// Parametreler:
+    /// Parametreler:
   /// - [message]: Uyarı mesajı (zorunlu)
   /// - [context]: Uyarının oluştuğu yer (opsiyonel)
   /// - [data]: Ek veri (opsiyonel, debug için)
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// if (userId == null) {
   ///   ErrorLogger.instance.logWarning(
@@ -121,20 +108,17 @@ class ErrorLogger {
     final contextPrefix = context != null ? '[$context] ' : '';
     final dataSuffix = data != null ? ' - Data: $data' : '';
 
-    debugPrint('⚠️ $contextPrefix$message$dataSuffix');
+    debugPrint('$contextPrefix$message$dataSuffix');
   }
 
   /// Bilgi loglar (ℹ️ emoji ile).
-  ///
-  /// Bu metod, normal akış bilgilerini loglar. Örneğin: başarılı işlemler,
+    /// Bu metod, normal akış bilgilerini loglar. Örneğin: başarılı işlemler,
   /// durum güncellemeleri, debug bilgileri.
-  ///
-  /// Parametreler:
+    /// Parametreler:
   /// - [message]: Bilgi mesajı (zorunlu)
   /// - [context]: Bilginin oluştuğu yer (opsiyonel)
   /// - [data]: Ek veri (opsiyonel, debug için)
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// ErrorLogger.instance.logInfo(
   ///   'Ödeme başarıyla tamamlandı',
@@ -146,20 +130,17 @@ class ErrorLogger {
     final contextPrefix = context != null ? '[$context] ' : '';
     final dataSuffix = data != null ? ' - Data: $data' : '';
 
-    debugPrint('ℹ️ $contextPrefix$message$dataSuffix');
+    debugPrint('ℹ $contextPrefix$message$dataSuffix');
   }
 
   /// Başarı loglar (✅ emoji ile).
-  ///
-  /// Bu metod, başarılı işlemleri loglar. Özellikle kritik işlemlerin
+    /// Bu metod, başarılı işlemleri loglar. Özellikle kritik işlemlerin
   /// başarıyla tamamlandığını belirtmek için kullanılır.
-  ///
-  /// Parametreler:
+    /// Parametreler:
   /// - [message]: Başarı mesajı (zorunlu)
   /// - [context]: İşlemin gerçekleştiği yer (opsiyonel)
   /// - [data]: Ek veri (opsiyonel, debug için)
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// ErrorLogger.instance.logSuccess(
   ///   'Worker başarıyla güncellendi',
@@ -171,20 +152,17 @@ class ErrorLogger {
     final contextPrefix = context != null ? '[$context] ' : '';
     final dataSuffix = data != null ? ' - Data: $data' : '';
 
-    debugPrint('✅ $contextPrefix$message$dataSuffix');
+    debugPrint('$contextPrefix$message$dataSuffix');
   }
 
   /// Debug loglar (🔍 emoji ile).
-  ///
-  /// Bu metod, geliştirme sırasında debug bilgilerini loglar.
+    /// Bu metod, geliştirme sırasında debug bilgilerini loglar.
   /// Production'da bu loglar gösterilmez.
-  ///
-  /// Parametreler:
+    /// Parametreler:
   /// - [message]: Debug mesajı (zorunlu)
   /// - [context]: Debug bilgisinin oluştuğu yer (opsiyonel)
   /// - [data]: Ek veri (opsiyonel)
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// ErrorLogger.instance.logDebug(
   ///   'Worker ID ile sorgu yapılıyor',
@@ -197,20 +175,17 @@ class ErrorLogger {
       final contextPrefix = context != null ? '[$context] ' : '';
       final dataSuffix = data != null ? ' - Data: $data' : '';
 
-      debugPrint('🔍 $contextPrefix$message$dataSuffix');
+      debugPrint('$contextPrefix$message$dataSuffix');
     }
   }
 
   /// Bildirim loglar (📢 emoji ile).
-  ///
-  /// Bu metod, kullanıcıya gönderilen bildirimleri loglar.
-  ///
-  /// Parametreler:
+    /// Bu metod, kullanıcıya gönderilen bildirimleri loglar.
+    /// Parametreler:
   /// - [message]: Bildirim mesajı (zorunlu)
   /// - [context]: Bildirimin gönderildiği yer (opsiyonel)
   /// - [data]: Ek veri (opsiyonel)
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// ErrorLogger.instance.logNotification(
   ///   'Ödeme bildirimi gönderildi',
@@ -226,15 +201,12 @@ class ErrorLogger {
   }
 
   /// Para işlemi loglar (💰 emoji ile).
-  ///
-  /// Bu metod, ödeme, avans, masraf gibi para işlemlerini loglar.
-  ///
-  /// Parametreler:
+    /// Bu metod, ödeme, avans, masraf gibi para işlemlerini loglar.
+    /// Parametreler:
   /// - [message]: İşlem mesajı (zorunlu)
   /// - [context]: İşlemin gerçekleştiği yer (opsiyonel)
   /// - [data]: Ek veri (opsiyonel, tutar bilgisi gibi)
-  ///
-  /// Örnek:
+    /// Örnek:
   /// ```dart
   /// ErrorLogger.instance.logPayment(
   ///   'Yeni ödeme ekleniyor',
@@ -246,6 +218,6 @@ class ErrorLogger {
     final contextPrefix = context != null ? '[$context] ' : '';
     final dataSuffix = data != null ? ' - Data: $data' : '';
 
-    debugPrint('💰 $contextPrefix$message$dataSuffix');
+    debugPrint('$contextPrefix$message$dataSuffix');
   }
 }

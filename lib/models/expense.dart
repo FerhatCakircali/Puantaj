@@ -66,8 +66,8 @@ class Expense {
     final formattedDate =
         '${localDate.year}-${localDate.month.toString().padLeft(2, '0')}-${localDate.day.toString().padLeft(2, '0')}';
 
-    debugPrint('📅 Expense toMap - Original date: $expenseDate');
-    debugPrint('📅 Expense toMap - Formatted date: $formattedDate');
+    debugPrint('Expense toMap - Original date: $expenseDate');
+    debugPrint('Expense toMap - Formatted date: $formattedDate');
 
     final map = {
       'user_id': userId,

@@ -5,8 +5,7 @@ import '../../../../services/auth_service.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../features/user/services/user_notification_listener_service.dart';
 
-/// Çıkış onay dialog widget'ı - User paneli ile BIREBIR aynı
-/// ⚡ PHASE 3: Riverpod AuthProvider kullanır
+/// Çıkış onay dialog widget'ı
 Future<void> showAdminLogoutDialog({
   required BuildContext context,
   required AuthService authService,
@@ -28,7 +27,6 @@ Future<void> showAdminLogoutDialog({
             try {
               await UserNotificationListenerService.instance.stopListening();
               await authService.signOut();
-              // ⚡ PHASE 3: Riverpod AuthProvider kullan
               if (context.mounted) {
                 final container = ProviderScope.containerOf(context);
                 container.read(authStateProvider.notifier).logout();
@@ -38,7 +36,7 @@ Future<void> showAdminLogoutDialog({
                 '✅ Çıkış işlemi tamamlandı, login ekranına yönlendiriliyor',
               );
             } catch (e) {
-              debugPrint('❌ Çıkış işlemi sırasında hata: $e');
+              debugPrint('Çıkış işlemi sırasında hata: $e');
 
               if (context.mounted) {
                 context.go('/login');

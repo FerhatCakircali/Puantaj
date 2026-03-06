@@ -2,7 +2,6 @@ import 'dart:convert';
 import '../../domain/entities/notification.dart';
 
 /// Notification data model
-///
 /// Maps database records to Notification domain entity.
 class NotificationModel {
   final int id;

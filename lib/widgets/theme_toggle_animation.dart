@@ -9,8 +9,7 @@ class ThemeToggleAnimation extends StatefulWidget {
   final Offset? center;
 
   /// Tema değişimi için animasyon gösterir
-  ///
-  /// [goingToDark] Koyu temaya geçiş yapılıyorsa true, açık temaya geçiş yapılıyorsa false
+    /// [goingToDark] Koyu temaya geçiş yapılıyorsa true, açık temaya geçiş yapılıyorsa false
   /// [onAnimationComplete] Animasyon tamamlandığında çağrılacak fonksiyon
   /// [center] Animasyonun merkez noktası
   const ThemeToggleAnimation({

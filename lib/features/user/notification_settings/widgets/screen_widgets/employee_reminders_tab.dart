@@ -59,8 +59,7 @@ class _EmployeeRemindersTabState extends State<EmployeeRemindersTab>
 
   @override
   void dispose() {
-    // ⚡ ÖNEMLİ: Memory leak önlemek için listener'ı kaldır
-    _innerTabController.removeListener(_onTabChanged);
+        _innerTabController.removeListener(_onTabChanged);
     _innerTabController.dispose();
     super.dispose();
   }

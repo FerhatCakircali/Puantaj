@@ -1,8 +1,6 @@
 /// Result type for functional error handling
-///
 /// Represents the outcome of an operation that can either succeed or fail.
 /// This pattern forces explicit error handling and makes error cases visible in type signatures.
-///
 /// Usage:
 /// ```dart
 /// Future<Result<User>> signIn(String username, String password) async {

@@ -94,7 +94,7 @@ class ProfileInfoCard extends StatelessWidget {
                   size: screenWidth * 0.06,
                 ),
                 onPressed: () {
-                  debugPrint('✏️ Edit button pressed in ProfileInfoCard');
+                  debugPrint('Edit button pressed in ProfileInfoCard');
                   onEdit();
                 },
                 tooltip: 'Düzenle',

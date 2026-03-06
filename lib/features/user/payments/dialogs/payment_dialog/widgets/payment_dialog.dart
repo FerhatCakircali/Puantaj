@@ -12,10 +12,7 @@ import 'payment_dialog_actions.dart';
 import '../../../../../../services/advance_service.dart';
 import '../../../../../../models/advance.dart';
 
-/// Ödeme dialog'u
-///
-/// Çalışana ödeme yapmak için kullanılır.
-/// AGENTS.md kurallarına uygun olarak modüler yapıda tasarlanmıştır.
+/// Ödeme dialog widget'ı
 class PaymentDialog extends StatefulWidget {
   final Employee employee;
   final VoidCallback onPaymentComplete;
@@ -36,7 +33,6 @@ class PaymentDialog extends StatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-      // ⚡ Performans: Klavye açılırken dialog yeniden boyutlandırılmasın
       isDismissible: true,
       enableDrag: true,
       builder: (context) => PaymentDialog(
@@ -227,9 +223,6 @@ class _PaymentDialogState extends State<PaymentDialog> {
       }
 
       if (mounted) {
-        Navigator.pop(context);
-        widget.onPaymentComplete();
-
         String message = 'Ödeme başarıyla kaydedildi';
         if (_deductAdvances && _totalPendingAdvances > 0) {
           message +=
@@ -238,22 +231,63 @@ class _PaymentDialogState extends State<PaymentDialog> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(message),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
             backgroundColor: Theme.of(context).colorScheme.primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
             ),
+            margin: const EdgeInsets.all(16),
+            duration: const Duration(seconds: 2),
           ),
         );
+
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          Navigator.pop(context);
+          widget.onPaymentComplete();
+        }
       }
     } catch (e, stackTrace) {
-      debugPrint('❌ Ödeme hatası: $e');
+      debugPrint('Ödeme hatası: $e');
       debugPrint('Stack trace: $stackTrace');
       setState(() => _isLoading = false);
 
       if (mounted) {
-        _showErrorDialog('Ödeme kaydedilirken bir hata oluştu: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Ödeme kaydedilirken bir hata oluştu: $e',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     }
   }

@@ -4,7 +4,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../models/attendance.dart';
 
 /// Çalışan yevmiye servisi
-///
 /// SQL fonksiyonları:
 /// - check_worker_today_attendance_status: Bugünün durumunu kontrol et
 /// - get_worker_attendance_history: Geçmiş kayıtları getir
@@ -31,14 +30,13 @@ class WorkerAttendanceService {
 
       return response[0] as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('❌ checkTodayStatus hata: $e');
+      debugPrint('checkTodayStatus hata: $e');
       return null;
     }
   }
 
   /// Yevmiye talebi gönder
-  ///
-  /// Database trigger otomatik olarak:
+    /// Database trigger otomatik olarak:
   /// 1. notifications tablosuna kayıt ekler (scheduled_time = NULL)
   /// 2. FCM ile ANINDA bildirim gönderilir
   /// 3. Uygulama açıksa Realtime, kapalıysa Push Notification
@@ -82,7 +80,7 @@ class WorkerAttendanceService {
             .delete()
             .eq('id', existingRequest['id']);
 
-        debugPrint('✅ Reddedilen talep silindi');
+        debugPrint('Reddedilen talep silindi');
       }
 
       // Yeni talep oluştur (trigger çalışacak)
@@ -99,14 +97,14 @@ class WorkerAttendanceService {
 
       final requestId = response['id'] as int;
 
-      debugPrint('✅ Yeni yevmiye talebi gönderildi (ID: $requestId)');
+      debugPrint('Yeni yevmiye talebi gönderildi (ID: $requestId)');
       debugPrint('📬 Database trigger notifications tablosuna kayıt ekleyecek');
-      debugPrint('⚡ FCM ile ANINDA bildirim gönderilecek');
+      debugPrint('FCM ile ANINDA bildirim gönderilecek');
       debugPrint('📡 Uygulama açıksa Realtime, kapalıysa Push Notification');
 
       return true;
     } catch (e) {
-      debugPrint('❌ submitAttendanceRequest hata: $e');
+      debugPrint('submitAttendanceRequest hata: $e');
       return false;
     }
   }
@@ -131,7 +129,7 @@ class WorkerAttendanceService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      debugPrint('❌ getAttendanceHistory hata: $e');
+      debugPrint('getAttendanceHistory hata: $e');
       return [];
     }
   }
@@ -156,7 +154,7 @@ class WorkerAttendanceService {
 
       return response[0] as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('❌ getMonthlyStats hata: $e');
+      debugPrint('getMonthlyStats hata: $e');
       return null;
     }
   }
@@ -255,7 +253,7 @@ class WorkerAttendanceService {
         'absent_dates': absentDates,
       };
     } catch (e) {
-      debugPrint('❌ getMonthlyStatsWithDates hata: $e');
+      debugPrint('getMonthlyStatsWithDates hata: $e');
       return {
         'total_full_days': 0,
         'total_half_days': 0,
@@ -280,7 +278,7 @@ class WorkerAttendanceService {
 
       return double.tryParse(response.toString()) ?? 0.0;
     } catch (e) {
-      debugPrint('❌ getTotalPayments hata: $e');
+      debugPrint('getTotalPayments hata: $e');
       return 0.0;
     }
   }
@@ -300,10 +298,10 @@ class WorkerAttendanceService {
           .eq('date', formattedDate)
           .eq('request_status', 'rejected');
 
-      debugPrint('✅ Reddedilen talep silindi');
+      debugPrint('Reddedilen talep silindi');
       return true;
     } catch (e) {
-      debugPrint('❌ deleteRejectedRequest hata: $e');
+      debugPrint('deleteRejectedRequest hata: $e');
       return false;
     }
   }
@@ -325,7 +323,7 @@ class WorkerAttendanceService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      debugPrint('❌ getPaymentHistory hata: $e');
+      debugPrint('getPaymentHistory hata: $e');
       return [];
     }
   }
@@ -356,7 +354,7 @@ class WorkerAttendanceService {
 
       return {'payment': payment, 'attendance_records': attendanceRecords};
     } catch (e) {
-      debugPrint('❌ getPaymentDetails hata: $e');
+      debugPrint('getPaymentDetails hata: $e');
       return null;
     }
   }

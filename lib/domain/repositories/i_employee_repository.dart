@@ -2,7 +2,6 @@ import '../../core/error/result.dart';
 import '../entities/employee.dart';
 
 /// Employee repository interface
-///
 /// Defines contract for employee data operations.
 abstract class IEmployeeRepository {
   /// Get all employees

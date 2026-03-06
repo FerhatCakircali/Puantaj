@@ -2,7 +2,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/services/supabase_service.dart';
 
 /// Supabase data source interface
-///
 /// Defines contract for Supabase database operations.
 abstract class SupabaseDataSource {
   /// Query single record from table
@@ -35,7 +34,6 @@ abstract class SupabaseDataSource {
 }
 
 /// Supabase data source implementation
-///
 /// Wraps SupabaseService to provide data source abstraction.
 class SupabaseDataSourceImpl implements SupabaseDataSource {
   final SupabaseService _supabaseService;

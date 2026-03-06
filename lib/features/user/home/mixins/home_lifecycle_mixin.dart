@@ -11,7 +11,6 @@ import '../../services/employee_reminder_service.dart';
 import 'home_notification_handler.dart';
 
 /// Ana ekran lifecycle yönetimi mixin'i
-/// ⚡ PHASE 3: Riverpod AuthProvider kullanır
 mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
     implements WidgetsBindingObserver {
   Timer? blockCheckTimer;
@@ -27,8 +26,7 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // ⚡ PHASE 3: userDataNotifier listener kaldırıldı, Riverpod ref.listen kullanılacak
-    // Drawer header güncellemesi için ref.watch kullanılıyor (build metodunda)
+        // Drawer header güncellemesi için ref.watch kullanılıyor (build metodunda)
     authService.currentUser;
 
     checkUserBlockStatus();
@@ -62,10 +60,10 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
       final completedCount = await reminderService.cleanupCompletedReminders();
 
       debugPrint('🧹 Hatırlatıcı temizliği tamamlandı:');
-      debugPrint('  - Eski: $oldCount');
-      debugPrint('  - Tamamlanmış: $completedCount');
+      debugPrint('- Eski: $oldCount');
+      debugPrint('- Tamamlanmış: $completedCount');
     } catch (e) {
-      debugPrint('❌ Eski hatırlatıcılar temizlenirken hata: $e');
+      debugPrint('Eski hatırlatıcılar temizlenirken hata: $e');
     }
   }
 
@@ -75,7 +73,7 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
       final cleanupService = DatabaseCleanupService();
       await cleanupService.performFullCleanup();
     } catch (e) {
-      debugPrint('❌ Veritabanı temizlenirken hata: $e');
+      debugPrint('Veritabanı temizlenirken hata: $e');
     }
   }
 
@@ -84,8 +82,7 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
     notificationHandler.stopNotificationListener();
     WidgetsBinding.instance.removeObserver(this);
     blockCheckTimer?.cancel();
-    // ⚡ PHASE 3: userDataNotifier listener kaldırıldı
-    super.dispose();
+        super.dispose();
   }
 
   @override
@@ -100,8 +97,7 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
 
   void signOut() async {
     await AuthService().signOut();
-    // ⚡ PHASE 3: Riverpod AuthProvider kullan
-    ref.read(authStateProvider.notifier).logout();
+        ref.read(authStateProvider.notifier).logout();
 
     if (!mounted) return;
 
@@ -119,7 +115,6 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
   }
 
   /// Kullanıcı verileri yüklendiğinde veya değiştiğinde Drawer başlığını güncelle
-  /// ⚡ PHASE 3: Artık ref.watch kullanıldığı için otomatik güncelleniyor
   void updateDrawerHeader() {
     if (mounted) {
       setState(() {});

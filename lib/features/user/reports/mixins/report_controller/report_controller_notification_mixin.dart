@@ -35,7 +35,7 @@ mixin ReportControllerNotificationMixin<T extends StatefulWidget> on State<T> {
       payload: file.path,
     );
 
-    debugPrint('✅ ReportControllerMixin: Bildirim gösterildi');
+    debugPrint('ReportControllerMixin: Bildirim gösterildi');
   }
 
   /// Bildirimleri başlat
@@ -56,6 +56,6 @@ mixin ReportControllerNotificationMixin<T extends StatefulWidget> on State<T> {
       },
     );
 
-    debugPrint('✅ ReportControllerMixin: Bildirimler başlatıldı');
+    debugPrint('ReportControllerMixin: Bildirimler başlatıldı');
   }
 }

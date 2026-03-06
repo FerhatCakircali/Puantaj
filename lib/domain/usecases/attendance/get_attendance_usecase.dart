@@ -14,7 +14,6 @@ class GetAttendanceParams {
 }
 
 /// Get attendance use case
-///
 /// Fetches attendance records with optional filters.
 /// Business rules:
 /// - If employeeId provided, fetch by employee

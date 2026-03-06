@@ -5,7 +5,6 @@ import '../../../../services/attendance_check.dart';
 import 'notification_state_mixin.dart';
 
 /// Notification Settings ekranı için data operations mixin'i
-///
 /// Bu mixin, veri yükleme, kaydetme ve filtreleme işlemlerini yönetir.
 mixin NotificationDataMixin<T extends StatefulWidget>
     on NotificationStateMixin<T> {
@@ -66,7 +65,7 @@ mixin NotificationDataMixin<T extends StatefulWidget>
       debugPrint('👤 User ID: $userId');
 
       if (userId == null) {
-        debugPrint('❌ User ID null');
+        debugPrint('User ID null');
         showSnackBar('Oturum bilgisi alınamadı');
         return;
       }
@@ -79,7 +78,7 @@ mixin NotificationDataMixin<T extends StatefulWidget>
       );
 
       if (loadedSettings != null) {
-        debugPrint('✅ Ayarlar bulundu, state güncelleniyor');
+        debugPrint('Ayarlar bulundu, state güncelleniyor');
         setState(() {
           settings = loadedSettings;
           isEnabled = loadedSettings.enabled;
@@ -91,7 +90,7 @@ mixin NotificationDataMixin<T extends StatefulWidget>
           '✅ State güncellendi: isEnabled=$isEnabled, autoApproveTrusted=$autoApproveTrusted, attendanceRequestsEnabled=$attendanceRequestsEnabled, selectedTime=$selectedTime',
         );
       } else {
-        debugPrint('⚠️ Ayarlar bulunamadı, varsayılan değerler kullanılıyor');
+        debugPrint('Ayarlar bulunamadı, varsayılan değerler kullanılıyor');
         setState(() {
           settings = null;
           isEnabled = false;
@@ -101,13 +100,13 @@ mixin NotificationDataMixin<T extends StatefulWidget>
         });
       }
     } catch (e) {
-      debugPrint('❌ Hata: $e');
+      debugPrint('Hata: $e');
       showSnackBar('Ayarlar yüklenirken bir hata oluştu');
     } finally {
       setState(() {
         isLoading = false;
       });
-      debugPrint('✅ _loadSettings tamamlandı');
+      debugPrint('_loadSettings tamamlandı');
     }
   }
 
@@ -126,7 +125,7 @@ mixin NotificationDataMixin<T extends StatefulWidget>
       debugPrint('👤 User ID: $userId');
 
       if (userId == null) {
-        debugPrint('❌ User ID null');
+        debugPrint('User ID null');
         showSnackBar('Oturum bilgisi alınamadı');
         return;
       }
@@ -165,7 +164,7 @@ mixin NotificationDataMixin<T extends StatefulWidget>
       if (success) {
         // Yeni bildirim sistemi ile hatırlatıcıyı zamanla veya iptal et
         if (isEnabled) {
-          debugPrint('📅 Hatırlatıcı zamanlanıyor...');
+          debugPrint('Hatırlatıcı zamanlanıyor...');
           await scheduleAttendanceReminderWithNewSystem();
         } else {
           debugPrint('🚫 Hatırlatıcı iptal ediliyor...');
@@ -212,17 +211,17 @@ mixin NotificationDataMixin<T extends StatefulWidget>
         debugPrint('🔄 Ayarlar yeniden yükleniyor...');
         await loadSettings();
       } else {
-        debugPrint('❌ Kaydetme başarısız');
+        debugPrint('Kaydetme başarısız');
         showSnackBar('Bildirim ayarları kaydedilirken bir hata oluştu');
       }
     } catch (e) {
-      debugPrint('❌ Hata: $e');
+      debugPrint('Hata: $e');
       showSnackBar('Ayarlar kaydedilirken bir hata oluştu: $e');
     } finally {
       setState(() {
         isLoading = false;
       });
-      debugPrint('✅ _saveSettings tamamlandı');
+      debugPrint('_saveSettings tamamlandı');
     }
   }
 
@@ -255,9 +254,9 @@ mixin NotificationDataMixin<T extends StatefulWidget>
         time: TimeOfDay(hour: hour, minute: minute),
       );
 
-      debugPrint('✅ Yevmiye hatırlatıcısı yeni sistem ile zamanlandı');
+      debugPrint('Yevmiye hatırlatıcısı yeni sistem ile zamanlandı');
     } catch (e) {
-      debugPrint('❌ Yevmiye hatırlatıcısı zamanlanırken hata: $e');
+      debugPrint('Yevmiye hatırlatıcısı zamanlanırken hata: $e');
     }
   }
 
@@ -267,9 +266,9 @@ mixin NotificationDataMixin<T extends StatefulWidget>
       await notificationServiceV2.cancelNotification(
         1,
       ); // NotificationIds.attendanceReminder
-      debugPrint('✅ Yevmiye hatırlatıcısı iptal edildi');
+      debugPrint('Yevmiye hatırlatıcısı iptal edildi');
     } catch (e) {
-      debugPrint('❌ Yevmiye hatırlatıcısı iptal edilirken hata: $e');
+      debugPrint('Yevmiye hatırlatıcısı iptal edilirken hata: $e');
     }
   }
 

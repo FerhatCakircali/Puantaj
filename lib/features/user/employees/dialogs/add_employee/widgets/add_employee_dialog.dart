@@ -807,7 +807,7 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
     final usernameExists = await widget.onCheckUsername(
       _usernameController.text.trim().toLowerCase(),
     );
-    debugPrint('🔍 Dialog: Kullanıcı adı kontrolü sonucu: $usernameExists');
+    debugPrint('Dialog: Kullanıcı adı kontrolü sonucu: $usernameExists');
     if (!mounted) return;
     if (usernameExists) {
       _showErrorSnackBar('Bu kullanıcı adı zaten kullanılıyor');
@@ -821,7 +821,7 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
     final emailExists = await widget.onCheckEmail(
       _emailController.text.trim().toLowerCase(),
     );
-    debugPrint('🔍 Dialog: E-posta kontrolü sonucu: $emailExists');
+    debugPrint('Dialog: E-posta kontrolü sonucu: $emailExists');
     if (!mounted) return;
     if (emailExists) {
       _showErrorSnackBar('Bu e-posta adresi zaten kullanılıyor');
@@ -855,7 +855,7 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      _showErrorSnackBar('❌ Hata: $e');
+      _showErrorSnackBar('Hata: $e');
     }
   }
 

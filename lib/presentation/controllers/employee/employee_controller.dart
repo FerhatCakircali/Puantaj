@@ -9,7 +9,6 @@ import '../base_controller.dart';
 import 'employee_state.dart';
 
 /// Çalışan yönetimi controller'ı
-///
 /// Employee işlemlerini yönetir ve state'i günceller.
 class EmployeeController extends BaseController {
   final GetEmployeesUseCase _getEmployeesUseCase;

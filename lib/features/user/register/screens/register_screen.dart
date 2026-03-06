@@ -6,9 +6,6 @@ import '../controllers/register_controller.dart';
 import '../widgets/register_form.dart';
 
 /// Kayıt ekranı
-///
-/// Yeni kullanıcı kaydı işlemlerini yönetir.
-/// AGENTS.md kurallarına uygun olarak modüler yapıda tasarlanmıştır.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -78,10 +75,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // Debounce: 500ms bekle
     _emailDebounce?.cancel();
 
-    debugPrint('🔍 RegisterScreen: Email validation başladı: $value');
+    debugPrint('RegisterScreen: Email validation başladı: $value');
 
     if (value.trim().isEmpty) {
-      debugPrint('🔍 RegisterScreen: Email boş, hata temizlendi');
+      debugPrint('RegisterScreen: Email boş, hata temizlendi');
       setState(() => _emailError = null);
       return;
     }
@@ -90,13 +87,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
     if (!emailRegex.hasMatch(value.trim())) {
-      debugPrint('🔍 RegisterScreen: Email format hatası');
+      debugPrint('RegisterScreen: Email format hatası');
       setState(() => _emailError = 'Geçerli bir e-posta adresi girin');
       return;
     }
 
     _emailDebounce = Timer(const Duration(milliseconds: 500), () async {
-      debugPrint('🔍 RegisterScreen: Email kontrolü başlıyor: ${value.trim()}');
+      debugPrint('RegisterScreen: Email kontrolü başlıyor: ${value.trim()}');
       // Email kullanılabilirlik kontrolü
       final availabilityError = await _controller.checkEmailAvailability(
         value.trim(),

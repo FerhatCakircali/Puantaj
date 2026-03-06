@@ -2,7 +2,6 @@ import '../../core/error/result.dart';
 import '../entities/user.dart';
 
 /// Authentication repository interface
-///
 /// Defines contract for authentication operations.
 /// Implementations handle actual authentication logic with data sources.
 abstract class IAuthRepository {

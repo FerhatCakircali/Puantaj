@@ -11,7 +11,6 @@ class DeleteEmployeeParams {
 }
 
 /// Delete employee use case
-///
 /// Deletes employee from system.
 /// Business rules:
 /// - Employee must exist

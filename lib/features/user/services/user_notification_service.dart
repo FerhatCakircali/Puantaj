@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/app_globals.dart';
 
 /// Kullanıcı bildirimleri servisi
-///
 /// Kullanıcıların bildirimlerini yönetir
 class UserNotificationService {
   /// Kullanıcının tüm bildirimlerini getirir

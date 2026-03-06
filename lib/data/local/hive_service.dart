@@ -9,7 +9,6 @@ import 'hive_adapters/payment_adapter.dart';
 import 'hive_adapters/worker_adapter.dart';
 
 /// Hive yerel veritabanı servisi
-///
 /// Offline-first mimari için tüm Hive işlemlerini yönetir.
 /// Box isimleri, adapter kayıtları ve initialization işlemlerini içerir.
 class HiveService {

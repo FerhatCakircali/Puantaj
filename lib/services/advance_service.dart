@@ -22,7 +22,7 @@ class AdvanceService {
         return [];
       }
 
-      debugPrint('💰 Avanslar getiriliyor...');
+      debugPrint('Avanslar getiriliyor...');
 
       final results = await supabase
           .from('advances')
@@ -32,7 +32,7 @@ class AdvanceService {
 
       final advances = results.map((map) => Advance.fromMap(map)).toList();
 
-      debugPrint('✅ ${advances.length} avans getirildi');
+      debugPrint('${advances.length} avans getirildi');
       return advances;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
@@ -55,7 +55,7 @@ class AdvanceService {
         return [];
       }
 
-      debugPrint('💰 Çalışan avansları getiriliyor: workerId=$workerId');
+      debugPrint('Çalışan avansları getiriliyor: workerId=$workerId');
 
       final results = await supabase
           .from('advances')
@@ -66,7 +66,7 @@ class AdvanceService {
 
       final advances = results.map((map) => Advance.fromMap(map)).toList();
 
-      debugPrint('✅ ${advances.length} avans getirildi');
+      debugPrint('${advances.length} avans getirildi');
       return advances;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
@@ -89,7 +89,7 @@ class AdvanceService {
         return 0.0;
       }
 
-      debugPrint('💰 Bekleyen avanslar hesaplanıyor: workerId=$workerId');
+      debugPrint('Bekleyen avanslar hesaplanıyor: workerId=$workerId');
 
       final result = await supabase.rpc(
         'get_worker_pending_advances',
@@ -115,7 +115,7 @@ class AdvanceService {
   /// Çalışanın toplam avansını getir
   Future<double> getWorkerTotalAdvances(int workerId) async {
     try {
-      debugPrint('💰 Toplam avans hesaplanıyor: workerId=$workerId');
+      debugPrint('Toplam avans hesaplanıyor: workerId=$workerId');
 
       final result = await supabase.rpc(
         'get_worker_total_advances',
@@ -147,10 +147,10 @@ class AdvanceService {
         throw Exception('Kullanıcı oturumu bulunamadı');
       }
 
-      debugPrint('💰 Yeni avans ekleniyor: ${advance.amount}');
+      debugPrint('Yeni avans ekleniyor: ${advance.amount}');
 
       final advanceMap = advance.copyWith(userId: userId).toMap();
-      debugPrint('💰 Avans map: $advanceMap');
+      debugPrint('Avans map: $advanceMap');
 
       final result = await supabase
           .from('advances')
@@ -160,7 +160,7 @@ class AdvanceService {
 
       final newAdvance = Advance.fromMap(result);
 
-      debugPrint('✅ Avans başarıyla eklendi (ID: ${newAdvance.id})');
+      debugPrint('Avans başarıyla eklendi (ID: ${newAdvance.id})');
 
       // Çalışana bildirim gönder
       await _sendAdvanceNotification(newAdvance);
@@ -183,14 +183,14 @@ class AdvanceService {
         throw Exception('Avans ID bulunamadı');
       }
 
-      debugPrint('💰 Avans güncelleniyor: ID=${advance.id}');
+      debugPrint('Avans güncelleniyor: ID=${advance.id}');
 
       final advanceMap = advance.toMap();
       advanceMap.remove('id'); // ID'yi güncelleme map'inden çıkar
 
       await supabase.from('advances').update(advanceMap).eq('id', advance.id!);
 
-      debugPrint('✅ Avans başarıyla güncellendi');
+      debugPrint('Avans başarıyla güncellendi');
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'AdvanceService.updateAdvance hatası',
@@ -204,11 +204,11 @@ class AdvanceService {
   /// Avans sil
   Future<void> deleteAdvance(int advanceId) async {
     try {
-      debugPrint('💰 Avans siliniyor: ID=$advanceId');
+      debugPrint('Avans siliniyor: ID=$advanceId');
 
       await supabase.from('advances').delete().eq('id', advanceId);
 
-      debugPrint('✅ Avans başarıyla silindi');
+      debugPrint('Avans başarıyla silindi');
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'AdvanceService.deleteAdvance hatası',
@@ -231,7 +231,7 @@ class AdvanceService {
           .update({'is_deducted': true, 'deducted_from_payment_id': paymentId})
           .eq('id', advanceId);
 
-      debugPrint('✅ Avans başarıyla düşüldü');
+      debugPrint('Avans başarıyla düşüldü');
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'AdvanceService.markAsDeducted hatası',
@@ -256,7 +256,7 @@ class AdvanceService {
         return 0.0;
       }
 
-      debugPrint('💰 Aylık avans hesaplanıyor: $monthStart - $monthEnd');
+      debugPrint('Aylık avans hesaplanıyor: $monthStart - $monthEnd');
 
       final result = await supabase.rpc(
         'get_monthly_advances',
@@ -310,7 +310,7 @@ class AdvanceService {
         'related_id': advance.id,
       });
 
-      debugPrint('✅ Avans bildirimi gönderildi');
+      debugPrint('Avans bildirimi gönderildi');
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'AdvanceService._sendAdvanceNotification hatası',

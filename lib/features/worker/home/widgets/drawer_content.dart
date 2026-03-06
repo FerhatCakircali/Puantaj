@@ -78,8 +78,7 @@ class WorkerHomeScreenDrawerContent extends ConsumerWidget {
               horizontal: screenWidth * 0.025,
               vertical: screenHeight * 0.005,
             ),
-            // ⚡ PHASE 3: Riverpod ThemeProvider kullanımı
-            child: Builder(
+                        child: Builder(
               builder: (context) {
                 final themeMode = ref.watch(themeStateProvider);
                 final isDark = themeMode == ThemeMode.dark;
