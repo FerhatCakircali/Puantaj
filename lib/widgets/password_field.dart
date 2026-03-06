@@ -38,18 +38,17 @@ class _PasswordFieldState extends State<PasswordField> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.5), // Her zaman görünür border
+            color: Theme.of(context).colorScheme.onSurface.withValues(
+              alpha: 0.5,
+            ), // Her zaman görünür border
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(
-            color:
-                Theme.of(
-                  context,
-                ).colorScheme.primary, // Focus olunca temanın ana rengi
+            color: Theme.of(
+              context,
+            ).colorScheme.primary, // Focus olunca temanın ana rengi
             width: 2,
           ),
         ),

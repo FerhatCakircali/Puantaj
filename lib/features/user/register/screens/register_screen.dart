@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../auth/login/screens/login_screen.dart';
 import '../controllers/register_controller.dart';

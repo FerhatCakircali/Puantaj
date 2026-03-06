@@ -19,15 +19,15 @@ extension DateTimeExtensions on DateTime {
   DateTime toLocal() {
     return isUtc
         ? DateTime(
-          year,
-          month,
-          day,
-          hour,
-          minute,
-          second,
-          millisecond,
-          microsecond,
-        )
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
+            millisecond,
+            microsecond,
+          )
         : this;
   }
 

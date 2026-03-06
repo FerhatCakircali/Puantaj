@@ -473,80 +473,80 @@ Bu implementation plan, Flutter Puantaj uygulamasının 6 fazlı optimizasyon s�
 
 ### Phase 5: Dependency Yönetimi ve Temizlik (Hafta 6)
 
-- [ ] 23. Kullanılmayan paketleri kaldır
-  - [ ] 23.1 pubspec.yaml backup'ı al
+- [x] 23. Kullanılmayan paketleri kaldır
+  - [x] 23.1 pubspec.yaml backup'ı al
     - Mevcut pubspec.yaml'ı yedekle
     - _Requirements: 14.12_
     - _Estimated time: 5 minutes_
   
-  - [ ] 23.2 Kullanılmayan paketleri kaldır
+  - [x] 23.2 Kullanılmayan paketleri kaldır
     - `riverpod_annotation: ^4.0.2` kaldır (code generation kullanılmıyor)
     - `googleapis: ^15.0.0` kaldır (kullanılmıyor)
     - `googleapis_auth: ^2.0.0` kaldır (kullanılmıyor)
     - _Requirements: 11.1, 11.2, 11.3_
     - _Estimated time: 15 minutes_
 
-- [ ] 24. Eksik paketleri ekle
-  - [ ] 24.1 Yeni paketleri pubspec.yaml'a ekle
+- [x] 24. Eksik paketleri ekle
+  - [x] 24.1 Yeni paketleri pubspec.yaml'a ekle
     - `cached_network_image: ^3.3.1` ekle (zaten 20.1'de eklendi)
     - `connectivity_plus: ^6.0.5` ekle (network durumu kontrolü)
     - _Requirements: 11.4, 11.5_
     - _Estimated time: 10 minutes_
   
-  - [ ] 24.2 flutter pub get çalıştır
+  - [x] 24.2 flutter pub get çalıştır
     - Dependency'leri indir
     - Hata olmadığını doğrula
     - _Requirements: 11.6_
     - _Estimated time: 5 minutes_
 
-- [ ] 25. Import temizliği ve static analysis
-  - [ ] 25.1 Kullanılmayan import'ları kaldır
+- [x] 25. Import temizliği ve static analysis
+  - [x] 25.1 Kullanılmayan import'ları kaldır
     - Tüm Dart dosyalarında unused import'ları temizle
     - IDE'nin "Optimize Imports" özelliğini kullan
     - _Requirements: 11.8, 15.4_
     - _Estimated time: 1 hour_
   
-  - [ ] 25.2 flutter analyze çalıştır ve düzelt
+  - [x] 25.2 flutter analyze çalıştır ve düzelt
     - `flutter analyze` komutunu çalıştır
     - Tüm error'ları düzelt
     - Tüm warning'leri düzelt
     - _Requirements: 11.7, 15.1, 15.2_
     - _Estimated time: 2 hours_
 
-- [ ] 26. Code quality iyileştirmeleri
-  - [ ] 26.1 Naming convention'ları kontrol et
+- [x] 26. Code quality iyileştirmeleri
+  - [x] 26.1 Naming convention'ları kontrol et
     - Tutarlı naming kullanıldığını doğrula
     - Anlamlı değişken/fonksiyon isimleri
     - _Requirements: 15.4, 15.9_
     - _Estimated time: 1 hour_
   
-  - [ ] 26.2 Const constructor'ları ekle
+  - [x] 26.2 Const constructor'ları ekle
     - Mümkün olan yerlerde const constructor kullan
     - Performance için optimize et
     - _Requirements: 15.6_
     - _Estimated time: 1.5 hours_
   
-  - [ ] 26.3 Dartdoc comment'leri ekle
+  - [x] 26.3 Dartdoc comment'leri ekle
     - Public API'lar için documentation yaz
     - Utility fonksiyonlarını dokümante et
     - Provider'ları dokümante et
     - _Requirements: 15.5_
     - _Estimated time: 2 hours_
   
-  - [ ] 26.4 Code formatting kontrolü
+  - [x] 26.4 Code formatting kontrolü
     - `dart format .` çalıştır
     - Flutter style guide'a uygunluğu kontrol et
     - _Requirements: 15.7_
     - _Estimated time: 30 minutes_
 
-- [ ] 27. Build testleri
-  - [ ] 27.1 Android build testi
+- [x] 27. Build testleri
+  - [x] 27.1 Android build testi
     - `flutter build apk` çalıştır
     - Build başarılı olmalı
     - _Requirements: 11.9_
     - _Estimated time: 30 minutes_
   
-  - [ ] 27.2 iOS build testi
+  - [x] 27.2 iOS build testi
     - `flutter build ios` çalıştır (Mac gerekli)
     - Build başarılı olmalı
     - _Requirements: 11.10_

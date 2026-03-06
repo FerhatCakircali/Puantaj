@@ -33,12 +33,13 @@ class AttendanceCheck {
     final now = DateTime.now();
     final attendanceKey = await _getUserAttendanceKey();
     await prefs.setString(attendanceKey, now.toIso8601String());
-    
+
     // Ayrıca bugün için işlem yapıldığını belirt (yeni anahtar)
-    final todayKey = 'attendance_done_today_${now.year}_${now.month}_${now.day}';
+    final todayKey =
+        'attendance_done_today_${now.year}_${now.month}_${now.day}';
     await prefs.setBool(todayKey, true);
   }
-  
+
   /// Kullanıcı değiştiğinde veya çıkış yapıldığında yevmiye durumunu temizle
   static Future<void> clearAttendanceState() async {
     final prefs = await SharedPreferences.getInstance();
