@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'auth_service.dart';
 import '../models/employee.dart';
 import '../core/app_globals.dart';
+import '../utils/date_formatter.dart';
+import '../core/error_logger.dart';
 
 class EmployeeService {
   final AuthService _authService = AuthService();
@@ -34,8 +36,12 @@ class EmployeeService {
           .single();
 
       return result['id'];
-    } catch (e) {
-      debugPrint('Çalışan eklenirken hata oluştu: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'EmployeeService.addEmployee hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return -1;
     }
   }
@@ -52,8 +58,12 @@ class EmployeeService {
           .eq('user_id', userId);
 
       return 1;
-    } catch (e) {
-      debugPrint('Çalışan güncellenirken hata oluştu: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'EmployeeService.updateEmployee hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return -1;
     }
   }
@@ -70,8 +80,12 @@ class EmployeeService {
           .eq('user_id', userId);
 
       return 1;
-    } catch (e) {
-      debugPrint('Çalışan silinirken hata oluştu: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'EmployeeService.deleteEmployee hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return -1;
     }
   }
@@ -91,8 +105,12 @@ class EmployeeService {
       await supabase.from('workers').delete().eq('user_id', userId);
 
       return 1;
-    } catch (e) {
-      debugPrint('Tüm çalışanlar silinirken hata oluştu: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'EmployeeService.deleteAllEmployees hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return -1;
     }
   }
@@ -102,7 +120,7 @@ class EmployeeService {
     final userId = await _authService.getUserId();
     if (userId == null) return false;
 
-    final formattedDate = _formatDate(date);
+    final formattedDate = DateFormatter.toIso8601Date(date);
 
     try {
       // Devam kayıtlarını kontrol et
@@ -128,8 +146,12 @@ class EmployeeService {
           .limit(1);
 
       return paymentResults.isNotEmpty;
-    } catch (e) {
-      debugPrint('Tarih öncesi kayıt kontrolünde hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'EmployeeService.hasRecordsBeforeDate hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return false;
     }
   }
@@ -139,7 +161,7 @@ class EmployeeService {
     final userId = await _authService.getUserId();
     if (userId == null) return;
 
-    final formattedDate = _formatDate(date);
+    final formattedDate = DateFormatter.toIso8601Date(date);
 
     try {
       // 1. Önce devam kayıtlarını sil
@@ -184,8 +206,12 @@ class EmployeeService {
       debugPrint(
         "$workerId ID'li çalışanın $formattedDate tarihinden önceki kayıtları silindi",
       );
-    } catch (e) {
-      debugPrint('Tarih öncesi kayıtları silerken hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'EmployeeService.deleteRecordsBeforeDate hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -220,8 +246,12 @@ class EmployeeService {
           debugPrint("Sahipsiz ödeme kaydı silindi: $paymentId");
         }
       }
-    } catch (e) {
-      debugPrint('Sahipsiz ödemeleri silerken hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'EmployeeService._deleteOrphanedPayments hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -266,12 +296,12 @@ class EmployeeService {
           "Ödeme kaydı güncellendi: $paymentId (Tam: $fullDays, Yarım: $halfDays)",
         );
       }
-    } catch (e) {
-      debugPrint('Ödemeleri güncellerken hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'EmployeeService._updateRemainingPayments hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }
