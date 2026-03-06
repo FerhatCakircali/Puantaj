@@ -1,17 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../models/advance.dart';
 import '../core/app_globals.dart';
+import '../utils/date_formatter.dart';
 import 'auth_service.dart';
 
 /// Avans yönetimi servisi
 /// Çalışanlara verilen avansların CRUD işlemlerini yönetir
 class AdvanceService {
   final _authService = AuthService();
-
-  /// Tarih formatı helper
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
 
   /// Tutarı binlik ayırıcı ile formatla (₺600.234)
   String _formatAmount(double amount) {
@@ -224,8 +220,8 @@ class AdvanceService {
         'get_monthly_advances',
         params: {
           'user_id_param': userId,
-          'month_start': _formatDate(monthStart),
-          'month_end': _formatDate(monthEnd),
+          'month_start': DateFormatter.toIso8601Date(monthStart),
+          'month_end': DateFormatter.toIso8601Date(monthEnd),
         },
       );
 

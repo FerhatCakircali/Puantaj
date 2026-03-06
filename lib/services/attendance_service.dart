@@ -1,16 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/attendance.dart';
+import '../utils/date_formatter.dart';
 import 'auth_service.dart';
 import 'notification_service.dart';
 
 class AttendanceService {
   final AuthService _authService = AuthService();
   final NotificationService _notificationServiceV2 = NotificationService();
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
 
   SupabaseClient get supabase => Supabase.instance.client;
 
@@ -19,7 +16,7 @@ class AttendanceService {
       final userId = await _authService.getUserId();
       if (userId == null) return [];
 
-      final formattedDate = _formatDate(date);
+      final formattedDate = DateFormatter.toIso8601Date(date);
 
       final results = await supabase
           .from('attendance')
@@ -43,8 +40,8 @@ class AttendanceService {
       final userId = await _authService.getUserId();
       if (userId == null) return [];
 
-      final formattedStartDate = _formatDate(startDate);
-      final formattedEndDate = _formatDate(endDate);
+      final formattedStartDate = DateFormatter.toIso8601Date(startDate);
+      final formattedEndDate = DateFormatter.toIso8601Date(endDate);
 
       var query = supabase
           .from('attendance')
@@ -75,7 +72,7 @@ class AttendanceService {
       final userId = await _authService.getUserId();
       if (userId == null) return;
 
-      final formattedDate = _formatDate(date);
+      final formattedDate = DateFormatter.toIso8601Date(date);
 
       debugPrint(
         '💾 [AttendanceService] Kaydediliyor: worker=$workerId, date=$formattedDate, status=${status.name}',
@@ -105,7 +102,8 @@ class AttendanceService {
 
       // Yevmiye girişi yapıldığında bugünün hatırlatıcısını iptal et
       final today = DateTime.now();
-      if (_formatDate(date) == _formatDate(today)) {
+      if (DateFormatter.toIso8601Date(date) ==
+          DateFormatter.toIso8601Date(today)) {
         try {
           await _notificationServiceV2.cancelNotification(
             1,

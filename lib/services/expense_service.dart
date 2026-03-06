@@ -1,17 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../models/expense.dart';
 import '../core/app_globals.dart';
+import '../utils/date_formatter.dart';
 import 'auth_service.dart';
 
 /// Masraf yönetimi servisi
 /// İş masraflarının (malzeme, ulaşım vb.) CRUD işlemlerini yönetir
 class ExpenseService {
   final _authService = AuthService();
-
-  /// Tarih formatı helper
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
 
   /// Tutarı binlik ayırıcı ile formatla (₺600.234)
   String _formatAmount(double amount) {
@@ -228,8 +224,8 @@ class ExpenseService {
         'get_monthly_expenses',
         params: {
           'user_id_param': userId,
-          'month_start': _formatDate(monthStart),
-          'month_end': _formatDate(monthEnd),
+          'month_start': DateFormatter.toIso8601Date(monthStart),
+          'month_end': DateFormatter.toIso8601Date(monthEnd),
         },
       );
 
@@ -260,8 +256,8 @@ class ExpenseService {
           .from('expenses')
           .select()
           .eq('user_id', userId)
-          .gte('expense_date', _formatDate(startDate))
-          .lte('expense_date', _formatDate(endDate))
+          .gte('expense_date', DateFormatter.toIso8601Date(startDate))
+          .lte('expense_date', DateFormatter.toIso8601Date(endDate))
           .order('expense_date', ascending: false);
 
       final expenses = results.map((map) => Expense.fromMap(map)).toList();

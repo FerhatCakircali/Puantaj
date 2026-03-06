@@ -2,14 +2,11 @@ import '../models/payment.dart';
 import 'auth_service.dart';
 import '../models/attendance.dart';
 import '../core/app_globals.dart';
+import '../utils/date_formatter.dart';
 import 'package:flutter/foundation.dart';
 
 class PaymentService {
   final _authService = AuthService();
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
 
   /// Tutarı binlik ayırıcı ile formatla (₺600.234)
   String _formatAmount(double amount) {
@@ -127,7 +124,7 @@ class PaymentService {
     await supabase.from('paid_days').insert({
       'user_id': userId,
       'worker_id': record.workerId,
-      'date': _formatDate(record.date),
+      'date': DateFormatter.toIso8601Date(record.date),
       'status': record.status == AttendanceStatus.fullDay
           ? 'fullDay'
           : 'halfDay',
@@ -164,7 +161,7 @@ class PaymentService {
 
     final unpaidAttendance = allAttendanceResults
         .where((record) {
-          final recordDate = _formatDate(
+          final recordDate = DateFormatter.toIso8601Date(
             DateTime.parse(record['date'] as String),
           );
           final recordStatus = record['status'] as String;
@@ -272,7 +269,9 @@ class PaymentService {
 
     // Ödenmemiş günleri filtrele
     final unpaidAttendance = allAttendanceResults.where((record) {
-      final recordDate = _formatDate(DateTime.parse(record['date'] as String));
+      final recordDate = DateFormatter.toIso8601Date(
+        DateTime.parse(record['date'] as String),
+      );
       final recordStatus = record['status'] as String;
 
       return !paidDays.any(
@@ -308,7 +307,7 @@ class PaymentService {
     final userId = await _authService.getUserId();
     if (userId == null) return false;
 
-    final formattedDate = _formatDate(date);
+    final formattedDate = DateFormatter.toIso8601Date(date);
     final statusStr = status == AttendanceStatus.fullDay
         ? 'fullDay'
         : 'halfDay';
@@ -397,8 +396,8 @@ class PaymentService {
           .from('payments')
           .select('*, workers!inner(full_name)')
           .eq('user_id', userId)
-          .gte('payment_date', _formatDate(startDate))
-          .lte('payment_date', _formatDate(endDate));
+          .gte('payment_date', DateFormatter.toIso8601Date(startDate))
+          .lte('payment_date', DateFormatter.toIso8601Date(endDate));
 
       final paymentsResults = await paymentsQuery;
 
@@ -407,8 +406,8 @@ class PaymentService {
           .from('advances')
           .select('*, workers!inner(full_name)')
           .eq('user_id', userId)
-          .gte('advance_date', _formatDate(startDate))
-          .lte('advance_date', _formatDate(endDate));
+          .gte('advance_date', DateFormatter.toIso8601Date(startDate))
+          .lte('advance_date', DateFormatter.toIso8601Date(endDate));
 
       final advancesResults = await advancesQuery;
 

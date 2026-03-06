@@ -2,16 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/worker.dart';
 import '../models/employee.dart';
+import '../utils/date_formatter.dart';
 import 'auth_service.dart';
 import 'validation_service.dart';
 
 class WorkerService {
   final AuthService _authService = AuthService();
   final _validationService = ValidationService.instance;
-
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
 
   SupabaseClient get supabase => Supabase.instance.client;
 
@@ -122,7 +119,7 @@ class WorkerService {
             'title': employee.title,
             'phone': employee.phone,
             'email': employee.email,
-            'start_date': _formatDate(employee.startDate),
+            'start_date': DateFormatter.toIso8601Date(employee.startDate),
             'user_id': userId,
             'username':
                 employee.username ??
@@ -238,7 +235,7 @@ class WorkerService {
             'full_name': employee.name,
             'title': employee.title,
             'phone': employee.phone,
-            'start_date': _formatDate(employee.startDate),
+            'start_date': DateFormatter.toIso8601Date(employee.startDate),
             'is_active': employee.isActive,
             'is_trusted': employee.isTrusted,
             'updated_at': DateTime.now().toIso8601String(),
@@ -337,7 +334,7 @@ class WorkerService {
     final userId = await _authService.getUserId();
     if (userId == null) return false;
 
-    final formattedDate = _formatDate(date);
+    final formattedDate = DateFormatter.toIso8601Date(date);
 
     try {
       // Devam kayıtlarını kontrol et
@@ -373,7 +370,7 @@ class WorkerService {
     final userId = await _authService.getUserId();
     if (userId == null) return;
 
-    final formattedDate = _formatDate(date);
+    final formattedDate = DateFormatter.toIso8601Date(date);
 
     try {
       // 1. Önce devam kayıtlarını sil

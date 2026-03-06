@@ -287,7 +287,7 @@ Bu doküman, Flutter Puantaj uygulamasının performans ve kod kalitesi optimiza
 2. WHEN flutter analyze runs THEN the System SHALL report zero warnings
 3. THE System SHALL eliminate all code duplication across service files
 4. THE System SHALL use consistent naming conventions across all modules
-5. THE System SHALL document all public APIs with dartdoc comments
+5. THE System SHALL document all public APIs with dartdoc comments in Turkish language
 6. THE System SHALL use const constructors where possible for performance
 7. THE System SHALL follow Flutter style guide for code formatting
 8. WHEN code review is performed THEN all changes SHALL be approved by senior developer
@@ -295,6 +295,8 @@ Bu doküman, Flutter Puantaj uygulamasının performans ve kod kalitesi optimiza
 10. THE System SHALL limit function length to maximum 50 lines
 11. THE System SHALL limit file length to maximum 500 lines
 12. THE System SHALL organize imports in alphabetical order with proper grouping
+13. THE System SHALL write all code comments and documentation in Turkish language
+14. WHEN a new utility or service is created THEN all dartdoc comments SHALL be in Turkish
 
 ## Non-Functional Requirements
 
