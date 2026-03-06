@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_globals.dart';
 import '../core/user_data_notifier.dart';
+import '../core/providers/auth_provider.dart';
 import '../services/auth_service.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -307,8 +309,11 @@ class AppDrawer extends StatelessWidget {
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               await _authService.signOut();
-              authStateNotifier.value = false;
+              // ⚡ PHASE 3: Riverpod AuthProvider kullan
+              // Consumer ile ref'e erişim sağlanıyor
               if (context.mounted) {
+                final container = ProviderScope.containerOf(context);
+                container.read(authStateProvider.notifier).logout();
                 context.go('/login');
               }
             },

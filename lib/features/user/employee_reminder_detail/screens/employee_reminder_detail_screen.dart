@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../models/employee_reminder.dart';
@@ -7,6 +8,7 @@ import '../../../../services/notification_service.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../core/app_globals.dart';
 import '../../../../core/user_data_notifier.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../home/mixins/home_drawer.dart';
 import '../widgets/index.dart';
 
@@ -218,9 +220,10 @@ class _EmployeeReminderDetailScreenState
                     try {
                       final authService = AuthService();
                       await authService.signOut();
-                      authStateNotifier.value = false;
-
-                      if (mounted) {
+                      // ⚡ PHASE 3: Riverpod AuthProvider kullan
+                      if (mounted && context.mounted) {
+                        final container = ProviderScope.containerOf(context);
+                        container.read(authStateProvider.notifier).logout();
                         context.go('/login');
                       }
                     } catch (e) {

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../services/auth_service.dart';
-import '../../../../core/app_globals.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../features/user/services/user_notification_listener_service.dart';
 
 /// Çıkış onay dialog widget'ı - User paneli ile BIREBIR aynı
+/// ⚡ PHASE 3: Riverpod AuthProvider kullanır
 Future<void> showAdminLogoutDialog({
   required BuildContext context,
   required AuthService authService,
@@ -26,7 +28,11 @@ Future<void> showAdminLogoutDialog({
             try {
               await UserNotificationListenerService.instance.stopListening();
               await authService.signOut();
-              authStateNotifier.value = false;
+              // ⚡ PHASE 3: Riverpod AuthProvider kullan
+              if (context.mounted) {
+                final container = ProviderScope.containerOf(context);
+                container.read(authStateProvider.notifier).logout();
+              }
 
               debugPrint(
                 '✅ Çıkış işlemi tamamlandı, login ekranına yönlendiriliyor',
