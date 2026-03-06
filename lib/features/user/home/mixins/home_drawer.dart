@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../core/app_globals.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/providers/theme_provider.dart';
 
 /// Ana ekran drawer widget'ı
-class HomeDrawer extends StatelessWidget {
+/// ⚡ PHASE 3: Riverpod ThemeProvider kullanır
+class HomeDrawer extends ConsumerWidget {
   final String firstName;
   final String lastName;
   final bool isAdmin;
@@ -25,7 +27,8 @@ class HomeDrawer extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     return Drawer(
       width: MediaQuery.of(context).size.width * 0.75,
       child: SafeArea(
@@ -170,10 +173,11 @@ class HomeDrawer extends StatelessWidget {
             // Theme toggle
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ValueListenableBuilder<ThemeMode>(
-                valueListenable: themeModeNotifier,
-                builder: (context, mode, _) {
-                  final isDark = mode == ThemeMode.dark;
+              // ⚡ PHASE 3: Riverpod ThemeProvider kullanımı
+              child: Builder(
+                builder: (context) {
+                  final themeMode = ref.watch(themeStateProvider);
+                  final isDark = themeMode == ThemeMode.dark;
                   return ListTile(
                     leading: Icon(
                       isDark
@@ -196,10 +200,10 @@ class HomeDrawer extends StatelessWidget {
                       inactiveTrackColor: isDark
                           ? Colors.grey.shade800
                           : Colors.grey.shade400,
-                      trackOutlineColor: MaterialStateProperty.resolveWith((
+                      trackOutlineColor: WidgetStateProperty.resolveWith((
                         states,
                       ) {
-                        if (states.contains(MaterialState.selected)) {
+                        if (states.contains(WidgetState.selected)) {
                           return Colors.transparent;
                         }
                         return isDark

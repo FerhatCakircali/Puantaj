@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../models/activity_log.dart';
+import '../../../../utils/cached_future_builder.dart';
 import '../services/activity_log_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -36,8 +37,10 @@ class RecentActivitiesCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            FutureBuilder<List<ActivityLog>>(
-              future: activityLogService.getRecentActivities(limit: 5),
+            CachedFutureBuilder<List<ActivityLog>>(
+              future: () => activityLogService.getRecentActivities(limit: 5),
+              cacheDuration: const Duration(minutes: 2),
+              cacheKey: 'recent_activities',
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(

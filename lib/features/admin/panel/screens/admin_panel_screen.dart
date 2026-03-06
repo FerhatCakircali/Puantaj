@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../services/auth_service.dart';
-import '../../../../core/app_globals.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../widgets/theme_toggle_animation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/index.dart';
 
-class AdminPanelScreen extends StatefulWidget {
+class AdminPanelScreen extends ConsumerStatefulWidget {
   const AdminPanelScreen({super.key});
 
   @override
-  State<AdminPanelScreen> createState() => _AdminPanelScreenState();
+  ConsumerState<AdminPanelScreen> createState() => _AdminPanelScreenState();
 }
 
-class _AdminPanelScreenState extends State<AdminPanelScreen>
+class _AdminPanelScreenState extends ConsumerState<AdminPanelScreen>
     with SingleTickerProviderStateMixin {
   final _authService = AuthService();
   final GlobalKey _themeIconKey = GlobalKey();
@@ -30,23 +30,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
     super.dispose();
   }
 
-  Future<void> _saveThemeMode(ThemeMode mode) async {
-    final prefs = await SharedPreferences.getInstance();
-    switch (mode) {
-      case ThemeMode.dark:
-        await prefs.setString('theme_mode', 'dark');
-        break;
-      case ThemeMode.light:
-        await prefs.setString('theme_mode', 'light');
-        break;
-      case ThemeMode.system:
-        await prefs.setString('theme_mode', 'system');
-        break;
-    }
-  }
-
   void _toggleThemeWithAnimation() async {
-    final currentMode = themeModeNotifier.value;
+    final currentMode = ref.read(themeStateProvider);
     final newMode = currentMode == ThemeMode.dark
         ? ThemeMode.light
         : ThemeMode.dark;
@@ -63,8 +48,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
           iconPosition + Offset(iconSize.width / 2, iconSize.height / 2);
     }
 
-    themeModeNotifier.value = newMode;
-    _saveThemeMode(newMode);
+    // Riverpod provider ile tema değiştir
+    ref.read(themeStateProvider.notifier).setTheme(newMode);
 
     await ThemeToggleAnimation.show(
       context,
@@ -76,34 +61,31 @@ class _AdminPanelScreenState extends State<AdminPanelScreen>
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeStateProvider);
+    final isDark = themeMode == ThemeMode.dark;
+
     return Scaffold(
       appBar: AppBar(
-        leading: ValueListenableBuilder<ThemeMode>(
-          valueListenable: themeModeNotifier,
-          builder: (context, mode, _) {
-            final isDark = mode == ThemeMode.dark;
-            return Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
-                transitionBuilder: (child, anim) => RotationTransition(
-                  turns: child.key == const ValueKey('dark')
-                      ? Tween<double>(begin: 1, end: 0.75).animate(anim)
-                      : Tween<double>(begin: 0.75, end: 1).animate(anim),
-                  child: FadeTransition(opacity: anim, child: child),
-                ),
-                child: IconButton(
-                  key: _themeIconKey,
-                  tooltip: isDark ? 'Açık moda geç' : 'Koyu moda geç',
-                  icon: Icon(
-                    isDark ? Icons.dark_mode : Icons.light_mode,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  onPressed: _toggleThemeWithAnimation,
-                ),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 350),
+            transitionBuilder: (child, anim) => RotationTransition(
+              turns: child.key == const ValueKey('dark')
+                  ? Tween<double>(begin: 1, end: 0.75).animate(anim)
+                  : Tween<double>(begin: 0.75, end: 1).animate(anim),
+              child: FadeTransition(opacity: anim, child: child),
+            ),
+            child: IconButton(
+              key: _themeIconKey,
+              tooltip: isDark ? 'Açık moda geç' : 'Koyu moda geç',
+              icon: Icon(
+                isDark ? Icons.dark_mode : Icons.light_mode,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
-            );
-          },
+              onPressed: _toggleThemeWithAnimation,
+            ),
+          ),
         ),
         title: const Text('Admin Paneli'),
         bottom: TabBar(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../widgets/shimmer_loading.dart';
+import '../../../../utils/cached_future_builder.dart';
 import 'profile_header_card.dart';
 import 'profile_info_card.dart';
 import 'profile_security_card.dart';
@@ -19,8 +20,10 @@ class ProfileTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: authService.currentUser,
+    return CachedFutureBuilder<Map<String, dynamic>?>(
+      future: () => authService.currentUser,
+      cacheDuration: const Duration(minutes: 5),
+      cacheKey: 'admin_profile',
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const ProfileShimmer();

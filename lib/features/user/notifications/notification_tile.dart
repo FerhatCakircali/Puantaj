@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/cached_future_builder.dart';
 import 'notification_actions.dart';
 import 'notification_helpers.dart';
 
@@ -169,8 +170,10 @@ class NotificationTile extends StatelessWidget {
             ),
           ),
           if (isAttendanceRequest && relatedId != null)
-            FutureBuilder<String?>(
-              future: getRequestStatus(relatedId),
+            CachedFutureBuilder<String?>(
+              future: () => getRequestStatus(relatedId),
+              cacheDuration: const Duration(minutes: 1),
+              cacheKey: 'request_status_$relatedId',
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Padding(

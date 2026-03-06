@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/app_globals.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../../../core/error_logger.dart';
 import '../../../../widgets/theme_toggle_animation.dart';
 import '../../../../services/auth_service.dart';
 import 'home_notification_handler.dart';
 
 /// Ana ekran business logic mixin'i
-/// ⚡ PHASE 3: Riverpod AuthProvider kullanır
+/// ⚡ PHASE 3: Riverpod AuthProvider ve ThemeProvider kullanır
 mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final AuthService authService = AuthService();
   final HomeNotificationHandler notificationHandler = HomeNotificationHandler();
@@ -24,8 +24,9 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Tema değiştirme fonksiyonu
+  /// ⚡ PHASE 3: Riverpod ThemeProvider kullanır
   void toggleTheme() async {
-    final currentMode = themeModeNotifier.value;
+    final currentMode = ref.read(themeStateProvider);
     final newMode = currentMode == ThemeMode.dark
         ? ThemeMode.light
         : ThemeMode.dark;
@@ -36,8 +37,8 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       }
     }
 
-    themeModeNotifier.value = newMode;
-    saveThemeMode(newMode);
+    // Riverpod provider ile tema değiştir
+    ref.read(themeStateProvider.notifier).setTheme(newMode);
 
     await ThemeToggleAnimation.show(
       context,
@@ -47,6 +48,8 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Tema tercihini kaydet
+  /// ⚠️ DEPRECATED: ThemeStateProvider otomatik kaydediyor
+  @Deprecated('ThemeStateProvider automatically saves theme')
   Future<void> saveThemeMode(ThemeMode mode) async {
     final prefs = await SharedPreferences.getInstance();
     switch (mode) {

@@ -154,6 +154,9 @@ class _UserPaymentHistoryScreenState extends State<UserPaymentHistoryScreen> {
       child: ListView.separated(
         padding: EdgeInsets.fromLTRB(w * 0.06, 0, w * 0.06, h * 0.1),
         itemCount: _filteredPayments.length,
+        // ⚡ PHASE 4: ListView optimizasyonları
+        addAutomaticKeepAlives: false, // Memory optimizasyonu
+        addRepaintBoundaries: true, // Repaint optimizasyonu
         separatorBuilder: (context, index) => SizedBox(height: h * 0.015),
         itemBuilder: (context, index) {
           final payment = _filteredPayments[index];

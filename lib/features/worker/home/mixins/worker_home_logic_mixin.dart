@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../core/app_globals.dart';
-import '../../../../widgets/theme_toggle_animation.dart';
 
 /// Worker home ekranı iş mantığı
+///
+/// ⚠️ DEPRECATED: Bu mixin themeModeNotifier kullanıyor (eski yöntem)
+/// Widget'ı ConsumerStatefulWidget'a çevirip ThemeProvider kullanmalısınız
+@Deprecated('Convert widget to ConsumerStatefulWidget and use ThemeProvider')
 mixin WorkerHomeLogicMixin<T extends StatefulWidget> on State<T> {
   int selectedIndex = 0;
 
@@ -38,6 +40,8 @@ mixin WorkerHomeLogicMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Tema modunu kaydet
+  /// ⚠️ DEPRECATED: ThemeStateProvider otomatik kaydediyor
+  @Deprecated('ThemeStateProvider automatically saves theme')
   Future<void> saveThemeMode(ThemeMode mode) async {
     final prefs = await SharedPreferences.getInstance();
     switch (mode) {
@@ -54,35 +58,17 @@ mixin WorkerHomeLogicMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Tema değiştir (animasyonlu)
+  /// ⚠️ DEPRECATED: themeModeNotifier kullanıyor (eski yöntem)
+  /// Widget'ı ConsumerStatefulWidget'a çevirip ref.read(themeStateProvider) kullanın
+  @Deprecated('Use ThemeProvider with ConsumerStatefulWidget')
   Future<void> toggleThemeWithAnimation(
     BuildContext context,
     GlobalKey themeIconKey,
   ) async {
-    final currentMode = themeModeNotifier.value;
-    final newMode = currentMode == ThemeMode.dark
-        ? ThemeMode.light
-        : ThemeMode.dark;
-
-    void onAnimationComplete() {}
-
-    final RenderBox? renderBox =
-        themeIconKey.currentContext?.findRenderObject() as RenderBox?;
-    Offset? iconCenter;
-    if (renderBox != null) {
-      final iconPosition = renderBox.localToGlobal(Offset.zero);
-      final iconSize = renderBox.size;
-      iconCenter =
-          iconPosition + Offset(iconSize.width / 2, iconSize.height / 2);
-    }
-
-    themeModeNotifier.value = newMode;
-    saveThemeMode(newMode);
-
-    await ThemeToggleAnimation.show(
-      context,
-      goingToDark: newMode == ThemeMode.dark,
-      onAnimationComplete: onAnimationComplete,
-      center: iconCenter,
+    // Bu fonksiyon artık kullanılmamalı
+    // Widget'ı ConsumerStatefulWidget'a çevirip ThemeProvider kullanın
+    throw UnimplementedError(
+      'Convert widget to ConsumerStatefulWidget and use ThemeProvider',
     );
   }
 }

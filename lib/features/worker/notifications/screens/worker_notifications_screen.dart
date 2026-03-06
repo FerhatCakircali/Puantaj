@@ -532,6 +532,10 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
     return ListView.builder(
       padding: EdgeInsets.fromLTRB(w * 0.04, h * 0.01, w * 0.04, h * 0.12),
       itemCount: filteredNotifications.length,
+      // ⚡ PHASE 4: ListView optimizasyonları
+      itemExtent: 120.0, // Sabit yükseklik - scroll performansı
+      addAutomaticKeepAlives: false, // Memory optimizasyonu
+      addRepaintBoundaries: true, // Repaint optimizasyonu
       itemBuilder: (context, index) {
         final notification = filteredNotifications[index];
         return _buildNotificationCard(w, h, notification, theme, isDark);

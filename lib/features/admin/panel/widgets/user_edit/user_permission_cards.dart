@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../utils/cached_future_builder.dart';
 import '../../../../../services/auth_service.dart';
 
 class UserPermissionCards extends StatelessWidget {
@@ -28,14 +29,16 @@ class UserPermissionCards extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Admin Yetkisi Card
-        FutureBuilder<bool>(
+        CachedFutureBuilder<bool>(
           future: () async {
             final isTargetSystemAdmin = authService.isSystemAdmin(user);
             final isCurrentSystemAdmin = await authService
                 .isCurrentUserSystemAdmin();
             // System admin değilse ve mevcut kullanıcı system admin ise değiştirebilir
             return !isTargetSystemAdmin && isCurrentSystemAdmin;
-          }(),
+          },
+          cacheDuration: const Duration(minutes: 5),
+          cacheKey: 'admin_permission_${user['id']}',
           builder: (context, snapshot) {
             final canChangeAdminStatus = snapshot.data ?? false;
             final isTargetSystemAdmin = authService.isSystemAdmin(user);
@@ -59,12 +62,14 @@ class UserPermissionCards extends StatelessWidget {
         const SizedBox(height: 12),
 
         // Kullanıcı Durumu Card
-        FutureBuilder<bool>(
+        CachedFutureBuilder<bool>(
           future: () async {
             final isTargetSystemAdmin = authService.isSystemAdmin(user);
             // System admin asla bloklanamaz
             return !isTargetSystemAdmin;
-          }(),
+          },
+          cacheDuration: const Duration(minutes: 5),
+          cacheKey: 'block_permission_${user['id']}',
           builder: (context, snapshot) {
             final canChangeBlockStatus = snapshot.data ?? false;
             final isTargetSystemAdmin = authService.isSystemAdmin(user);

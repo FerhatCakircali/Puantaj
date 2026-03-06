@@ -285,6 +285,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     return ListView.separated(
       padding: const EdgeInsets.only(bottom: 24),
       itemCount: filteredEmployees.length,
+      // ⚡ PHASE 4: ListView optimizasyonları
+      addAutomaticKeepAlives: false, // Memory optimizasyonu
+      addRepaintBoundaries: true, // Repaint optimizasyonu
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final employee = filteredEmployees[index];

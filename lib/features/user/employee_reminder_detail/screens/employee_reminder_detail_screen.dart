@@ -9,6 +9,7 @@ import '../../../../services/auth_service.dart';
 import '../../../../core/app_globals.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/user_data_provider.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../../home/mixins/home_drawer.dart';
 import '../widgets/index.dart';
 
@@ -186,19 +187,13 @@ class _EmployeeReminderDetailScreenState
           });
         },
         onThemeToggle: () async {
-          final currentMode = themeModeNotifier.value;
+          final currentMode = ref.read(themeStateProvider);
           final newMode = currentMode == ThemeMode.dark
               ? ThemeMode.light
               : ThemeMode.dark;
 
-          themeModeNotifier.value = newMode;
-
-          // Tema tercihini kaydet
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(
-            'theme_mode',
-            newMode == ThemeMode.dark ? 'dark' : 'light',
-          );
+          // Riverpod provider ile tema değiştir (otomatik kaydeder)
+          ref.read(themeStateProvider.notifier).setTheme(newMode);
         },
         onLogout: () {
           Navigator.pop(context); // Drawer'ı kapat

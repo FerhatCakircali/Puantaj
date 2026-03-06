@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../utils/cached_future_builder.dart';
 import '../services/admin_stats_service.dart';
 import '../../../../models/admin_stats.dart';
 
@@ -30,8 +31,10 @@ class UserDistributionCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            FutureBuilder<AdminStats>(
-              future: adminStatsService.getStats(),
+            CachedFutureBuilder<AdminStats>(
+              future: () => adminStatsService.getStats(),
+              cacheDuration: const Duration(minutes: 5),
+              cacheKey: 'admin_stats_distribution',
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const SizedBox(

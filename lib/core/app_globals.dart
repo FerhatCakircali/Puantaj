@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'error_handler.dart';
 
 /// Uygulama global değişkenleri ve helper fonksiyonları
-
-// Auth durumunu tutan global değişken
-final ValueNotifier<bool> authStateNotifier = ValueNotifier<bool>(false);
-
-// Tema modunu tutan global değişken
-final ValueNotifier<ThemeMode> themeModeNotifier = ValueNotifier<ThemeMode>(
-  ThemeMode.system,
-);
+///
+/// ⚡ PHASE 3 TAMAMLANDI:
+/// - authStateNotifier → authStateProvider (Riverpod)
+/// - themeModeNotifier → themeStateProvider (Riverpod)
+/// - userDataNotifier → userDataProvider (Riverpod)
 
 // Supabase istemcisine global erişim
 late final SupabaseClient supabase;
@@ -24,28 +20,16 @@ final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
 final GlobalKey<ScaffoldState> globalScaffoldKey = GlobalKey<ScaffoldState>();
 
 /// Kaydedilmiş tema tercihini yükle
+///
+/// ⚠️ DEPRECATED: Bu fonksiyon artık kullanılmıyor.
+/// Tema yükleme işlemi ThemeStateProvider tarafından otomatik yapılıyor.
+@Deprecated('Use ThemeStateProvider instead')
 Future<void> loadSavedThemeMode() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final savedTheme = prefs.getString('theme_mode');
-
-    if (savedTheme != null) {
-      switch (savedTheme) {
-        case 'dark':
-          themeModeNotifier.value = ThemeMode.dark;
-          break;
-        case 'light':
-          themeModeNotifier.value = ThemeMode.light;
-          break;
-        case 'system':
-          themeModeNotifier.value = ThemeMode.system;
-          break;
-      }
-      ErrorHandler.logDebug('ThemeLoad', 'Tema yüklendi: $savedTheme');
-    }
-  } catch (e, stack) {
-    ErrorHandler.logError('loadSavedThemeMode', e, stack);
-  }
+  // Bu fonksiyon artık kullanılmıyor - ThemeStateProvider otomatik yüklüyor
+  ErrorHandler.logDebug(
+    'loadSavedThemeMode',
+    'DEPRECATED: ThemeStateProvider kullanılmalı',
+  );
 }
 
 /// Global bildirim fonksiyonu

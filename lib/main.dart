@@ -14,7 +14,8 @@ import 'package:puantaj/core/app_notification_handler.dart';
 // ⚡ PHASE 3: app_state.dart artık kullanılmıyor (Riverpod'a geçildi)
 // import 'package:puantaj/core/app_state.dart'; // DEPRECATED
 import 'package:puantaj/core/error_handler.dart';
-import 'package:puantaj/core/user_data_notifier.dart';
+// ignore: deprecated_member_use
+import 'package:puantaj/core/user_data_notifier.dart'; // Service katmanı için gerekli
 import 'package:puantaj/core/providers/theme_provider.dart';
 import 'package:puantaj/core/providers/auth_provider.dart';
 import 'package:puantaj/core/providers/user_data_provider.dart';
@@ -58,8 +59,9 @@ void main() async {
   // Get Supabase client reference
   supabase = Supabase.instance.client;
 
-  // Kaydedilmiş tema tercihini yükle
-  await loadSavedThemeMode();
+  // ⚠️ DEPRECATED: loadSavedThemeMode artık kullanılmıyor
+  // ThemeStateProvider otomatik olarak tema yüklüyor
+  // await loadSavedThemeMode(); // REMOVED
 
   // FCM servisini başlat
   await FCMService.instance.initialize();
@@ -118,7 +120,9 @@ class _MyAppState extends ConsumerState<MyApp> {
     // ⚡ PHASE 3: Riverpod AuthProvider listener - ref.listen ile
     // authStateNotifier.addListener(_onAuthStateChanged); // DEPRECATED
 
-    // ⚡ PHASE 3: userDataNotifier değişikliklerini dinleyip userDataProvider'ı senkronize et
+    // ⚡ PHASE 3: userDataNotifier → userDataProvider senkronizasyonu
+    // Service katmanı hala userDataNotifier kullanıyor, UI katmanı UserDataProvider kullanıyor
+    // ignore: deprecated_member_use
     userDataNotifier.addListener(_syncUserDataToProvider);
 
     // Android'den mesaj alma kanalını oluştur
@@ -178,34 +182,35 @@ class _MyAppState extends ConsumerState<MyApp> {
       ref.read(authStateProvider.notifier).logout();
       _isLoggedIn = false;
       _isCurrentUserAdmin = false;
-    } finally {
-      if (!mounted) {
-        ErrorHandler.logWarning(
-          'Bootstrap',
-          'Widget unmounted, işlem iptal edildi',
-        );
-        setState(() {
-          _isBootstrappingSession = false;
-        });
-        return;
-      }
+    }
 
-      // Bildirim işleme
-      ErrorHandler.logInfo('Bootstrap', 'Initial notification işleniyor...');
-      try {
-        await AppNotificationHandler.processInitialNotificationForRouting();
-      } catch (e, stack) {
-        ErrorHandler.logError('Bootstrap.processNotification', e, stack);
-      }
-
+    // Widget unmounted kontrolü
+    if (!mounted) {
+      ErrorHandler.logWarning(
+        'Bootstrap',
+        'Widget unmounted, işlem iptal edildi',
+      );
       setState(() {
         _isBootstrappingSession = false;
       });
-
-      // Router'ı kur
-      ErrorHandler.logInfo('Bootstrap', 'Router initialize ediliyor...');
-      _initializeRouter();
+      return;
     }
+
+    // Bildirim işleme
+    ErrorHandler.logInfo('Bootstrap', 'Initial notification işleniyor...');
+    try {
+      await AppNotificationHandler.processInitialNotificationForRouting();
+    } catch (e, stack) {
+      ErrorHandler.logError('Bootstrap.processNotification', e, stack);
+    }
+
+    setState(() {
+      _isBootstrappingSession = false;
+    });
+
+    // Router'ı kur
+    ErrorHandler.logInfo('Bootstrap', 'Router initialize ediliyor...');
+    _initializeRouter();
   }
 
   // ⚡ PHASE 3: Riverpod AuthProvider listener
@@ -219,8 +224,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       if (_isLoggedIn) {
         debugPrint('🔐 Auth state değişti: Giriş yapıldı');
 
-        // Admin durumunu güncelle
-        final userData = userDataNotifier.value;
+        // Admin durumunu güncelle - UserDataProvider'dan al
+        final userData = ref.read(userDataProvider);
         final isAdmin = AppBootstrap.checkAdminStatus(userData);
         _isCurrentUserAdmin = isAdmin;
 
@@ -231,20 +236,8 @@ class _MyAppState extends ConsumerState<MyApp> {
           });
           _initializeRouter();
         }
-
-        // UserData listener'ını tekrar ekle (çıkış sırasında kaldırılmıştı)
-        Future.delayed(const Duration(milliseconds: 200), () {
-          if (mounted && _isLoggedIn) {
-            userDataNotifier.removeListener(_syncUserDataToProvider);
-            userDataNotifier.addListener(_syncUserDataToProvider);
-            debugPrint('✅ UserData listener tekrar eklendi');
-          }
-        });
       } else {
         debugPrint('🔐 Auth state değişti: Çıkış yapıldı');
-
-        // UserData listener'ını kaldır
-        userDataNotifier.removeListener(_syncUserDataToProvider);
 
         // State'i temizle
         _isCurrentUserAdmin = false;
@@ -268,8 +261,11 @@ class _MyAppState extends ConsumerState<MyApp> {
   // ⚡ PHASE 3: _onThemeChanged kaldırıldı, Riverpod kullanılacak
   // void _onThemeChanged() { ... } // DEPRECATED
 
-  /// ⚡ PHASE 3: userDataNotifier değişikliklerini userDataProvider'a senkronize eder
+  /// ⚡ PHASE 3: userDataNotifier → userDataProvider senkronizasyonu
+  /// Service katmanı hala userDataNotifier kullanıyor, bu fonksiyon değişiklikleri
+  /// UserDataProvider'a aktarıyor. UI katmanı sadece UserDataProvider kullanmalı.
   void _syncUserDataToProvider() {
+    // ignore: deprecated_member_use
     final userData = userDataNotifier.value;
 
     // UserDataProvider'ı güncelle
@@ -278,49 +274,14 @@ class _MyAppState extends ConsumerState<MyApp> {
     } else {
       ref.read(userDataProvider.notifier).setUserData(userData);
     }
-
-    // Eski _onUserDataChanged mantığını çalıştır
-    _onUserDataChanged();
-  }
-
-  void _onUserDataChanged() {
-    if (!mounted) return;
-
-    final userData = userDataNotifier.value;
-
-    // KRITIK: userData null ise (logout sırasında) işlem yapma
-    if (userData == null) {
-      debugPrint('👤 User data null oldu (logout), işlem yapılmıyor');
-      return;
-    }
-
-    final newAdminStatus = AppBootstrap.checkAdminStatus(userData);
-
-    // KRITIK: Sadece login durumundayken admin değişikliklerini işle
-    // Login/logout sırasında userDataNotifier değişiklikleri görmezden gel
-    if (!_isLoggedIn) {
-      debugPrint(
-        '👤 User data değişti ama logged out durumda, işlem yapılmıyor',
-      );
-      return;
-    }
-
-    // Sadece admin durumu değiştiyse router'ı yeniden oluştur
-    if (newAdminStatus != _isCurrentUserAdmin) {
-      debugPrint('👤 User data değişti, admin kontrolü yapılıyor');
-      _checkCurrentUserAdminStatus();
-    } else {
-      debugPrint(
-        '👤 User data değişti ama admin durumu aynı ($_isCurrentUserAdmin)',
-      );
-    }
   }
 
   void _initializeRouter({String? forceInitialLocation}) {
     try {
       debugPrint('🛣️ Router yapılandırılıyor...');
 
-      final userData = userDataNotifier.value;
+      // UserDataProvider'dan userData al
+      final userData = ref.read(userDataProvider);
       final isWorkerSession =
           userData != null && userData['id'] is String && !_isLoggedIn;
 
@@ -400,37 +361,6 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
   }
 
-  void _checkCurrentUserAdminStatus() {
-    // KRITIK: Sadece login durumundayken admin değişikliklerini işle
-    if (!_isLoggedIn) {
-      debugPrint('⚠️ Logged out durumda, admin kontrolü yapılmıyor');
-      return;
-    }
-
-    final userData = userDataNotifier.value;
-    final isAdmin = AppBootstrap.checkAdminStatus(userData);
-
-    // Sadece durum değiştiyse güncelle ve router'ı yeniden oluştur
-    if (_isCurrentUserAdmin != isAdmin) {
-      debugPrint('🔄 Admin durumu değişti: $_isCurrentUserAdmin -> $isAdmin');
-
-      _isCurrentUserAdmin = isAdmin;
-
-      if (mounted) {
-        setState(() {
-          _isRouterReady = false;
-        });
-
-        // setState dışında router oluştur
-        _initializeRouter();
-      }
-    } else {
-      debugPrint(
-        '⚠️ Admin durumu değişmedi ($_isCurrentUserAdmin), router güncellenmeyecek',
-      );
-    }
-  }
-
   void _handleNotificationClick(String payload) async {
     try {
       debugPrint('🔄 Notification click işleniyor: $payload');
@@ -443,8 +373,9 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void dispose() {
     _notificationClickSubscription?.cancel();
-    // ⚡ PHASE 3: authStateNotifier listener kaldırıldı, Riverpod kullanılacak
+    // ⚡ PHASE 3: Tüm ValueNotifier listener'ları
     // authStateNotifier.removeListener(_onAuthStateChanged); // DEPRECATED
+    // ignore: deprecated_member_use
     userDataNotifier.removeListener(_syncUserDataToProvider);
     super.dispose();
   }

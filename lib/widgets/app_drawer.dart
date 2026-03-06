@@ -1,31 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../core/app_globals.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/providers/user_data_provider.dart';
+import '../core/providers/theme_provider.dart';
 import '../services/auth_service.dart';
 
 class AppDrawer extends ConsumerWidget {
   final AuthService _authService = AuthService();
 
   AppDrawer({super.key});
-
-  Future<void> _saveThemeMode(ThemeMode mode) async {
-    final prefs = await SharedPreferences.getInstance();
-    switch (mode) {
-      case ThemeMode.dark:
-        await prefs.setString('theme_mode', 'dark');
-        break;
-      case ThemeMode.light:
-        await prefs.setString('theme_mode', 'light');
-        break;
-      case ThemeMode.system:
-        await prefs.setString('theme_mode', 'system');
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -99,22 +83,22 @@ class AppDrawer extends ConsumerWidget {
                   endIndent: 20,
                   color: Colors.grey,
                 ),
-                ValueListenableBuilder<ThemeMode>(
-                  valueListenable: themeModeNotifier,
-                  builder: (context, mode, child) {
-                    final isDark = mode == ThemeMode.dark;
+                // ⚡ PHASE 3: Riverpod ThemeProvider kullanımı
+                Builder(
+                  builder: (context) {
+                    final themeMode = ref.watch(themeStateProvider);
+                    final isDark = themeMode == ThemeMode.dark;
                     return _buildDrawerItem(
                       context,
                       icon: isDark
                           ? Icons.light_mode_outlined
                           : Icons.dark_mode_outlined,
-                      text: isDark ? 'Tema' : 'Tema',
+                      text: 'Tema',
                       onTap: () {
                         final newMode = isDark
                             ? ThemeMode.light
                             : ThemeMode.dark;
-                        themeModeNotifier.value = newMode;
-                        _saveThemeMode(newMode);
+                        ref.read(themeStateProvider.notifier).setTheme(newMode);
                       },
                     );
                   },

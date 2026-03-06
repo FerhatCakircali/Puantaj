@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'drawer_item.dart';
-import '../../../../core/app_globals.dart';
+import '../../../../core/providers/theme_provider.dart';
 
 /// Modern Worker Drawer içerik widget'ı - Minimal tasarım
-class WorkerHomeScreenDrawerContent extends StatelessWidget {
+class WorkerHomeScreenDrawerContent extends ConsumerWidget {
   final int selectedIndex;
   final Function(int) onItemTap;
   final VoidCallback onThemeToggle;
@@ -18,7 +19,7 @@ class WorkerHomeScreenDrawerContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -77,10 +78,11 @@ class WorkerHomeScreenDrawerContent extends StatelessWidget {
               horizontal: screenWidth * 0.025,
               vertical: screenHeight * 0.005,
             ),
-            child: ValueListenableBuilder<ThemeMode>(
-              valueListenable: themeModeNotifier,
-              builder: (context, mode, _) {
-                final isDark = mode == ThemeMode.dark;
+            // ⚡ PHASE 3: Riverpod ThemeProvider kullanımı
+            child: Builder(
+              builder: (context) {
+                final themeMode = ref.watch(themeStateProvider);
+                final isDark = themeMode == ThemeMode.dark;
                 return ListTile(
                   leading: Icon(
                     isDark
@@ -108,10 +110,10 @@ class WorkerHomeScreenDrawerContent extends StatelessWidget {
                     inactiveTrackColor: isDark
                         ? Colors.grey.shade800
                         : Colors.grey.shade400,
-                    trackOutlineColor: MaterialStateProperty.resolveWith((
+                    trackOutlineColor: WidgetStateProperty.resolveWith((
                       states,
                     ) {
-                      if (states.contains(MaterialState.selected)) {
+                      if (states.contains(WidgetState.selected)) {
                         return Colors.transparent;
                       }
                       return isDark

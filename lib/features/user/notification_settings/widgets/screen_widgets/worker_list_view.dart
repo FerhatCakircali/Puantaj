@@ -61,6 +61,9 @@ class WorkerListView extends StatelessWidget {
     return ListView.separated(
       padding: EdgeInsets.all(padding),
       itemCount: workers.length,
+      // ⚡ PHASE 4: ListView optimizasyonları
+      addAutomaticKeepAlives: false, // Memory optimizasyonu
+      addRepaintBoundaries: true, // Repaint optimizasyonu
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final worker = workers[index];
