@@ -9,7 +9,7 @@ import 'hive_adapters/payment_adapter.dart';
 import 'hive_adapters/worker_adapter.dart';
 
 /// Hive yerel veritabanı servisi
-/// 
+///
 /// Offline-first mimari için tüm Hive işlemlerini yönetir.
 /// Box isimleri, adapter kayıtları ve initialization işlemlerini içerir.
 class HiveService {
@@ -96,14 +96,14 @@ class HiveService {
       pendingSync.clear(),
       metadata.clear(),
     ]);
-    print('🗑️ Tüm Hive box'ları temizlendi');
+    print('🗑️ Tüm Hive boxları temizlendi');
   }
 
   /// Belirli bir box'ı temizle
   Future<void> clearBox(String boxName) async {
     final box = Hive.box(boxName);
     await box.clear();
-    print('🗑️ $boxName box\'ı temizlendi');
+    print('🗑️ $boxName boxi temizlendi');
   }
 
   /// Hive'ı kapat

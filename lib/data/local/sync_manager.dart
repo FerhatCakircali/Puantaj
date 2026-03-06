@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 import '../../core/error_logger.dart';
 import '../../models/attendance.dart';
 import '../../models/payment.dart';
@@ -9,7 +8,7 @@ import '../../services/payment_service.dart';
 import 'hive_service.dart';
 
 /// Offline-first senkronizasyon yöneticisi
-/// 
+///
 /// İnternet bağlantısı geldiğinde bekleyen verileri Supabase'e gönderir.
 /// Connectivity_plus ile internet durumunu dinler.
 class SyncManager {
@@ -36,7 +35,7 @@ class SyncManager {
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
       _onConnectivityChanged,
       onError: (error) {
-        ErrorLogger.logError(
+        ErrorLogger.instance.logError(
           'SyncManager connectivity error',
           error: error,
         );
@@ -98,13 +97,14 @@ class SyncManager {
       int failCount = 0;
 
       for (var i = 0; i < pendingItems.length; i++) {
-        final item = pendingItems[i] as Map;
+        final item = pendingItems[i];
         final key = pendingBox.keyAt(i);
 
         try {
           final type = item['type'] as String;
           final data = item['data'] as Map<String, dynamic>;
-          final operation = item['operation'] as String; // 'create', 'update', 'delete'
+          final operation =
+              item['operation'] as String; // 'create', 'update', 'delete'
 
           bool success = false;
 
@@ -129,7 +129,7 @@ class SyncManager {
           }
         } catch (e, stackTrace) {
           failCount++;
-          ErrorLogger.logError(
+          ErrorLogger.instance.logError(
             'Sync item error',
             error: e,
             stackTrace: stackTrace,
@@ -137,12 +137,17 @@ class SyncManager {
         }
       }
 
-      print('🎉 Senkronizasyon tamamlandı: $successCount başarılı, $failCount başarısız');
+      print(
+        '🎉 Senkronizasyon tamamlandı: $successCount başarılı, $failCount başarısız',
+      );
 
       // Son sync zamanını kaydet
-      await _hiveService.metadata.put('last_sync', DateTime.now().toIso8601String());
+      await _hiveService.metadata.put(
+        'last_sync',
+        DateTime.now().toIso8601String(),
+      );
     } catch (e, stackTrace) {
-      ErrorLogger.logError(
+      ErrorLogger.instance.logError(
         'SyncManager syncPendingData error',
         error: e,
         stackTrace: stackTrace,
@@ -153,16 +158,19 @@ class SyncManager {
   }
 
   /// Attendance verisini senkronize et
-  Future<bool> _syncAttendance(Map<String, dynamic> data, String operation) async {
+  Future<bool> _syncAttendance(
+    Map<String, dynamic> data,
+    String operation,
+  ) async {
     try {
       switch (operation) {
         case 'create':
         case 'update':
           final attendance = Attendance.fromMap(data);
-          await _attendanceService.saveAttendance(
-            attendance.workerId,
-            attendance.date,
-            attendance.status,
+          await _attendanceService.markAttendance(
+            workerId: attendance.workerId,
+            date: attendance.date,
+            status: attendance.status,
           );
           return true;
         case 'delete':
@@ -172,7 +180,7 @@ class SyncManager {
           return false;
       }
     } catch (e) {
-      ErrorLogger.logError('Attendance sync error', error: e);
+      ErrorLogger.instance.logError('Attendance sync error', error: e);
       return false;
     }
   }
@@ -183,7 +191,7 @@ class SyncManager {
       switch (operation) {
         case 'create':
           final payment = Payment.fromMap(data);
-          await _paymentService.createPayment(payment);
+          await _paymentService.addPayment(payment);
           return true;
         case 'update':
         case 'delete':
@@ -193,7 +201,7 @@ class SyncManager {
           return false;
       }
     } catch (e) {
-      ErrorLogger.logError('Payment sync error', error: e);
+      ErrorLogger.instance.logError('Payment sync error', error: e);
       return false;
     }
   }
@@ -206,7 +214,8 @@ class SyncManager {
   }) async {
     try {
       final pendingBox = _hiveService.pendingSync;
-      final key = '${type}_${operation}_${DateTime.now().millisecondsSinceEpoch}';
+      final key =
+          '${type}_${operation}_${DateTime.now().millisecondsSinceEpoch}';
 
       await pendingBox.put(key, {
         'type': type,
@@ -222,7 +231,7 @@ class SyncManager {
         syncPendingData();
       }
     } catch (e, stackTrace) {
-      ErrorLogger.logError(
+      ErrorLogger.instance.logError(
         'Add pending sync error',
         error: e,
         stackTrace: stackTrace,
