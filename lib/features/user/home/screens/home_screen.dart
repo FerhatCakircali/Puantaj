@@ -10,7 +10,7 @@ import '../../../admin/panel/screens/admin_panel_screen.dart';
 import '../../notification_settings/screens/notification_settings_screen.dart';
 import '../../notifications/screens/user_notifications_screen.dart';
 import '../../payment_history/screens/user_payment_history_screen.dart';
-import '../../../../core/user_data_notifier.dart';
+import '../../../../core/providers/user_data_provider.dart';
 import '../mixins/index.dart';
 
 final ValueNotifier<int?> globalSelectedIndexNotifier = ValueNotifier<int?>(
@@ -82,7 +82,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       return const Center(child: CircularProgressIndicator());
     }
 
-    final currentUser = userDataNotifier.value;
+    final currentUser = ref.watch(userDataProvider);
     final firstName = currentUser?['first_name'] as String? ?? '';
     final lastName = currentUser?['last_name'] as String? ?? '';
     final isAdmin = currentUser?['is_admin'] == true;

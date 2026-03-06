@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../services/database_cleanup_service.dart';
-import '../../../../core/user_data_notifier.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../auth/login/screens/login_screen.dart';
 import '../../services/employee_reminder_service.dart';
@@ -28,7 +27,8 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    userDataNotifier.addListener(updateDrawerHeader);
+    // ⚡ PHASE 3: userDataNotifier listener kaldırıldı, Riverpod ref.listen kullanılacak
+    // Drawer header güncellemesi için ref.watch kullanılıyor (build metodunda)
     authService.currentUser;
 
     checkUserBlockStatus();
@@ -84,7 +84,7 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
     notificationHandler.stopNotificationListener();
     WidgetsBinding.instance.removeObserver(this);
     blockCheckTimer?.cancel();
-    userDataNotifier.removeListener(updateDrawerHeader);
+    // ⚡ PHASE 3: userDataNotifier listener kaldırıldı
     super.dispose();
   }
 
@@ -119,6 +119,7 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
   }
 
   /// Kullanıcı verileri yüklendiğinde veya değiştiğinde Drawer başlığını güncelle
+  /// ⚡ PHASE 3: Artık ref.watch kullanıldığı için otomatik güncelleniyor
   void updateDrawerHeader() {
     if (mounted) {
       setState(() {});

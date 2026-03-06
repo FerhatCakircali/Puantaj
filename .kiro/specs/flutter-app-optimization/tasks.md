@@ -279,21 +279,21 @@ Bu implementation plan, Flutter Puantaj uygulamasının 6 fazlı optimizasyon s�
     - _Requirements: 12.9_
     - _Estimated time: 2 hours_
 
-- [ ] 14. UserData provider migrasyonu
-  - [ ] 14.1 Bootstrap'ta UserDataProvider kullan
+- [x] 14. UserData provider migrasyonu
+  - [x] 14.1 Bootstrap'ta UserDataProvider kullan
     - User session yüklendiğinde `ref.read(userDataProvider.notifier).setUserData()` çağır
     - Logout'ta `clearUserData()` çağır
     - userDataNotifier'ı henüz kaldırma
     - _Requirements: 5.2, 5.3, 5.9_
     - _Estimated time: 1.5 hours_
 
-  - [ ] 14.2 Admin kontrollerini UserDataProvider ile yap
+  - [x] 14.2 Admin kontrollerini UserDataProvider ile yap
     - Router'da `ref.read(userDataProvider.notifier).isAdmin` kullan
     - Admin ekranlarında isAdmin getter kullan
     - _Requirements: 5.4, 5.5_
     - _Estimated time: 1 hour_
   
-  - [ ] 14.3 Null user data handling
+  - [x] 14.3 Null user data handling
     - UserDataProvider state null ise isAdmin false döndür
     - Graceful error handling ekle
     - _Requirements: 5.9, 5.10_

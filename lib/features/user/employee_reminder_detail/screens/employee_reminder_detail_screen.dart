@@ -7,23 +7,23 @@ import '../../services/employee_reminder_service.dart';
 import '../../../../services/notification_service.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../core/app_globals.dart';
-import '../../../../core/user_data_notifier.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/providers/user_data_provider.dart';
 import '../../home/mixins/home_drawer.dart';
 import '../widgets/index.dart';
 
-class EmployeeReminderDetailScreen extends StatefulWidget {
+class EmployeeReminderDetailScreen extends ConsumerStatefulWidget {
   final int? reminderId;
 
   const EmployeeReminderDetailScreen({super.key, this.reminderId});
 
   @override
-  State<EmployeeReminderDetailScreen> createState() =>
+  ConsumerState<EmployeeReminderDetailScreen> createState() =>
       _EmployeeReminderDetailScreenState();
 }
 
 class _EmployeeReminderDetailScreenState
-    extends State<EmployeeReminderDetailScreen> {
+    extends ConsumerState<EmployeeReminderDetailScreen> {
   final EmployeeReminderService _reminderService = EmployeeReminderService();
 
   bool _isLoading = true;
@@ -157,7 +157,7 @@ class _EmployeeReminderDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = userDataNotifier.value;
+    final currentUser = ref.watch(userDataProvider);
     final firstName = currentUser?['first_name'] as String? ?? '';
     final lastName = currentUser?['last_name'] as String? ?? '';
     final isAdmin = currentUser?['is_admin'] == true;

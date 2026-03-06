@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/app_globals.dart';
-import '../core/user_data_notifier.dart';
 import '../core/providers/auth_provider.dart';
+import '../core/providers/user_data_provider.dart';
 import '../services/auth_service.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   final AuthService _authService = AuthService();
 
   AppDrawer({super.key});
@@ -28,8 +28,8 @@ class AppDrawer extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final currentUser = userDataNotifier.value;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUser = ref.watch(userDataProvider);
     final firstName = currentUser?['first_name'] as String? ?? '';
     final lastName = currentUser?['last_name'] as String? ?? '';
 

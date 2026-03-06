@@ -17,6 +17,7 @@ import 'package:puantaj/core/error_handler.dart';
 import 'package:puantaj/core/user_data_notifier.dart';
 import 'package:puantaj/core/providers/theme_provider.dart';
 import 'package:puantaj/core/providers/auth_provider.dart';
+import 'package:puantaj/core/providers/user_data_provider.dart';
 import 'package:puantaj/firebase_options.dart';
 import 'package:puantaj/services/fcm_service.dart';
 import 'package:puantaj/services/notification/notification_helpers.dart';
@@ -117,8 +118,8 @@ class _MyAppState extends ConsumerState<MyApp> {
     // ⚡ PHASE 3: Riverpod AuthProvider listener - ref.listen ile
     // authStateNotifier.addListener(_onAuthStateChanged); // DEPRECATED
 
-    // Kullanıcı veri değişikliklerini dinle
-    userDataNotifier.addListener(_onUserDataChanged);
+    // ⚡ PHASE 3: userDataNotifier değişikliklerini dinleyip userDataProvider'ı senkronize et
+    userDataNotifier.addListener(_syncUserDataToProvider);
 
     // Android'den mesaj alma kanalını oluştur
     _messageChannel = const BasicMessageChannel<String>(
@@ -234,8 +235,8 @@ class _MyAppState extends ConsumerState<MyApp> {
         // UserData listener'ını tekrar ekle (çıkış sırasında kaldırılmıştı)
         Future.delayed(const Duration(milliseconds: 200), () {
           if (mounted && _isLoggedIn) {
-            userDataNotifier.removeListener(_onUserDataChanged);
-            userDataNotifier.addListener(_onUserDataChanged);
+            userDataNotifier.removeListener(_syncUserDataToProvider);
+            userDataNotifier.addListener(_syncUserDataToProvider);
             debugPrint('✅ UserData listener tekrar eklendi');
           }
         });
@@ -243,7 +244,7 @@ class _MyAppState extends ConsumerState<MyApp> {
         debugPrint('🔐 Auth state değişti: Çıkış yapıldı');
 
         // UserData listener'ını kaldır
-        userDataNotifier.removeListener(_onUserDataChanged);
+        userDataNotifier.removeListener(_syncUserDataToProvider);
 
         // State'i temizle
         _isCurrentUserAdmin = false;
@@ -266,6 +267,21 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   // ⚡ PHASE 3: _onThemeChanged kaldırıldı, Riverpod kullanılacak
   // void _onThemeChanged() { ... } // DEPRECATED
+
+  /// ⚡ PHASE 3: userDataNotifier değişikliklerini userDataProvider'a senkronize eder
+  void _syncUserDataToProvider() {
+    final userData = userDataNotifier.value;
+
+    // UserDataProvider'ı güncelle
+    if (userData == null) {
+      ref.read(userDataProvider.notifier).clearUserData();
+    } else {
+      ref.read(userDataProvider.notifier).setUserData(userData);
+    }
+
+    // Eski _onUserDataChanged mantığını çalıştır
+    _onUserDataChanged();
+  }
 
   void _onUserDataChanged() {
     if (!mounted) return;
@@ -429,7 +445,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     _notificationClickSubscription?.cancel();
     // ⚡ PHASE 3: authStateNotifier listener kaldırıldı, Riverpod kullanılacak
     // authStateNotifier.removeListener(_onAuthStateChanged); // DEPRECATED
-    userDataNotifier.removeListener(_onUserDataChanged);
+    userDataNotifier.removeListener(_syncUserDataToProvider);
     super.dispose();
   }
 
