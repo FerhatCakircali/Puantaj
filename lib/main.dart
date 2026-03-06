@@ -5,14 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:puantaj/config/index.dart';
 import 'package:puantaj/core/app_bootstrap.dart';
 import 'package:puantaj/core/app_globals.dart';
 import 'package:puantaj/core/app_notification_handler.dart';
-import 'package:puantaj/core/app_state.dart';
+// ⚡ PHASE 3: app_state.dart artık kullanılmıyor (Riverpod'a geçildi)
+// import 'package:puantaj/core/app_state.dart'; // DEPRECATED
 import 'package:puantaj/core/error_handler.dart';
 import 'package:puantaj/core/user_data_notifier.dart';
+import 'package:puantaj/core/providers/theme_provider.dart';
 import 'package:puantaj/firebase_options.dart';
 import 'package:puantaj/services/fcm_service.dart';
 import 'package:puantaj/services/notification/notification_helpers.dart';
@@ -59,17 +62,19 @@ void main() async {
   // FCM servisini başlat
   await FCMService.instance.initialize();
 
-  runApp(const MyApp());
+  // ⚡ PHASE 3: Riverpod ProviderScope ile sarmalama
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatefulWidget {
+// ⚡ PHASE 3: ConsumerStatefulWidget'a geçiş
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> {
   bool _isLoggedIn = false;
   bool _isHandlingNotification = false;
   static const String _notificationChannel = 'com.example.puantaj/notification';
@@ -83,8 +88,8 @@ class _MyAppState extends State<MyApp> {
 
   StreamSubscription<String>? _notificationClickSubscription;
 
-  // ⚡ Performans: İç içe ValueListenableBuilder yerine tek notifier
-  late final ValueNotifier<AppState> _appStateNotifier;
+  // ⚡ PHASE 3: AppState notifier kaldırıldı, Riverpod kullanılacak
+  // late final ValueNotifier<AppState> _appStateNotifier; // DEPRECATED
 
   @override
   void initState() {
@@ -92,13 +97,8 @@ class _MyAppState extends State<MyApp> {
 
     _navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'appNavigator');
 
-    // ⚡ Performans: AppState notifier'ı başlat
-    _appStateNotifier = ValueNotifier(
-      AppState(
-        themeMode: themeModeNotifier.value,
-        isAuthenticated: authStateNotifier.value,
-      ),
-    );
+    // ⚡ PHASE 3: Riverpod ThemeProvider kullanılacak, AppState notifier kaldırıldı
+    // _appStateNotifier artık gerekli değil, Riverpod watch ile dinlenecek
 
     _bootstrapSession();
 
@@ -116,8 +116,8 @@ class _MyAppState extends State<MyApp> {
     // Auth durumu değişikliklerini dinle
     authStateNotifier.addListener(_onAuthStateChanged);
 
-    // Tema değişikliklerini dinle
-    themeModeNotifier.addListener(_onThemeChanged);
+    // ⚡ PHASE 3: themeModeNotifier listener kaldırıldı, Riverpod kullanılacak
+    // themeModeNotifier.addListener(_onThemeChanged); // DEPRECATED
 
     // Kullanıcı veri değişikliklerini dinle
     userDataNotifier.addListener(_onUserDataChanged);
@@ -216,10 +216,8 @@ class _MyAppState extends State<MyApp> {
     if (_isLoggedIn != newLoginState) {
       _isLoggedIn = newLoginState;
 
-      // ⚡ Performans: AppState notifier'ı güncelle
-      _appStateNotifier.value = _appStateNotifier.value.copyWith(
-        isAuthenticated: newLoginState,
-      );
+      // ⚡ PHASE 3: AppState notifier kaldırıldı, Riverpod kullanılacak
+      // _appStateNotifier.value = ... // DEPRECATED
 
       if (_isLoggedIn) {
         debugPrint('🔐 Auth state değişti: Giriş yapıldı');
@@ -270,19 +268,8 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  void _onThemeChanged() {
-    if (mounted) {
-      // ⚡ Performans: AppState notifier'ı güncelle
-      _appStateNotifier.value = _appStateNotifier.value.copyWith(
-        themeMode: themeModeNotifier.value,
-      );
-
-      ErrorHandler.logDebug(
-        'ThemeChange',
-        'Tema değişikliği algılandı: ${themeModeNotifier.value}',
-      );
-    }
-  }
+  // ⚡ PHASE 3: _onThemeChanged kaldırıldı, Riverpod kullanılacak
+  // void _onThemeChanged() { ... } // DEPRECATED
 
   void _onUserDataChanged() {
     if (!mounted) return;
@@ -445,16 +432,20 @@ class _MyAppState extends State<MyApp> {
   void dispose() {
     _notificationClickSubscription?.cancel();
     authStateNotifier.removeListener(_onAuthStateChanged);
-    themeModeNotifier.removeListener(_onThemeChanged);
+    // ⚡ PHASE 3: themeModeNotifier listener kaldırıldı
+    // themeModeNotifier.removeListener(_onThemeChanged); // DEPRECATED
     userDataNotifier.removeListener(_onUserDataChanged);
-    // ⚡ Performans: AppState notifier'ı temizle
-    _appStateNotifier.dispose();
+    // ⚡ PHASE 3: AppState notifier kaldırıldı
+    // _appStateNotifier.dispose(); // DEPRECATED
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final appRouter = _router;
+
+    // ⚡ PHASE 3: Riverpod ThemeProvider'dan tema modunu al
+    final themeMode = ref.watch(themeStateProvider);
 
     if (_isBootstrappingSession || !_isRouterReady || appRouter == null) {
       return MaterialApp(
@@ -463,38 +454,33 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: themeModeNotifier.value,
+        themeMode: themeMode, // ⚡ PHASE 3: Riverpod'dan gelen tema
         home: Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
 
-    // ⚡ Performans: İç içe ValueListenableBuilder yerine tek AppState listener
-    return ValueListenableBuilder<AppState>(
-      valueListenable: _appStateNotifier,
-      builder: (context, appState, child) {
-        return MaterialApp.router(
-          scaffoldMessengerKey: appScaffoldMessengerKey,
-          title: 'Puantaj',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: appState.themeMode,
-          routerConfig: appRouter,
-          builder: (context, child) {
-            return ResponsiveBreakpoints.builder(
-              child: child!,
-              breakpoints: kResponsiveBreakpoints,
-            );
-          },
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('tr', 'TR'), Locale('en', 'US')],
-          locale: const Locale('tr', 'TR'),
+    // ⚡ PHASE 3: ValueListenableBuilder kaldırıldı, direkt Riverpod watch kullanılıyor
+    return MaterialApp.router(
+      scaffoldMessengerKey: appScaffoldMessengerKey,
+      title: 'Puantaj',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeMode, // ⚡ PHASE 3: Riverpod'dan gelen tema
+      routerConfig: appRouter,
+      builder: (context, child) {
+        return ResponsiveBreakpoints.builder(
+          child: child!,
+          breakpoints: kResponsiveBreakpoints,
         );
       },
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('tr', 'TR'), Locale('en', 'US')],
+      locale: const Locale('tr', 'TR'),
     );
   }
 }
