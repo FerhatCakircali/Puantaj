@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/app_globals.dart';
+import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/error_logger.dart';
 import '../../../../widgets/theme_toggle_animation.dart';
 import '../../../../services/auth_service.dart';
 import 'home_notification_handler.dart';
 
 /// Ana ekran business logic mixin'i
-mixin HomeLogicMixin<T extends StatefulWidget> on State<T> {
+/// ⚡ PHASE 3: Riverpod AuthProvider kullanır
+mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final AuthService authService = AuthService();
   final HomeNotificationHandler notificationHandler = HomeNotificationHandler();
 
@@ -82,13 +86,18 @@ mixin HomeLogicMixin<T extends StatefulWidget> on State<T> {
                 // Çıkış yap
                 await authService.signOut();
 
-                // Auth state'i güncelle - bu router'ı otomatik yeniden başlatacak
-                authStateNotifier.value = false;
+                // ⚡ PHASE 3: Riverpod AuthProvider kullan
+                ref.read(authStateProvider.notifier).logout();
 
                 debugPrint(
                   '✅ Çıkış işlemi tamamlandı, login ekranına yönlendiriliyor',
                 );
-              } catch (e) {
+              } catch (e, stackTrace) {
+                ErrorLogger.instance.logError(
+                  'HomeLogicMixin.showLogoutDialog - signOut hatası',
+                  error: e,
+                  stackTrace: stackTrace,
+                );
                 debugPrint('❌ Çıkış işlemi sırasında hata: $e');
 
                 // Hata durumunda bile login ekranına yönlendir

@@ -1,17 +1,19 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../services/database_cleanup_service.dart';
 import '../../../../core/user_data_notifier.dart';
-import '../../../../core/app_globals.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../auth/login/screens/login_screen.dart';
 import '../../services/employee_reminder_service.dart';
 import 'home_notification_handler.dart';
 
 /// Ana ekran lifecycle yönetimi mixin'i
-mixin HomeLifecycleMixin<T extends StatefulWidget> on State<T>
+/// ⚡ PHASE 3: Riverpod AuthProvider kullanır
+mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
     implements WidgetsBindingObserver {
   Timer? blockCheckTimer;
   bool tabStateInitialized = false;
@@ -98,7 +100,8 @@ mixin HomeLifecycleMixin<T extends StatefulWidget> on State<T>
 
   void signOut() async {
     await AuthService().signOut();
-    authStateNotifier.value = false;
+    // ⚡ PHASE 3: Riverpod AuthProvider kullan
+    ref.read(authStateProvider.notifier).logout();
 
     if (!mounted) return;
 

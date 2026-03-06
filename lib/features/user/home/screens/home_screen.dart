@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../employees/screens/employee_screen.dart';
 import '../../attendance/screens/attendance_screen.dart';
@@ -16,16 +17,17 @@ final ValueNotifier<int?> globalSelectedIndexNotifier = ValueNotifier<int?>(
   null,
 );
 
-class HomeScreen extends StatefulWidget {
+// ⚡ PHASE 3: ConsumerStatefulWidget'a geçiş
+class HomeScreen extends ConsumerStatefulWidget {
   final int? initialTab;
 
   const HomeScreen({super.key, this.initialTab});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
+class _HomeScreenState extends ConsumerState<HomeScreen>
     with WidgetsBindingObserver, HomeLifecycleMixin, HomeLogicMixin {
   ValueNotifier<int?>? _selectedIndexNotifier;
 
