@@ -1,4 +1,5 @@
 import '../models/payment.dart';
+import '../models/payment_summary.dart';
 import 'auth_service.dart';
 import '../models/attendance.dart';
 import '../core/app_globals.dart';
@@ -548,6 +549,54 @@ class PaymentService {
         stackTrace: stackTrace,
       );
       return [];
+    }
+  }
+
+  /// Ödeme özet bilgilerini getirir (RPC)
+  ///
+  /// N+1 query problemini çözmek için Supabase RPC fonksiyonu kullanır.
+  /// Performans: 10+ query → 1 query (%90 azalma)
+  ///
+  /// Saat Dilimi: Europe/Istanbul (UTC+3)
+  Future<PaymentSummary?> getPaymentSummary({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final userId = await _authService.getUserId();
+      if (userId == null) {
+        throw Exception('Kullanıcı oturumu bulunamadı');
+      }
+
+      debugPrint('💰 Ödeme özeti getiriliyor: $startDate - $endDate');
+
+      final List<dynamic> data = await supabase.rpc(
+        'get_payment_summary',
+        params: {
+          'p_user_id': userId,
+          'p_start_date': DateFormatter.toIso8601Date(startDate),
+          'p_end_date': DateFormatter.toIso8601Date(endDate),
+        },
+      );
+
+      if (data.isEmpty) {
+        debugPrint('⚠️ Ödeme özeti bulunamadı');
+        return null;
+      }
+
+      final summary = PaymentSummary.fromMap(
+        data.first as Map<String, dynamic>,
+      );
+      debugPrint('✅ Ödeme özeti getirildi: ${summary.totalPayments} ödeme');
+
+      return summary;
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService.getPaymentSummary hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
     }
   }
 }

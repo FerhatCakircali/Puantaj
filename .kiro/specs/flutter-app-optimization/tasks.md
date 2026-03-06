@@ -382,8 +382,8 @@ Bu implementation plan, Flutter Puantaj uygulamasının 6 fazlı optimizasyon s�
     - _Requirements: 7.6, 7.10, 13.3, 13.10_
     - _Estimated time: 2 hours_
 
-- [ ] 19. N+1 query çözümü - Supabase RPC fonksiyonları
-  - [ ] 19.1 get_workers_with_unpaid_days RPC fonksiyonunu oluştur
+- [x] 19. N+1 query çözümü - Supabase RPC fonksiyonları
+  - [x] 19.1 get_workers_with_unpaid_days RPC fonksiyonunu oluştur
     - Supabase SQL Editor'da RPC fonksiyonu yaz
     - Workers, attendance ve paid_days tablolarını JOIN et
     - Unpaid full days ve half days sayısını hesapla
@@ -391,21 +391,21 @@ Bu implementation plan, Flutter Puantaj uygulamasının 6 fazlı optimizasyon s�
     - _Requirements: 8.1, 8.2, 8.5, 8.9_
     - _Estimated time: 2 hours_
   
-  - [ ] 19.2 get_payment_summary RPC fonksiyonunu oluştur
+  - [x] 19.2 get_payment_summary RPC fonksiyonunu oluştur
     - Supabase SQL Editor'da RPC fonksiyonu yaz
     - Date range parametreleri ekle (start_date, end_date)
     - Payment summary verilerini aggregate et
     - _Requirements: 8.3, 8.4, 8.5_
     - _Estimated time: 2 hours_
   
-  - [ ] 19.3 WorkerService'te RPC fonksiyonlarını kullan
+  - [x] 19.3 WorkerService'te RPC fonksiyonlarını kullan
     - `getWorkersWithUnpaidDays()` metodunu RPC ile değiştir
     - Response'u Dart model'e map et
     - Eski N+1 query implementasyonunu kaldır
     - _Requirements: 8.6, 8.7, 8.8, 8.10_
     - _Estimated time: 2 hours_
   
-  - [ ] 19.4 PaymentService'te RPC fonksiyonlarını kullan
+  - [x] 19.4 PaymentService'te RPC fonksiyonlarını kullan
     - `getPaymentSummary()` metodunu RPC ile değiştir
     - Response'u Dart model'e map et
     - _Requirements: 8.6, 8.8_
