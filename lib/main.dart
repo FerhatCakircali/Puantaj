@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +20,8 @@ import 'package:puantaj/core/user_data_notifier.dart'; // Service katmanı için
 import 'package:puantaj/core/providers/theme_provider.dart';
 import 'package:puantaj/core/providers/auth_provider.dart';
 import 'package:puantaj/core/providers/user_data_provider.dart';
+import 'package:puantaj/data/local/hive_service.dart';
+import 'package:puantaj/data/local/sync_manager.dart';
 import 'package:puantaj/firebase_options.dart';
 import 'package:puantaj/services/fcm_service.dart';
 import 'package:puantaj/services/notification/notification_helpers.dart';
@@ -34,14 +37,20 @@ const kResponsiveBreakpoints = [
 ];
 
 void main() async {
-  // Global hata yakalayıcılar
+  // Global hata yakalayıcılar - Firebase Crashlytics ile entegre
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     logError('Flutter Error', details.exception, details.stack);
+    
+    // Firebase Crashlytics'e gönder
+    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
     logError('Platform Dispatcher Error', error, stack);
+    
+    // Firebase Crashlytics'e gönder
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
 
@@ -52,6 +61,19 @@ void main() async {
 
   // Firebase'i başlat
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // 🔥 Firebase Crashlytics'i yapılandır
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
+  // 🗄️ Hive yerel veritabanını başlat
+  await HiveService.instance.initialize();
+
+  // 🔄 Sync Manager'ı başlat
+  await SyncManager.instance.initialize();
 
   // Initialize all services
   await ServiceInitializer.initialize();

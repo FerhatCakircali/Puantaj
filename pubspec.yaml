@@ -39,14 +39,17 @@ dependencies:
   credential_manager: ^2.0.8
   get_it: ^9.2.1
   flutter_riverpod: ^3.2.1
-  firebase_core: ^4.4.0
-  firebase_messaging: ^16.1.1
+  firebase_core: ^3.15.2
+  firebase_messaging: ^15.1.4
   timeago: ^3.7.0
   flutter_dotenv: ^6.0.0
   android_intent_plus: ^5.1.0
   cached_network_image: ^3.3.1
   flutter_cache_manager: ^3.4.1
   connectivity_plus: ^6.0.5
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  firebase_crashlytics: ^4.3.10
 
 dev_dependencies:
   flutter_test:

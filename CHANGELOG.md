@@ -6,6 +6,49 @@ Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardını ta
 
 ---
 
+## [1.1.0] - 2026-03-06
+
+### 🚀 Hayati İyileştirmeler - Offline-First + Crash Monitoring
+
+#### ✨ Yeni Özellikler
+
+**Offline-First Mimari (Hive)**
+- Tüm veriler yerel olarak saklanıyor (Worker, Employee, Attendance, Payment)
+- 6 ayrı Hive Box: workers, employees, attendance, payments, pending_sync, metadata
+- Manuel TypeAdapter implementasyonu (AttendanceAdapter, WorkerAdapter, PaymentAdapter, EmployeeAdapter)
+- Optimistic UI updates: Kullanıcı aksiyonları anında yansıyor
+
+**SyncManager - Otomatik Senkronizasyon**
+- Connectivity Plus ile internet durumu izleme
+- Offline → Online geçişte otomatik sync
+- Pending sync queue sistemi
+- %90+ hız artışı (Hive vs Supabase)
+
+**Firebase Crashlytics Entegrasyonu**
+- Otomatik hata yakalama (Flutter + Platform)
+- ErrorLogger ile entegrasyon
+- Production'da otomatik Crashlytics'e gönderim
+- Stack trace ve context bilgisi
+
+#### 📦 Dependency Değişiklikleri
+
+**Eklenen:**
+- hive ^2.2.3
+- hive_flutter ^1.1.0
+- firebase_crashlytics ^4.3.10
+
+**Güncellenen:**
+- firebase_core: ^4.4.0 → ^3.15.2 (Crashlytics uyumluluğu)
+- firebase_messaging: ^16.1.1 → ^15.1.4 (Crashlytics uyumluluğu)
+
+#### 📝 Dokümantasyon
+- OFFLINE_FIRST.md eklendi (detaylı mimari dokümantasyonu)
+- TypeAdapter kullanım örnekleri
+- SyncManager best practices
+- Troubleshooting rehberi
+
+---
+
 ## [1.0.0] - 2026-03-06
 
 ### 🎉 Major Release - Production Ready

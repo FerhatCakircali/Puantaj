@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 /// ErrorLogger singleton sınıfı - Merkezi hata loglama sistemi.
@@ -11,7 +12,7 @@ import 'package:flutter/foundation.dart';
 /// - Context bilgisi ile loglama
 /// - Stack trace desteği
 /// - Emoji indicator'lar (❌, ⚠️, ℹ️)
-/// - Production'da Firebase Crashlytics entegrasyonu (opsiyonel)
+/// - Firebase Crashlytics entegrasyonu (production'da otomatik)
 ///
 /// **Kullanım Örnekleri:**
 /// ```dart
@@ -49,7 +50,7 @@ class ErrorLogger {
   /// Hata loglar (❌ emoji ile).
   ///
   /// Bu metod, kritik hataları loglar ve production'da Firebase Crashlytics'e
-  /// gönderir (eğer entegre edilmişse).
+  /// otomatik olarak gönderir.
   ///
   /// Parametreler:
   /// - [message]: Hata mesajı (zorunlu)
@@ -85,10 +86,15 @@ class ErrorLogger {
       debugPrint('❌ Stack trace: $stackTrace');
     }
 
-    // TODO: Production'da Firebase Crashlytics'e gönder
-    // if (kReleaseMode && error != null) {
-    //   FirebaseCrashlytics.instance.recordError(error, stackTrace);
-    // }
+    // 🔥 Firebase Crashlytics'e gönder (production'da)
+    if (kReleaseMode && error != null) {
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stackTrace,
+        reason: '$contextPrefix$message',
+        fatal: false,
+      );
+    }
   }
 
   /// Uyarı loglar (⚠️ emoji ile).
