@@ -3,6 +3,7 @@ import 'package:puantaj/data/services/supabase_service.dart';
 import 'package:puantaj/data/services/local_storage_service.dart';
 import 'package:puantaj/services/notification_service.dart';
 import 'package:puantaj/services/fcm_service.dart';
+import 'package:puantaj/services/cache_manager_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -43,6 +44,11 @@ class ServiceInitializer {
     debugPrint('🔧 ServiceInitializer: FCM servisi başlatılıyor');
     await FCMService.instance.initialize();
     debugPrint('✅ ServiceInitializer: FCM servisi başlatıldı');
+
+    // Cache manager'ı başlat ve expired cache'leri temizle
+    debugPrint('🔧 ServiceInitializer: Cache manager başlatılıyor');
+    await CacheManagerService.instance.initializeCache();
+    debugPrint('✅ ServiceInitializer: Cache manager başlatıldı');
 
     debugPrint('✅ ServiceInitializer: Tüm servisler başarıyla başlatıldı');
   }

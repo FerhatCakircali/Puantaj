@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../widgets/cached_profile_avatar.dart';
 
 /// Profil ekranı başlık widget'ı
 class ProfileHeader extends StatelessWidget {
@@ -6,6 +7,7 @@ class ProfileHeader extends StatelessWidget {
   final String firstName;
   final String lastName;
   final String jobTitle;
+  final String? profileImageUrl;
 
   const ProfileHeader({
     super.key,
@@ -13,6 +15,7 @@ class ProfileHeader extends StatelessWidget {
     required this.firstName,
     required this.lastName,
     required this.jobTitle,
+    this.profileImageUrl,
   });
 
   @override
@@ -21,26 +24,18 @@ class ProfileHeader extends StatelessWidget {
     final avatarRadius = isTablet ? 60.0 : 50.0;
     final nameSize = isTablet ? 28.0 : 24.0;
     final titleSize = isTablet ? 20.0 : 16.0;
+    final fullName = '$firstName $lastName';
 
     return Column(
       children: [
-        CircleAvatar(
+        CachedProfileAvatar(
+          imageUrl: profileImageUrl,
+          name: fullName,
           radius: avatarRadius,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          child: Text(
-            username != null && username!.isNotEmpty
-                ? username![0].toUpperCase()
-                : '?',
-            style: TextStyle(
-              fontSize: avatarRadius * 0.8,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
         ),
         const SizedBox(height: 16),
         Text(
-          '$firstName $lastName',
+          fullName,
           style: TextStyle(fontSize: nameSize, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),

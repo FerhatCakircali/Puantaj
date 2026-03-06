@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../widgets/cached_profile_avatar.dart';
 
 class ProfileHeaderCard extends StatelessWidget {
   final Map<String, dynamic> user;
@@ -20,16 +21,12 @@ class ProfileHeaderCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircleAvatar(
+            CachedProfileAvatar(
+              imageUrl:
+                  null, // User model'e profile_image_url eklendiğinde kullanılacak
+              name: '${user['first_name'] ?? ''} ${user['last_name'] ?? ''}'
+                  .trim(),
               radius: 44,
-              backgroundColor: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.1),
-              child: Icon(
-                Icons.person,
-                size: 56,
-                color: Theme.of(context).colorScheme.primary,
-              ),
             ),
             const SizedBox(height: 16),
             Text(

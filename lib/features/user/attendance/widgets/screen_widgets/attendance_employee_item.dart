@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../../models/employee.dart';
 import '../../../../../models/attendance.dart' as attendance;
+import '../../../../../widgets/cached_profile_avatar.dart';
 
 /// Çalışan listesi item widget'ı
 class AttendanceEmployeeItem extends StatelessWidget {
@@ -32,23 +33,11 @@ class AttendanceEmployeeItem extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
+            CachedProfileAvatar(
+              imageUrl:
+                  null, // Employee model'e profile_image_url eklendiğinde kullanılacak
+              name: employee.name,
               radius: 20,
-              backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-                alpha: Theme.of(context).brightness == Brightness.dark
-                    ? 0.22
-                    : 0.12,
-              ),
-              child: Text(
-                employee.name.isNotEmpty ? employee.name[0].toUpperCase() : '?',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
-                ),
-              ),
             ),
             const SizedBox(width: 12),
             Expanded(
