@@ -156,7 +156,8 @@ class _PaymentScreenState extends State<PaymentScreen>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(),
+                physics:
+                    const BouncingScrollPhysics(), // ✅ Kaydırmalı tab geçişi
                 children: [
                   _buildPaymentsTab(),
                   const AdvancesTab(),
@@ -209,7 +210,10 @@ class _PaymentScreenState extends State<PaymentScreen>
                         : ListView.builder(
                             padding: EdgeInsets.only(bottom: h * 0.02),
                             itemCount: _filteredEmployees.length,
-                            itemExtent: null, // Responsive yükseklik
+                            itemExtent: null,
+                            keyboardDismissBehavior:
+                                ScrollViewKeyboardDismissBehavior
+                                    .onDrag, // ✅ Klavye overflow fix
                             itemBuilder: (context, index) {
                               final emp = _filteredEmployees[index];
                               final unpaidDays = _unpaidDays[emp.id]!;

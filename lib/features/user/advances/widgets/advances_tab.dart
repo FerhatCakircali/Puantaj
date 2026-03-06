@@ -156,6 +156,9 @@ class _AdvancesTabState extends State<AdvancesTab> {
                               padding: EdgeInsets.only(bottom: h * 0.02),
                               itemCount: _filteredAdvances.length,
                               cacheExtent: h * 0.5,
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior
+                                      .onDrag, // ✅ Klavye overflow fix
                               itemBuilder: (context, index) {
                                 final advance = _filteredAdvances[index];
                                 final workerName = _getWorkerName(

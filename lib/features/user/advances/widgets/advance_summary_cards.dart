@@ -13,7 +13,7 @@ class AdvanceSummaryCards extends StatelessWidget {
     required this.monthlyTotal,
     required this.overallTotal,
     required this.workerCount,
-    required this.averageAdvance,
+    required this.averageAdvance, // Kullanılmıyor ama geriye dönük uyumluluk için bırakıldı
   });
 
   @override
@@ -93,15 +93,6 @@ class AdvanceSummaryCards extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: cardSpacing),
-              // Ortalama Avans - Tek kart
-              _buildWideCard(
-                context,
-                title: 'Ortalama Avans',
-                value: '₺${CurrencyFormatter.format(averageAdvance)}',
-                w: w,
-                theme: theme,
-              ),
             ],
           );
         },
@@ -147,54 +138,6 @@ class AdvanceSummaryCards extends StatelessWidget {
                 fontWeight: FontWeight.w900,
                 color: theme.colorScheme.onSurface,
                 letterSpacing: -0.5,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWideCard(
-    BuildContext context, {
-    required String title,
-    required String value,
-    required double w,
-    required ThemeData theme,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: w * 0.04, vertical: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: w * 0.035,
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          SizedBox(width: w * 0.02),
-          Flexible(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                value,
-                style: TextStyle(
-                  fontSize: w * 0.06,
-                  fontWeight: FontWeight.w900,
-                  color: theme.colorScheme.onSurface,
-                  letterSpacing: -0.5,
-                ),
               ),
             ),
           ),
