@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/expense.dart';
+import '../../../../utils/currency_formatter.dart';
 import '../controllers/expense_controller.dart';
 import 'edit_expense_dialog.dart';
 
@@ -204,8 +205,7 @@ class ExpenseDetailDialog extends StatelessWidget {
               context,
               icon: Icons.currency_lira,
               label: 'Tutar',
-              value:
-                  '₺${expense.amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
+              value: CurrencyFormatter.formatWithSymbol(expense.amount),
               w: w,
               valueColor: const Color(0xFF4338CA),
               valueBold: true,

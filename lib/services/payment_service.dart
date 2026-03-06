@@ -3,26 +3,11 @@ import 'auth_service.dart';
 import '../models/attendance.dart';
 import '../core/app_globals.dart';
 import '../utils/date_formatter.dart';
+import '../utils/currency_formatter.dart';
 import 'package:flutter/foundation.dart';
 
 class PaymentService {
   final _authService = AuthService();
-
-  /// Tutarı binlik ayırıcı ile formatla (₺600.234)
-  String _formatAmount(double amount) {
-    final intAmount = amount.toInt();
-    final str = intAmount.toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-      buffer.write(str[i]);
-    }
-
-    return buffer.toString();
-  }
 
   Future<int?> addPayment(Payment payment) async {
     try {
@@ -94,7 +79,7 @@ class PaymentService {
 
       // Bildirim mesajı oluştur
       final message =
-          '${payment.fullDays} Tam Gün, ${payment.halfDays} Yarım Gün - Toplam ₺${_formatAmount(payment.amount)} ödendi';
+          '${payment.fullDays} Tam Gün, ${payment.halfDays} Yarım Gün - Toplam ${CurrencyFormatter.formatWithSymbol(payment.amount)} ödendi';
 
       debugPrint('📢 Ödeme bildirimi gönderiliyor: $message');
 

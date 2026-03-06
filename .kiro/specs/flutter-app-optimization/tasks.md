@@ -159,14 +159,14 @@ Bu implementation plan, Flutter Puantaj uygulamasının 6 fazlı optimizasyon s�
     - _Estimated time: 1 hour_
 
 - [ ] 7. Currency formatting migrasyonu
-  - [ ] 7.1 payment_service.dart'ta _formatAmount() kullanımını değiştir
+  - [x] 7.1 payment_service.dart'ta _formatAmount() kullanımını değiştir
     - `_formatAmount()` fonksiyonunu kaldır
     - Tüm kullanımları `CurrencyFormatter.format()` ile değiştir
     - Import ekle: `import '../utils/currency_formatter.dart';`
     - _Requirements: 2.2_
     - _Estimated time: 1 hour_
   
-  - [ ] 7.2 UI dosyalarında currency formatting'i güncelle
+  - [x] 7.2 UI dosyalarında currency formatting'i güncelle
     - Payment ekranlarında CurrencyFormatter kullan
     - Report ekranlarında CurrencyFormatter kullan
     - Tutarlı format sağla

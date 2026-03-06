@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../../../models/employee.dart';
 import '../../../../../../utils/formatters/thousands_separator_formatter.dart';
+import '../../../../../../utils/currency_formatter.dart';
 import 'payment_auto_calculate_toggle.dart';
 import 'payment_available_days_card.dart';
 import 'payment_input_field.dart';
@@ -199,7 +200,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
     if (_deductAdvances && _totalPendingAdvances > 0) {
       if (amount < _totalPendingAdvances) {
         _showErrorDialog(
-          'Ödeme tutarı (₺${amount.toStringAsFixed(2)}) bekleyen avans tutarından (₺${_totalPendingAdvances.toStringAsFixed(2)}) az olamaz.',
+          'Ödeme tutarı (${CurrencyFormatter.formatWithSymbol(amount)}) bekleyen avans tutarından (${CurrencyFormatter.formatWithSymbol(_totalPendingAdvances)}) az olamaz.',
         );
         return;
       }
@@ -232,7 +233,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
         String message = 'Ödeme başarıyla kaydedildi';
         if (_deductAdvances && _totalPendingAdvances > 0) {
           message +=
-              '\n₺${_totalPendingAdvances.toStringAsFixed(2)} avans düşüldü';
+              '\n${CurrencyFormatter.formatWithSymbol(_totalPendingAdvances)} avans düşüldü';
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -536,7 +537,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Toplam: ₺${_totalPendingAdvances.toStringAsFixed(2)}',
+                        'Toplam: ${CurrencyFormatter.formatWithSymbol(_totalPendingAdvances)}',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
@@ -567,7 +568,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
             ),
             subtitle: _deductAdvances
                 ? Text(
-                    'Ödenecek tutar: ₺${(_getPaymentAmount() - _totalPendingAdvances).toStringAsFixed(2)}',
+                    'Ödenecek tutar: ${CurrencyFormatter.formatWithSymbol(_getPaymentAmount() - _totalPendingAdvances)}',
                     style: TextStyle(
                       fontSize: 12,
                       color: theme.colorScheme.primary,

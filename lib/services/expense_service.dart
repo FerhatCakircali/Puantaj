@@ -2,28 +2,13 @@ import 'package:flutter/foundation.dart';
 import '../models/expense.dart';
 import '../core/app_globals.dart';
 import '../utils/date_formatter.dart';
+import '../utils/currency_formatter.dart';
 import 'auth_service.dart';
 
 /// Masraf yönetimi servisi
 /// İş masraflarının (malzeme, ulaşım vb.) CRUD işlemlerini yönetir
 class ExpenseService {
   final _authService = AuthService();
-
-  /// Tutarı binlik ayırıcı ile formatla (₺600.234)
-  String _formatAmount(double amount) {
-    final intAmount = amount.toInt();
-    final str = intAmount.toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-      buffer.write(str[i]);
-    }
-
-    return buffer.toString();
-  }
 
   /// Yöneticinin tüm masraflarını getir
   Future<List<Expense>> getExpenses() async {
@@ -95,7 +80,9 @@ class ExpenseService {
         final total = (result as num?)?.toDouble() ?? 0.0;
         totals[category] = total;
 
-        debugPrint('  ${category.displayName}: ₺${_formatAmount(total)}');
+        debugPrint(
+          '  ${category.displayName}: ${CurrencyFormatter.formatWithSymbol(total)}',
+        );
       }
 
       debugPrint('✅ Kategori toplamları hesaplandı');
@@ -131,7 +118,7 @@ class ExpenseService {
       final category = ExpenseCategory.fromString(categoryValue);
 
       debugPrint(
-        '✅ En çok harcanan: ${category.displayName} - ₺${_formatAmount(totalAmount)}',
+        '✅ En çok harcanan: ${category.displayName} - ${CurrencyFormatter.formatWithSymbol(totalAmount)}',
       );
 
       return {'category': category, 'amount': totalAmount};
@@ -231,7 +218,9 @@ class ExpenseService {
 
       final monthlyTotal = (result as num?)?.toDouble() ?? 0.0;
 
-      debugPrint('✅ Aylık masraf: ₺${_formatAmount(monthlyTotal)}');
+      debugPrint(
+        '✅ Aylık masraf: ${CurrencyFormatter.formatWithSymbol(monthlyTotal)}',
+      );
       return monthlyTotal;
     } catch (e) {
       debugPrint('❌ Aylık masraf hesaplama hatası: $e');

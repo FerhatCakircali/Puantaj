@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../widgets/common/themed_text_field.dart';
+import '../../../../utils/currency_formatter.dart';
 import '../../payment_history/widgets/screen_widgets/index.dart';
 import '../controllers/payment_history_controller.dart';
 import '../widgets/date_range_selector.dart';
@@ -211,7 +212,9 @@ class _UserPaymentHistoryScreenState extends State<UserPaymentHistoryScreen> {
             const SizedBox(height: 12),
             _buildAdvanceDetailRow(
               'Tutar',
-              '₺${(advance['amount'] as num).toDouble().toStringAsFixed(0)}',
+              CurrencyFormatter.formatWithSymbol(
+                (advance['amount'] as num).toDouble(),
+              ),
             ),
             const SizedBox(height: 12),
             _buildAdvanceDetailRow(

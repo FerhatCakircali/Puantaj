@@ -2,28 +2,13 @@ import 'package:flutter/foundation.dart';
 import '../models/advance.dart';
 import '../core/app_globals.dart';
 import '../utils/date_formatter.dart';
+import '../utils/currency_formatter.dart';
 import 'auth_service.dart';
 
 /// Avans yönetimi servisi
 /// Çalışanlara verilen avansların CRUD işlemlerini yönetir
 class AdvanceService {
   final _authService = AuthService();
-
-  /// Tutarı binlik ayırıcı ile formatla (₺600.234)
-  String _formatAmount(double amount) {
-    final intAmount = amount.toInt();
-    final str = intAmount.toString();
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < str.length; i++) {
-      if (i > 0 && (str.length - i) % 3 == 0) {
-        buffer.write('.');
-      }
-      buffer.write(str[i]);
-    }
-
-    return buffer.toString();
-  }
 
   /// Yöneticinin tüm avanslarını getir
   Future<List<Advance>> getAdvances() async {
@@ -89,7 +74,9 @@ class AdvanceService {
 
       final pendingAmount = (result as num?)?.toDouble() ?? 0.0;
 
-      debugPrint('✅ Bekleyen avans: ₺${_formatAmount(pendingAmount)}');
+      debugPrint(
+        '✅ Bekleyen avans: ${CurrencyFormatter.formatWithSymbol(pendingAmount)}',
+      );
       return pendingAmount;
     } catch (e) {
       debugPrint('❌ Bekleyen avans hesaplama hatası: $e');
@@ -109,7 +96,9 @@ class AdvanceService {
 
       final totalAmount = (result as num?)?.toDouble() ?? 0.0;
 
-      debugPrint('✅ Toplam avans: ₺${_formatAmount(totalAmount)}');
+      debugPrint(
+        '✅ Toplam avans: ${CurrencyFormatter.formatWithSymbol(totalAmount)}',
+      );
       return totalAmount;
     } catch (e) {
       debugPrint('❌ Toplam avans hesaplama hatası: $e');
@@ -227,7 +216,9 @@ class AdvanceService {
 
       final monthlyTotal = (result as num?)?.toDouble() ?? 0.0;
 
-      debugPrint('✅ Aylık avans: ₺${_formatAmount(monthlyTotal)}');
+      debugPrint(
+        '✅ Aylık avans: ${CurrencyFormatter.formatWithSymbol(monthlyTotal)}',
+      );
       return monthlyTotal;
     } catch (e) {
       debugPrint('❌ Aylık avans hesaplama hatası: $e');
@@ -241,7 +232,8 @@ class AdvanceService {
       final userId = await _authService.getUserId();
       if (userId == null) return;
 
-      final message = '₺${_formatAmount(advance.amount)} avans verildi';
+      final message =
+          '${CurrencyFormatter.formatWithSymbol(advance.amount)} avans verildi';
 
       debugPrint('📢 Avans bildirimi gönderiliyor: $message');
 
