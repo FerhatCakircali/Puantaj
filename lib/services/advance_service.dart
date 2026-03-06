@@ -3,6 +3,7 @@ import '../models/advance.dart';
 import '../core/app_globals.dart';
 import '../utils/date_formatter.dart';
 import '../utils/currency_formatter.dart';
+import '../core/error_logger.dart';
 import 'auth_service.dart';
 
 /// Avans yönetimi servisi
@@ -28,8 +29,12 @@ class AdvanceService {
 
       debugPrint('✅ ${advances.length} avans getirildi');
       return advances;
-    } catch (e) {
-      debugPrint('❌ Avans getirme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AdvanceService.getAdvances hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -53,8 +58,12 @@ class AdvanceService {
 
       debugPrint('✅ ${advances.length} avans getirildi');
       return advances;
-    } catch (e) {
-      debugPrint('❌ Çalışan avansları getirme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AdvanceService.getWorkerAdvances hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -78,8 +87,12 @@ class AdvanceService {
         '✅ Bekleyen avans: ${CurrencyFormatter.formatWithSymbol(pendingAmount)}',
       );
       return pendingAmount;
-    } catch (e) {
-      debugPrint('❌ Bekleyen avans hesaplama hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AdvanceService.getWorkerPendingAdvances hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return 0.0;
     }
   }
@@ -100,8 +113,12 @@ class AdvanceService {
         '✅ Toplam avans: ${CurrencyFormatter.formatWithSymbol(totalAmount)}',
       );
       return totalAmount;
-    } catch (e) {
-      debugPrint('❌ Toplam avans hesaplama hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AdvanceService.getWorkerTotalAdvances hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return 0.0;
     }
   }
@@ -155,8 +172,12 @@ class AdvanceService {
       await supabase.from('advances').update(advanceMap).eq('id', advance.id!);
 
       debugPrint('✅ Avans başarıyla güncellendi');
-    } catch (e) {
-      debugPrint('❌ Avans güncelleme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AdvanceService.updateAdvance hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -169,8 +190,12 @@ class AdvanceService {
       await supabase.from('advances').delete().eq('id', advanceId);
 
       debugPrint('✅ Avans başarıyla silindi');
-    } catch (e) {
-      debugPrint('❌ Avans silme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AdvanceService.deleteAdvance hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -188,8 +213,12 @@ class AdvanceService {
           .eq('id', advanceId);
 
       debugPrint('✅ Avans başarıyla düşüldü');
-    } catch (e) {
-      debugPrint('❌ Avans düşme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AdvanceService.markAsDeducted hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -220,8 +249,12 @@ class AdvanceService {
         '✅ Aylık avans: ${CurrencyFormatter.formatWithSymbol(monthlyTotal)}',
       );
       return monthlyTotal;
-    } catch (e) {
-      debugPrint('❌ Aylık avans hesaplama hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AdvanceService.getMonthlyAdvances hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return 0.0;
     }
   }
@@ -249,8 +282,12 @@ class AdvanceService {
       });
 
       debugPrint('✅ Avans bildirimi gönderildi');
-    } catch (e) {
-      debugPrint('⚠️ Avans bildirimi gönderilemedi: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AdvanceService._sendAdvanceNotification hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

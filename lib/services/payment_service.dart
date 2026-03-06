@@ -4,6 +4,7 @@ import '../models/attendance.dart';
 import '../core/app_globals.dart';
 import '../utils/date_formatter.dart';
 import '../utils/currency_formatter.dart';
+import '../core/error_logger.dart';
 import 'package:flutter/foundation.dart';
 
 class PaymentService {
@@ -97,8 +98,12 @@ class PaymentService {
       });
 
       debugPrint('✅ Ödeme bildirimi gönderildi');
-    } catch (e) {
-      debugPrint('⚠️ Ödeme bildirimi gönderilemedi: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService._sendPaymentNotification hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -335,8 +340,12 @@ class PaymentService {
         debugPrint('❌ Ödeme güncellenemedi');
         return false;
       }
-    } catch (e) {
-      debugPrint('❌ Ödeme güncelleme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService.updatePayment hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -358,8 +367,12 @@ class PaymentService {
         debugPrint('❌ Ödeme silinemedi');
         return false;
       }
-    } catch (e) {
-      debugPrint('❌ Ödeme silme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService.deletePayment hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -446,8 +459,12 @@ class PaymentService {
         '✅ Ödeme geçmişi getirildi: ${combined.length} kayıt (${paymentsResults.length} ödeme, ${advancesResults.length} avans)',
       );
       return combined;
-    } catch (e) {
-      debugPrint('❌ Ödeme geçmişi getirme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService.getUserPaymentHistory hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }

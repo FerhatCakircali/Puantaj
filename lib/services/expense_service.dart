@@ -3,6 +3,7 @@ import '../models/expense.dart';
 import '../core/app_globals.dart';
 import '../utils/date_formatter.dart';
 import '../utils/currency_formatter.dart';
+import '../core/error_logger.dart';
 import 'auth_service.dart';
 
 /// Masraf yönetimi servisi
@@ -28,8 +29,12 @@ class ExpenseService {
 
       debugPrint('✅ ${expenses.length} masraf getirildi');
       return expenses;
-    } catch (e) {
-      debugPrint('❌ Masraf getirme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'ExpenseService.getExpenses hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -55,8 +60,12 @@ class ExpenseService {
 
       debugPrint('✅ ${expenses.length} masraf getirildi');
       return expenses;
-    } catch (e) {
-      debugPrint('❌ Kategori masrafları getirme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'ExpenseService.getExpensesByCategory hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -87,8 +96,12 @@ class ExpenseService {
 
       debugPrint('✅ Kategori toplamları hesaplandı');
       return totals;
-    } catch (e) {
-      debugPrint('❌ Kategori toplamları hesaplama hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'ExpenseService.getCategoryTotals hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return {};
     }
   }
@@ -122,8 +135,12 @@ class ExpenseService {
       );
 
       return {'category': category, 'amount': totalAmount};
-    } catch (e) {
-      debugPrint('❌ En çok harcanan kategori hesaplama hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'ExpenseService.getTopExpenseCategory hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -176,8 +193,12 @@ class ExpenseService {
       await supabase.from('expenses').update(expenseMap).eq('id', expense.id!);
 
       debugPrint('✅ Masraf başarıyla güncellendi');
-    } catch (e) {
-      debugPrint('❌ Masraf güncelleme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'ExpenseService.updateExpense hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -190,8 +211,12 @@ class ExpenseService {
       await supabase.from('expenses').delete().eq('id', expenseId);
 
       debugPrint('✅ Masraf başarıyla silindi');
-    } catch (e) {
-      debugPrint('❌ Masraf silme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'ExpenseService.deleteExpense hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -222,8 +247,12 @@ class ExpenseService {
         '✅ Aylık masraf: ${CurrencyFormatter.formatWithSymbol(monthlyTotal)}',
       );
       return monthlyTotal;
-    } catch (e) {
-      debugPrint('❌ Aylık masraf hesaplama hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'ExpenseService.getMonthlyExpenses hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return 0.0;
     }
   }
@@ -253,8 +282,12 @@ class ExpenseService {
 
       debugPrint('✅ ${expenses.length} masraf getirildi');
       return expenses;
-    } catch (e) {
-      debugPrint('❌ Tarih aralığı masrafları getirme hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'ExpenseService.getExpensesByDateRange hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }

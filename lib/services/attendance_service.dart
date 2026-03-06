@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/attendance.dart';
 import '../utils/date_formatter.dart';
+import '../core/error_logger.dart';
 import 'auth_service.dart';
 import 'notification_service.dart';
 
@@ -25,8 +26,12 @@ class AttendanceService {
           .eq('date', formattedDate);
 
       return results.map<Attendance>((map) => Attendance.fromMap(map)).toList();
-    } catch (e) {
-      debugPrint('getAttendanceByDate hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AttendanceService.getAttendanceByDate hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -57,8 +62,12 @@ class AttendanceService {
       final results = await query;
 
       return results.map<Attendance>((map) => Attendance.fromMap(map)).toList();
-    } catch (e) {
-      debugPrint('getAttendanceBetween hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AttendanceService.getAttendanceBetween hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -111,12 +120,20 @@ class AttendanceService {
           debugPrint(
             '✅ Yevmiye hatırlatıcısı iptal edildi (yevmiye girişi yapıldı)',
           );
-        } catch (e) {
-          debugPrint('⚠️ Yevmiye hatırlatıcısı iptal edilirken hata: $e');
+        } catch (e, stackTrace) {
+          ErrorLogger.instance.logError(
+            'AttendanceService.markAttendance - notification cancel hatası',
+            error: e,
+            stackTrace: stackTrace,
+          );
         }
       }
-    } catch (e) {
-      debugPrint('❌ [AttendanceService] markAttendance hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'AttendanceService.markAttendance hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow; // Hatayı yukarı fırlat ki UI'da gösterilebilsin
     }
   }
