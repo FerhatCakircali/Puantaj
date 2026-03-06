@@ -67,7 +67,7 @@ class WorkerDashboardController {
     }
   }
 
-  /// Dashboard verilerini yükler
+  /// Dashboard verilerini yükler (Optimized - paralel queries)
   Future<DashboardData> loadDashboardData() async {
     final session = await _localStorage.getWorkerSession();
     if (session == null) {
@@ -81,60 +81,42 @@ class WorkerDashboardController {
     final monthStart = DateTime(now.year, now.month, 1);
     final monthEnd = DateTime(now.year, now.month + 1, 0);
 
-    // Mevcut ay istatistikleri
-    final monthlyStats = await _attendanceService.getMonthlyStatsWithDates(
-      workerId: workerId,
-      monthStart: monthStart,
-      monthEnd: monthEnd,
-    );
-
-    // Toplam ödemeler
-    final totalPayments = await _attendanceService.getTotalPayments(workerId);
-
-    // Bekleyen talepler
-    final pendingCount = await _getPendingRequestsCount(workerId);
-
-    // Okunmamış bildirimler
-    final unreadNotifications = await _getUnreadNotificationsCount(workerId);
-
-    // Bu hafta çalışılan günler
-    final weeklyDays = await _getWeeklyDays(workerId);
-
-    // Toplam çalışma günü
-    final totalDays = await _getTotalWorkDays(workerId);
-
-    // Son 3 ödeme
-    final recentPayments = await _getRecentPayments(workerId, userId);
-
-    // Aylık ortalama kazanç
-    final monthlyAverage = await _getMonthlyAverage(workerId, userId);
-
-    // Son 3 ay trendi
-    final monthlyTrend = await _getMonthlyTrend(workerId);
-
-    // Son aktiviteler
-    final lastAttendance = await _getLastAttendance(workerId);
-    final lastApproved = await _getLastApproved(workerId);
-    final lastPayment = await _getLastPayment(workerId, userId);
-
-    // Yaklaşan hatırlatıcılar
-    final reminders = await _getUpcomingReminders(workerId);
+    // ✅ Paralel olarak tüm verileri çek (N+1 query problemi çözüldü)
+    final results = await Future.wait([
+      _attendanceService.getMonthlyStatsWithDates(
+        workerId: workerId,
+        monthStart: monthStart,
+        monthEnd: monthEnd,
+      ),
+      _attendanceService.getTotalPayments(workerId),
+      _getPendingRequestsCount(workerId),
+      _getUnreadNotificationsCount(workerId),
+      _getWeeklyDays(workerId),
+      _getTotalWorkDays(workerId),
+      _getRecentPayments(workerId, userId),
+      _getMonthlyAverage(workerId, userId),
+      _getMonthlyTrend(workerId),
+      _getLastAttendance(workerId),
+      _getLastApproved(workerId),
+      _getLastPayment(workerId, userId),
+      _getUpcomingReminders(workerId),
+    ]);
 
     return DashboardData(
       workerId: workerId,
-      monthlyStats: monthlyStats,
-      totalPayments: totalPayments,
-      pendingCount: pendingCount,
-      unreadNotifications: unreadNotifications,
-      weeklyDays: weeklyDays,
-      totalDays: totalDays,
-      recentPayments: recentPayments,
-      monthlyAverage: monthlyAverage,
-      monthlyTrend: monthlyTrend,
-      lastAttendance: lastAttendance,
-      lastApproved: lastApproved,
-      lastPayment: lastPayment,
-      reminders: reminders,
+      monthlyStats: results[0] as Map<String, dynamic>,
+      totalPayments: results[1] as double,
+      pendingCount: results[2] as int,
+      unreadNotifications: results[3] as int,
+      weeklyDays: results[4] as int,
+      totalDays: results[5] as int,
+      recentPayments: results[6] as List<Map<String, dynamic>>,
+      monthlyAverage: results[7] as double,
+      monthlyTrend: results[8] as List<Map<String, dynamic>>,
+      lastAttendance: results[9] as DateTime?,
+      lastApproved: results[10] as DateTime?,
+      lastPayment: results[11] as DateTime?,
+      reminders: results[12] as List<Map<String, dynamic>>,
     );
   }
 

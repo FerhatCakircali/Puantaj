@@ -2,18 +2,48 @@ import '../../../../models/advance.dart';
 import '../../../../models/employee.dart';
 import '../../../../services/advance_service.dart';
 import '../../../../services/worker_service.dart';
+import '../../../../data/local/hive_service.dart';
 
 /// Avans ekranı iş mantığı kontrolcüsü
 class AdvanceController {
   final AdvanceService _advanceService = AdvanceService();
   final WorkerService _workerService = WorkerService();
+  final _hiveService = HiveService.instance;
 
-  /// Tüm avansları ve istatistikleri yükler
+  /// Tüm avansları ve istatistikleri yükler (Optimized - Hive cache)
   Future<AdvanceData> loadAdvanceData() async {
+    // 1. Önce cache'den employees al (hızlı)
+    final cachedEmployees = _hiveService.employees.values.toList();
+
+    if (cachedEmployees.isNotEmpty) {
+      // Arka planda gerçek veriyi çek (non-blocking)
+      _loadDataInBackground();
+
+      // Cache'den hızlı sonuç döndür
+      final advances = await _advanceService.getAdvances();
+      return _processAdvanceData(advances, cachedEmployees);
+    }
+
+    // Cache yoksa normal yükle
     final advances = await _advanceService.getAdvances();
     final employees = await _workerService.getEmployees();
+    return _processAdvanceData(advances, employees);
+  }
 
-    // Bu ay verilen avansları hesapla
+  /// Arka planda veri güncelle (non-blocking)
+  Future<void> _loadDataInBackground() async {
+    try {
+      await _workerService.getEmployees();
+    } catch (e) {
+      // Sessizce başarısız ol
+    }
+  }
+
+  /// Avans verilerini işle
+  AdvanceData _processAdvanceData(
+    List<Advance> advances,
+    List<Employee> employees,
+  ) {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
     final endOfMonth = DateTime(now.year, now.month + 1, 0);
