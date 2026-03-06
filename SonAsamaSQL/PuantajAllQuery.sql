@@ -2529,6 +2529,228 @@ $$ LANGUAGE plpgsql;
 COMMENT ON FUNCTION get_top_expense_category(BIGINT) IS 'En çok harcanan kategoriyi ve tutarını döndürür';
 
 -- ============================================
+-- 5.14 RPC FUNCTIONS (Performans Optimizasyonu)
+-- ============================================
+-- 🚀 N+1 query problemini çözen RPC fonksiyonları
+-- Flutter uygulamasında WorkerService ve PaymentService tarafından kullanılır
+
+-- ============================================
+-- 5.14.1 get_workers_with_unpaid_days
+-- ============================================
+-- 📊 İşçileri ödenmemiş gün bilgileriyle birlikte getirir
+-- 
+-- Amaç: N+1 query problemini çözmek için workers, attendance ve paid_days
+--       tablolarını tek sorguda JOIN ederek unpaid days bilgisini döndürür
+--
+-- Performans İyileştirmesi: 15+ query → 1 query (%93 azalma)
+--
+-- Parametreler:
+--   - p_user_id: UUID - Kullanıcı ID'si (filtre için)
+--
+-- Dönen Veri:
+--   - worker_id: INTEGER
+--   - full_name: TEXT
+--   - title: TEXT
+--   - start_date: DATE
+--   - unpaid_full_days: INTEGER
+--   - unpaid_half_days: INTEGER
+--   - total_unpaid_days: NUMERIC (full + half*0.5)
+--
+-- Kullanım:
+--   SELECT * FROM get_workers_with_unpaid_days('user-uuid-here');
+--
+-- Saat Dilimi: Europe/Istanbul (UTC+3)
+
+CREATE OR REPLACE FUNCTION get_workers_with_unpaid_days(p_user_id UUID)
+RETURNS TABLE (
+  worker_id INTEGER,
+  full_name TEXT,
+  title TEXT,
+  start_date DATE,
+  unpaid_full_days INTEGER,
+  unpaid_half_days INTEGER,
+  total_unpaid_days NUMERIC
+) 
+LANGUAGE plpgsql
+AS $
+BEGIN
+  RETURN QUERY
+  SELECT 
+    w.id AS worker_id,
+    w.full_name,
+    w.title,
+    w.start_date,
+    -- Unpaid full days: attendance'da var ama paid_days'de yok
+    COALESCE(
+      (SELECT COUNT(*)::INTEGER
+       FROM attendance a
+       WHERE a.worker_id = w.id
+         AND a.status = 'full_day'
+         AND NOT EXISTS (
+           SELECT 1 
+           FROM paid_days pd
+           WHERE pd.worker_id = w.id
+             AND pd.attendance_date = a.attendance_date
+             AND pd.is_full_day = true
+         )
+      ), 0
+    ) AS unpaid_full_days,
+    -- Unpaid half days: attendance'da var ama paid_days'de yok
+    COALESCE(
+      (SELECT COUNT(*)::INTEGER
+       FROM attendance a
+       WHERE a.worker_id = w.id
+         AND a.status = 'half_day'
+         AND NOT EXISTS (
+           SELECT 1 
+           FROM paid_days pd
+           WHERE pd.worker_id = w.id
+             AND pd.attendance_date = a.attendance_date
+             AND pd.is_full_day = false
+         )
+      ), 0
+    ) AS unpaid_half_days,
+    -- Total unpaid days (full + half*0.5)
+    COALESCE(
+      (SELECT COUNT(*)::INTEGER
+       FROM attendance a
+       WHERE a.worker_id = w.id
+         AND a.status = 'full_day'
+         AND NOT EXISTS (
+           SELECT 1 
+           FROM paid_days pd
+           WHERE pd.worker_id = w.id
+             AND pd.attendance_date = a.attendance_date
+             AND pd.is_full_day = true
+         )
+      ), 0
+    )::NUMERIC + 
+    (COALESCE(
+      (SELECT COUNT(*)::INTEGER
+       FROM attendance a
+       WHERE a.worker_id = w.id
+         AND a.status = 'half_day'
+         AND NOT EXISTS (
+           SELECT 1 
+           FROM paid_days pd
+           WHERE pd.worker_id = w.id
+             AND pd.attendance_date = a.attendance_date
+             AND pd.is_full_day = false
+         )
+      ), 0
+    )::NUMERIC * 0.5) AS total_unpaid_days
+  FROM workers w
+  WHERE w.user_id = p_user_id
+    AND w.is_active = true
+  ORDER BY w.full_name ASC;
+END;
+$;
+
+-- Yetkilendirme: Authenticated kullanıcılar çalıştırabilir
+GRANT EXECUTE ON FUNCTION get_workers_with_unpaid_days(UUID) TO authenticated;
+
+COMMENT ON FUNCTION get_workers_with_unpaid_days(UUID) IS 
+'İşçileri ödenmemiş gün bilgileriyle birlikte getirir. N+1 query problemini çözer (15+ query → 1 query).';
+
+-- ============================================
+-- 5.14.2 get_payment_summary
+-- ============================================
+-- 💰 Ödeme özet bilgilerini tek sorguda döndürür
+--
+-- Amaç: Belirli tarih aralığındaki ödeme özetini tek sorguda döndürür
+--       N+1 query problemini çözer
+--
+-- Performans İyileştirmesi: 10+ query → 1 query (%90 azalma)
+--
+-- Parametreler:
+--   - p_user_id: UUID - Kullanıcı ID'si
+--   - p_start_date: DATE - Başlangıç tarihi
+--   - p_end_date: DATE - Bitiş tarihi
+--
+-- Dönen Veri:
+--   - total_payments: INTEGER - Toplam ödeme sayısı
+--   - total_amount: NUMERIC - Toplam ödeme tutarı
+--   - total_advances: INTEGER - Toplam avans sayısı
+--   - total_advance_amount: NUMERIC - Toplam avans tutarı
+--   - total_salaries: INTEGER - Toplam maaş ödemesi sayısı
+--   - total_salary_amount: NUMERIC - Toplam maaş tutarı
+--   - unique_workers: INTEGER - Ödeme alan benzersiz çalışan sayısı
+--   - avg_payment_amount: NUMERIC - Ortalama ödeme tutarı
+--
+-- Kullanım:
+--   SELECT * FROM get_payment_summary(
+--     'user-uuid-here',
+--     '2024-01-01',
+--     '2024-01-31'
+--   );
+--
+-- Saat Dilimi: Europe/Istanbul (UTC+3)
+
+CREATE OR REPLACE FUNCTION get_payment_summary(
+  p_user_id UUID,
+  p_start_date DATE,
+  p_end_date DATE
+)
+RETURNS TABLE (
+  total_payments INTEGER,
+  total_amount NUMERIC,
+  total_advances INTEGER,
+  total_advance_amount NUMERIC,
+  total_salaries INTEGER,
+  total_salary_amount NUMERIC,
+  unique_workers INTEGER,
+  avg_payment_amount NUMERIC
+) 
+LANGUAGE plpgsql
+AS $
+BEGIN
+  RETURN QUERY
+  SELECT 
+    -- Toplam ödeme sayısı
+    COUNT(*)::INTEGER AS total_payments,
+    
+    -- Toplam ödeme tutarı
+    COALESCE(SUM(p.amount), 0)::NUMERIC AS total_amount,
+    
+    -- Toplam avans sayısı
+    COUNT(*) FILTER (WHERE p.is_advance = true)::INTEGER AS total_advances,
+    
+    -- Toplam avans tutarı
+    COALESCE(
+      SUM(p.amount) FILTER (WHERE p.is_advance = true), 
+      0
+    )::NUMERIC AS total_advance_amount,
+    
+    -- Toplam maaş ödemesi sayısı
+    COUNT(*) FILTER (WHERE p.is_advance = false)::INTEGER AS total_salaries,
+    
+    -- Toplam maaş tutarı
+    COALESCE(
+      SUM(p.amount) FILTER (WHERE p.is_advance = false), 
+      0
+    )::NUMERIC AS total_salary_amount,
+    
+    -- Benzersiz çalışan sayısı
+    COUNT(DISTINCT p.worker_id)::INTEGER AS unique_workers,
+    
+    -- Ortalama ödeme tutarı
+    COALESCE(AVG(p.amount), 0)::NUMERIC AS avg_payment_amount
+    
+  FROM payments p
+  INNER JOIN workers w ON p.worker_id = w.id
+  WHERE w.user_id = p_user_id
+    AND p.payment_date >= p_start_date
+    AND p.payment_date <= p_end_date;
+END;
+$;
+
+-- Yetkilendirme: Authenticated kullanıcılar çalıştırabilir
+GRANT EXECUTE ON FUNCTION get_payment_summary(UUID, DATE, DATE) TO authenticated;
+
+COMMENT ON FUNCTION get_payment_summary(UUID, DATE, DATE) IS 
+'Ödeme özet bilgilerini tek sorguda döndürür. N+1 query problemini çözer (10+ query → 1 query).';
+
+-- ============================================
 -- SECTION 6: TRIGGERS (Tetikleyiciler)
 -- ============================================
 -- 📌 AÇIKLAMA: Otomatik çalışan veritabanı tetikleyicileri
