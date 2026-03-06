@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/error_logger.dart';
-import '../../models/attendance.dart';
-import '../../models/payment.dart';
-import '../../services/attendance_service.dart';
-import '../../services/payment_service.dart';
 import 'hive_service.dart';
 
 /// Offline-first senkronizasyon yöneticisi
 ///
 /// İnternet bağlantısı geldiğinde bekleyen verileri Supabase'e gönderir.
 /// Connectivity_plus ile internet durumunu dinler.
+///
+/// NOT: Circular dependency'yi önlemek için service'leri kullanmaz,
+/// direkt Supabase ile iletişim kurar.
 class SyncManager {
   // Singleton pattern
   SyncManager._();
@@ -18,8 +18,8 @@ class SyncManager {
 
   final _hiveService = HiveService.instance;
   final _connectivity = Connectivity();
-  final _attendanceService = AttendanceService();
-  final _paymentService = PaymentService();
+
+  SupabaseClient get supabase => Supabase.instance.client;
 
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   bool _isSyncing = false;
@@ -157,7 +157,7 @@ class SyncManager {
     }
   }
 
-  /// Attendance verisini senkronize et
+  /// Attendance verisini senkronize et (Direkt Supabase)
   Future<bool> _syncAttendance(
     Map<String, dynamic> data,
     String operation,
@@ -166,12 +166,15 @@ class SyncManager {
       switch (operation) {
         case 'create':
         case 'update':
-          final attendance = Attendance.fromMap(data);
-          await _attendanceService.markAttendance(
-            workerId: attendance.workerId,
-            date: attendance.date,
-            status: attendance.status,
-          );
+          // Direkt Supabase'e upsert yap (circular dependency yok)
+          final now = DateTime.now().toUtc().add(const Duration(hours: 3));
+          final nowIso = now.toIso8601String();
+
+          await supabase.from('attendance').upsert({
+            ...data,
+            'created_at': nowIso,
+            'updated_at': nowIso,
+          }, onConflict: 'worker_id,date');
           return true;
         case 'delete':
           // Delete işlemi için gerekirse implement et
@@ -185,13 +188,13 @@ class SyncManager {
     }
   }
 
-  /// Payment verisini senkronize et
+  /// Payment verisini senkronize et (Direkt Supabase)
   Future<bool> _syncPayment(Map<String, dynamic> data, String operation) async {
     try {
       switch (operation) {
         case 'create':
-          final payment = Payment.fromMap(data);
-          await _paymentService.addPayment(payment);
+          // Direkt Supabase'e insert yap (circular dependency yok)
+          await supabase.from('payments').insert(data);
           return true;
         case 'update':
         case 'delete':
