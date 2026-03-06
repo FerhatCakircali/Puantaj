@@ -16,6 +16,7 @@ import 'package:puantaj/core/app_notification_handler.dart';
 import 'package:puantaj/core/error_handler.dart';
 import 'package:puantaj/core/user_data_notifier.dart';
 import 'package:puantaj/core/providers/theme_provider.dart';
+import 'package:puantaj/core/providers/auth_provider.dart';
 import 'package:puantaj/firebase_options.dart';
 import 'package:puantaj/services/fcm_service.dart';
 import 'package:puantaj/services/notification/notification_helpers.dart';
@@ -113,11 +114,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       },
     );
 
-    // Auth durumu değişikliklerini dinle
-    authStateNotifier.addListener(_onAuthStateChanged);
-
-    // ⚡ PHASE 3: themeModeNotifier listener kaldırıldı, Riverpod kullanılacak
-    // themeModeNotifier.addListener(_onThemeChanged); // DEPRECATED
+    // ⚡ PHASE 3: Riverpod AuthProvider listener - ref.listen ile
+    // authStateNotifier.addListener(_onAuthStateChanged); // DEPRECATED
 
     // Kullanıcı veri değişikliklerini dinle
     userDataNotifier.addListener(_onUserDataChanged);
@@ -148,7 +146,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       if (workerSession != null) {
         _isLoggedIn = false;
         _isCurrentUserAdmin = false;
-        authStateNotifier.value = false;
+        // ⚡ PHASE 3: Riverpod AuthProvider kullan
+        ref.read(authStateProvider.notifier).logout();
 
         setState(() {
           _isBootstrappingSession = false;
@@ -162,17 +161,20 @@ class _MyAppState extends ConsumerState<MyApp> {
       final userSession = await AppBootstrap.checkUserSession();
 
       if (userSession == null) {
-        authStateNotifier.value = false;
+        // ⚡ PHASE 3: Riverpod AuthProvider kullan
+        ref.read(authStateProvider.notifier).logout();
         _isLoggedIn = false;
         _isCurrentUserAdmin = false;
       } else {
         _isCurrentUserAdmin = userSession['isAdmin'] as bool;
         _isLoggedIn = true;
-        authStateNotifier.value = true;
+        // ⚡ PHASE 3: Riverpod AuthProvider kullan
+        ref.read(authStateProvider.notifier).login();
       }
     } catch (e, stack) {
       ErrorHandler.logError('Bootstrap.session', e, stack);
-      authStateNotifier.value = false;
+      // ⚡ PHASE 3: Riverpod AuthProvider kullan
+      ref.read(authStateProvider.notifier).logout();
       _isLoggedIn = false;
       _isCurrentUserAdmin = false;
     } finally {
@@ -205,19 +207,13 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
   }
 
-  void _onAuthStateChanged() {
-    final newLoginState = authStateNotifier.value;
-
-    debugPrint(
-      '🔔 Auth state listener tetiklendi: $_isLoggedIn -> $newLoginState',
-    );
+  // ⚡ PHASE 3: Riverpod AuthProvider listener
+  void _onAuthStateChanged(bool? previous, bool next) {
+    debugPrint('🔔 Auth state listener tetiklendi: $_isLoggedIn -> $next');
 
     // Sadece login durumu değiştiyse işlem yap
-    if (_isLoggedIn != newLoginState) {
-      _isLoggedIn = newLoginState;
-
-      // ⚡ PHASE 3: AppState notifier kaldırıldı, Riverpod kullanılacak
-      // _appStateNotifier.value = ... // DEPRECATED
+    if (_isLoggedIn != next) {
+      _isLoggedIn = next;
 
       if (_isLoggedIn) {
         debugPrint('🔐 Auth state değişti: Giriş yapıldı');
@@ -431,12 +427,9 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void dispose() {
     _notificationClickSubscription?.cancel();
-    authStateNotifier.removeListener(_onAuthStateChanged);
-    // ⚡ PHASE 3: themeModeNotifier listener kaldırıldı
-    // themeModeNotifier.removeListener(_onThemeChanged); // DEPRECATED
+    // ⚡ PHASE 3: authStateNotifier listener kaldırıldı, Riverpod kullanılacak
+    // authStateNotifier.removeListener(_onAuthStateChanged); // DEPRECATED
     userDataNotifier.removeListener(_onUserDataChanged);
-    // ⚡ PHASE 3: AppState notifier kaldırıldı
-    // _appStateNotifier.dispose(); // DEPRECATED
     super.dispose();
   }
 
@@ -446,6 +439,11 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     // ⚡ PHASE 3: Riverpod ThemeProvider'dan tema modunu al
     final themeMode = ref.watch(themeStateProvider);
+
+    // ⚡ PHASE 3: Riverpod AuthProvider'ı dinle
+    ref.listen<bool>(authStateProvider, (previous, next) {
+      _onAuthStateChanged(previous, next);
+    });
 
     if (_isBootstrappingSession || !_isRouterReady || appRouter == null) {
       return MaterialApp(
