@@ -3,12 +3,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/attendance.dart';
 import '../utils/date_formatter.dart';
 import '../core/error_logger.dart';
+import '../data/local/hive_service.dart';
+import '../data/local/sync_manager.dart';
 import 'auth_service.dart';
 import 'notification_service.dart';
 
 class AttendanceService {
   final AuthService _authService = AuthService();
   final NotificationService _notificationServiceV2 = NotificationService();
+  final _hiveService = HiveService.instance;
+  final _syncManager = SyncManager.instance;
 
   SupabaseClient get supabase => Supabase.instance.client;
 
@@ -87,6 +91,8 @@ class AttendanceService {
     required DateTime date,
     required AttendanceStatus status,
   }) async {
+    Attendance? tempAttendance;
+
     try {
       final userId = await _authService.getUserId();
       if (userId == null) {
@@ -102,36 +108,64 @@ class AttendanceService {
         '💾 [AttendanceService] Kaydediliyor: worker=$workerId, date=$formattedDate, status=${status.name}',
       );
 
-      // ⚡ FIX: Türkiye saatini (UTC+3) kullan
-      final now = DateTime.now().toUtc().add(const Duration(hours: 3));
-      final nowIso = now.toIso8601String();
-
-      debugPrint('🕐 Türkiye saati: $nowIso');
-
-      // Upsert kullan - eğer kayıt varsa güncelle, yoksa ekle
-      await supabase.from('attendance').upsert(
-        {
-          'worker_id': workerId,
-          'user_id': userId,
-          'date': formattedDate,
-          'status': status.name,
-          'created_by': 'manager', // Yönetici tarafından oluşturuldu
-          'created_at': nowIso, // Türkiye saati
-          'updated_at': nowIso, // Türkiye saati
-        },
-        onConflict: 'worker_id,date', // UNIQUE constraint: (worker_id, date)
+      // 1. Optimistic update: Hive'a kaydet
+      tempAttendance = Attendance(
+        userId: userId,
+        workerId: workerId,
+        date: date,
+        status: status,
+        createdBy: 'manager',
+        notificationSent: false,
       );
 
-      debugPrint('✅ [AttendanceService] Kaydedildi');
+      final key = '${workerId}_$formattedDate';
+      await _hiveService.attendance.put(key, tempAttendance);
+      debugPrint('✅ Optimistic: Attendance Hive\'a eklendi');
+
+      // 2. Online ise Supabase'e gönder
+      if (_syncManager.isOnline) {
+        try {
+          final now = DateTime.now().toUtc().add(const Duration(hours: 3));
+          final nowIso = now.toIso8601String();
+
+          await supabase.from('attendance').upsert({
+            'worker_id': workerId,
+            'user_id': userId,
+            'date': formattedDate,
+            'status': status.name,
+            'created_by': 'manager',
+            'created_at': nowIso,
+            'updated_at': nowIso,
+          }, onConflict: 'worker_id,date');
+
+          debugPrint('✅ [AttendanceService] Supabase\'e kaydedildi');
+        } catch (e) {
+          // Supabase hatası: Pending sync'e ekle
+          await _syncManager.addPendingSync(
+            type: 'attendance',
+            data: tempAttendance.toMap(),
+            operation: 'create',
+          );
+
+          debugPrint('⚠️ Supabase hatası: Pending sync\'e eklendi');
+        }
+      } else {
+        // 3. Offline: Pending sync'e ekle
+        await _syncManager.addPendingSync(
+          type: 'attendance',
+          data: tempAttendance.toMap(),
+          operation: 'create',
+        );
+
+        debugPrint('📵 Offline: Attendance pending sync\'e eklendi');
+      }
 
       // Yevmiye girişi yapıldığında bugünün hatırlatıcısını iptal et
       final today = DateTime.now();
       if (DateFormatter.toIso8601Date(date) ==
           DateFormatter.toIso8601Date(today)) {
         try {
-          await _notificationServiceV2.cancelNotification(
-            1,
-          ); // NotificationIds.attendanceReminder
+          await _notificationServiceV2.cancelNotification(1);
           debugPrint(
             '✅ Yevmiye hatırlatıcısı iptal edildi (yevmiye girişi yapıldı)',
           );
@@ -149,7 +183,16 @@ class AttendanceService {
         error: e,
         stackTrace: stackTrace,
       );
-      rethrow; // Hatayı yukarı fırlat ki UI'da gösterilebilsin
+
+      // Rollback: Hive'dan sil
+      if (tempAttendance != null) {
+        final key =
+            '${tempAttendance.workerId}_${DateFormatter.toIso8601Date(tempAttendance.date)}';
+        await _hiveService.attendance.delete(key);
+        debugPrint('🔄 Rollback: Attendance Hive\'dan silindi');
+      }
+
+      rethrow;
     }
   }
 }

@@ -70,4 +70,25 @@ class Payment {
       amount: map['amount'] != null ? (map['amount'] as num).toDouble() : 0.0,
     );
   }
+
+  /// Payment kopyasını oluşturur (immutable pattern)
+  Payment copyWith({
+    int? id,
+    int? userId,
+    int? workerId,
+    int? fullDays,
+    int? halfDays,
+    DateTime? paymentDate,
+    double? amount,
+  }) {
+    return Payment(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      workerId: workerId ?? this.workerId,
+      fullDays: fullDays ?? this.fullDays,
+      halfDays: halfDays ?? this.halfDays,
+      paymentDate: paymentDate ?? this.paymentDate,
+      amount: amount ?? this.amount,
+    );
+  }
 }

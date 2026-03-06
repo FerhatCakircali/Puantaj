@@ -6,73 +6,132 @@ import '../core/app_globals.dart';
 import '../utils/date_formatter.dart';
 import '../utils/currency_formatter.dart';
 import '../core/error_logger.dart';
+import '../data/local/hive_service.dart';
+import '../data/local/sync_manager.dart';
 import 'package:flutter/foundation.dart';
 
 class PaymentService {
   final _authService = AuthService();
+  final _hiveService = HiveService.instance;
+  final _syncManager = SyncManager.instance;
 
   Future<int?> addPayment(Payment payment) async {
+    Payment? tempPayment;
+    int? tempPaymentId;
+
     try {
       debugPrint(
         '💰 Yeni ödeme ekleniyor: Tarih=${payment.paymentDate}, Tutar=${payment.amount}',
       );
 
-      // Ödeme kaydını ekle
-      final paymentMap = payment.toMap();
-      debugPrint('💰 Ödeme map: $paymentMap');
+      // 1. Optimistic update: Geçici ID ile Hive'a kaydet
+      tempPaymentId = DateTime.now().millisecondsSinceEpoch;
+      tempPayment = Payment(
+        id: tempPaymentId,
+        userId: payment.userId,
+        workerId: payment.workerId,
+        fullDays: payment.fullDays,
+        halfDays: payment.halfDays,
+        paymentDate: payment.paymentDate,
+        amount: payment.amount,
+      );
 
-      final paymentResponse = await supabase
-          .from('payments')
-          .insert(paymentMap)
-          .select('id, payment_date')
-          .single();
+      await _hiveService.payments.put(tempPaymentId, tempPayment);
+      debugPrint(
+        '✅ Optimistic: Payment Hive\'a eklendi (temp ID: $tempPaymentId)',
+      );
 
-      debugPrint('💰 Veritabanına kaydedilen: $paymentResponse');
+      // 2. Online ise Supabase'e gönder
+      if (_syncManager.isOnline) {
+        try {
+          final paymentMap = payment.toMap();
+          debugPrint('💰 Ödeme map: $paymentMap');
 
-      final paymentId = paymentResponse['id'] as int;
+          final paymentResponse = await supabase
+              .from('payments')
+              .insert(paymentMap)
+              .select('id, payment_date')
+              .single();
 
-      // Ödeme yapılan çalışan için henüz ödenmemiş günleri al
-      final attendance = await _getUnpaidAttendanceForWorker(payment.workerId);
+          debugPrint('💰 Veritabanına kaydedilen: $paymentResponse');
 
-      debugPrint('💰 Ödenmemiş gün sayısı: ${attendance.length}');
+          final paymentId = paymentResponse['id'] as int;
 
-      // Ödenecek tam ve yarım günlerin sayısı
-      int fullDaysToMark = payment.fullDays;
-      int halfDaysToMark = payment.halfDays;
+          // Gerçek ID ile güncelle
+          await _hiveService.payments.delete(tempPaymentId);
+          final realPayment = tempPayment.copyWith(id: paymentId);
+          await _hiveService.payments.put(paymentId, realPayment);
 
-      // Hangi günlerin ödendiğini kaydet
-      for (var record in attendance) {
-        if (record.status == AttendanceStatus.fullDay && fullDaysToMark > 0) {
-          // Bu tam günü ödenmiş olarak işaretle
-          await _markDayAsPaid(record, paymentId);
-          fullDaysToMark--;
-          debugPrint('💰 Tam gün işaretlendi: ${record.date}');
-        } else if (record.status == AttendanceStatus.halfDay &&
-            halfDaysToMark > 0) {
-          // Bu yarım günü ödenmiş olarak işaretle
-          await _markDayAsPaid(record, paymentId);
-          halfDaysToMark--;
-          debugPrint('💰 Yarım gün işaretlendi: ${record.date}');
+          // Ödeme yapılan çalışan için henüz ödenmemiş günleri al
+          final attendance = await _getUnpaidAttendanceForWorker(
+            payment.workerId,
+          );
+
+          debugPrint('💰 Ödenmemiş gün sayısı: ${attendance.length}');
+
+          // Ödenecek tam ve yarım günlerin sayısı
+          int fullDaysToMark = payment.fullDays;
+          int halfDaysToMark = payment.halfDays;
+
+          // Hangi günlerin ödendiğini kaydet
+          for (var record in attendance) {
+            if (record.status == AttendanceStatus.fullDay &&
+                fullDaysToMark > 0) {
+              await _markDayAsPaid(record, paymentId);
+              fullDaysToMark--;
+              debugPrint('💰 Tam gün işaretlendi: ${record.date}');
+            } else if (record.status == AttendanceStatus.halfDay &&
+                halfDaysToMark > 0) {
+              await _markDayAsPaid(record, paymentId);
+              halfDaysToMark--;
+              debugPrint('💰 Yarım gün işaretlendi: ${record.date}');
+            }
+
+            if (fullDaysToMark <= 0 && halfDaysToMark <= 0) break;
+          }
+
+          debugPrint('✅ Ödeme başarıyla tamamlandı (ID: $paymentId)');
+
+          // Çalışana ödeme bildirimi gönder
+          await _sendPaymentNotification(payment);
+
+          return paymentId;
+        } catch (e) {
+          // Supabase hatası: Pending sync'e ekle
+          await _syncManager.addPendingSync(
+            type: 'payment',
+            data: payment.toMap(),
+            operation: 'create',
+          );
+
+          debugPrint('⚠️ Supabase hatası: Payment pending sync\'e eklendi');
+          return tempPaymentId;
         }
+      } else {
+        // 3. Offline: Pending sync'e ekle
+        await _syncManager.addPendingSync(
+          type: 'payment',
+          data: payment.toMap(),
+          operation: 'create',
+        );
 
-        // Tüm günler işaretlendiyse döngüden çık
-        if (fullDaysToMark <= 0 && halfDaysToMark <= 0) break;
+        debugPrint('📵 Offline: Payment pending sync\'e eklendi');
+        return tempPaymentId;
       }
-
-      debugPrint('✅ Ödeme başarıyla tamamlandı (ID: $paymentId)');
-
-      // ⚡ YENİ: Çalışana ödeme bildirimi gönder
-      await _sendPaymentNotification(payment);
-
-      // Payment ID'yi döndür
-      return paymentId;
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'PaymentService.addPayment hatası',
         error: e,
         stackTrace: stackTrace,
       );
-      rethrow; // Hatayı yukarı fırlat ki dialog'da yakalansın
+
+      // Rollback: Hive'dan sil
+      if (tempPaymentId != null) {
+        await _hiveService.payments.delete(tempPaymentId);
+        debugPrint('🔄 Rollback: Payment Hive\'dan silindi');
+      }
+
+      rethrow;
     }
   }
 

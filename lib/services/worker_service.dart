@@ -5,16 +5,20 @@ import '../models/employee.dart';
 import '../models/worker_with_unpaid_days.dart';
 import '../utils/date_formatter.dart';
 import '../core/error_logger.dart';
+import '../data/local/hive_service.dart';
+import '../data/local/sync_manager.dart';
 import 'auth_service.dart';
 import 'validation_service.dart';
 
 class WorkerService {
   final AuthService _authService = AuthService();
   final _validationService = ValidationService.instance;
+  final _hiveService = HiveService.instance;
+  final _syncManager = SyncManager.instance;
 
   SupabaseClient get supabase => Supabase.instance.client;
 
-  // Tüm çalışanları getir
+  // Tüm çalışanları getir (Offline-First)
   Future<List<Employee>> getEmployees() async {
     try {
       final userId = await _authService.getUserId();
@@ -25,21 +29,82 @@ class WorkerService {
         return [];
       }
 
-      final response = await supabase
-          .from('workers')
-          .select('*, username') // ⚡ FIX: username field'ını da çek
-          .eq('user_id', userId)
-          .order('full_name');
-      return (response as List)
-          .map((map) => Employee.fromMap(map as Map<String, dynamic>))
-          .toList();
+      // 1. Önce Hive'dan oku (optimistic read)
+      final cachedEmployees =
+          _hiveService.employees.values
+              .where((e) => e.userId == userId)
+              .toList()
+            ..sort((a, b) => a.name.compareTo(b.name));
+
+      // 2. Eğer online ise arka planda Supabase'den güncelle
+      if (_syncManager.isOnline) {
+        _fetchAndCacheEmployees(userId);
+      }
+
+      // 3. Cache'den döndür (UI hemen dolsun)
+      if (cachedEmployees.isNotEmpty) {
+        debugPrint(
+          '✅ Hive cache\'den ${cachedEmployees.length} employee döndürüldü',
+        );
+        return cachedEmployees;
+      }
+
+      // 4. Cache boşsa ve online ise Supabase'den çek
+      if (_syncManager.isOnline) {
+        final response = await supabase
+            .from('workers')
+            .select('*, username')
+            .eq('user_id', userId)
+            .order('full_name');
+
+        final employees = (response as List)
+            .map((map) => Employee.fromMap(map as Map<String, dynamic>))
+            .toList();
+
+        // Hive'a kaydet
+        for (var employee in employees) {
+          await _hiveService.employees.put(employee.id, employee);
+        }
+
+        return employees;
+      }
+
+      return [];
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'WorkerService.getEmployees hatası',
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+
+      // Hata durumunda cache'den döndür
+      final cachedEmployees = _hiveService.employees.values.toList();
+      return cachedEmployees;
+    }
+  }
+
+  /// Arka planda Supabase'den çek ve cache'i güncelle
+  Future<void> _fetchAndCacheEmployees(int userId) async {
+    try {
+      final response = await supabase
+          .from('workers')
+          .select('*, username')
+          .eq('user_id', userId)
+          .order('full_name');
+
+      final employees = (response as List)
+          .map((map) => Employee.fromMap(map as Map<String, dynamic>))
+          .toList();
+
+      // Hive'ı güncelle
+      for (var employee in employees) {
+        await _hiveService.employees.put(employee.id, employee);
+      }
+
+      debugPrint('🔄 Hive cache güncellendi: ${employees.length} employee');
+    } catch (e) {
+      // Sessizce başarısız ol (cache güncellenemedi ama UI etkilenmedi)
+      debugPrint('⚠️ Cache güncelleme başarısız: $e');
     }
   }
 
@@ -129,16 +194,20 @@ class WorkerService {
     }
   }
 
-  // Çalışan ekle (Worker)
+  // Çalışan ekle (Worker) - Offline-First
   Future<Worker?> addWorker(Worker worker) async {
+    Worker? tempWorker;
+
     try {
       final userId = await _authService.getUserId();
       if (userId == null) {
         throw Exception('Kullanıcı oturumu bulunamadı');
       }
 
-      // Email kontrolü (eğer email varsa)
-      if (worker.email != null && worker.email!.isNotEmpty) {
+      // Email kontrolü (eğer email varsa ve online ise)
+      if (_syncManager.isOnline &&
+          worker.email != null &&
+          worker.email!.isNotEmpty) {
         final emailCheck = await _checkEmailAvailability(worker.email!);
         if (emailCheck != null) {
           debugPrint('❌ addWorker: Email hatası: $emailCheck');
@@ -149,15 +218,76 @@ class WorkerService {
       final map = worker.toMap();
       map['user_id'] = userId;
 
-      final data = await supabase.from('workers').insert(map).select().single();
+      // 1. Optimistic update: Geçici ID ile Hive'a kaydet
+      final tempId = DateTime.now().millisecondsSinceEpoch;
+      tempWorker = Worker(
+        id: tempId,
+        userId: userId,
+        username: worker.username,
+        fullName: worker.fullName,
+        title: worker.title,
+        phone: worker.phone,
+        email: worker.email,
+        startDate: worker.startDate,
+      );
 
-      return Worker.fromMap(data);
+      await _hiveService.workers.put(tempId, tempWorker);
+      debugPrint('✅ Optimistic: Worker Hive\'a eklendi (temp ID: $tempId)');
+
+      // 2. Online ise Supabase'e gönder
+      if (_syncManager.isOnline) {
+        try {
+          final data = await supabase
+              .from('workers')
+              .insert(map)
+              .select()
+              .single();
+
+          final realWorker = Worker.fromMap(data);
+
+          // 3. Gerçek ID ile güncelle
+          await _hiveService.workers.delete(tempId);
+          await _hiveService.workers.put(realWorker.id!, realWorker);
+
+          debugPrint(
+            '✅ Worker Supabase\'e eklendi (real ID: ${realWorker.id})',
+          );
+          return realWorker;
+        } catch (e) {
+          // Supabase hatası: Pending sync'e ekle
+          await _syncManager.addPendingSync(
+            type: 'worker',
+            data: map,
+            operation: 'create',
+          );
+
+          debugPrint('⚠️ Offline: Worker pending sync\'e eklendi');
+          return tempWorker;
+        }
+      } else {
+        // 4. Offline: Pending sync'e ekle
+        await _syncManager.addPendingSync(
+          type: 'worker',
+          data: map,
+          operation: 'create',
+        );
+
+        debugPrint('📵 Offline: Worker pending sync\'e eklendi');
+        return tempWorker;
+      }
     } catch (e, stackTrace) {
       ErrorLogger.instance.logError(
         'WorkerService.addWorker hatası',
         error: e,
         stackTrace: stackTrace,
       );
+
+      // Rollback: Hive'dan sil
+      if (tempWorker?.id != null) {
+        await _hiveService.workers.delete(tempWorker!.id!);
+        debugPrint('🔄 Rollback: Worker Hive\'dan silindi');
+      }
+
       rethrow;
     }
   }
