@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../data/services/local_storage_service.dart';
 import '../../../../data/services/password_hasher.dart';
 import '../../../../core/app_globals.dart';
+import '../../../../core/providers/auth_provider.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../services/fcm_service.dart';
+import '../../../../core/error_logger.dart';
 
 /// Login authentication mixin
 ///
+/// ⚡ PHASE 3: Riverpod AuthProvider kullanır
 /// Handles admin and worker login logic
-mixin LoginAuthMixin<T extends StatefulWidget> on State<T> {
+mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final AuthService _authService = AuthService();
 
   bool _isLoading = false;
@@ -56,8 +60,8 @@ mixin LoginAuthMixin<T extends StatefulWidget> on State<T> {
           setState(() => _isLoading = false);
         }
 
-        // Update auth state - router otomatik yönlendirecek
-        authStateNotifier.value = true;
+        // ⚡ PHASE 3: Riverpod AuthProvider kullan
+        ref.read(authStateProvider.notifier).login();
 
         // Handle navigation
         if (mounted) {
@@ -172,9 +176,15 @@ mixin LoginAuthMixin<T extends StatefulWidget> on State<T> {
       debugPrint('🧹 Çalışan girişi - Kullanıcı oturumu temizleniyor...');
       try {
         await _authService.signOut();
-        authStateNotifier.value = false;
+        // ⚡ PHASE 3: Riverpod AuthProvider kullan
+        ref.read(authStateProvider.notifier).logout();
         debugPrint('✅ Kullanıcı oturumu temizlendi');
-      } catch (e) {
+      } catch (e, stackTrace) {
+        ErrorLogger.instance.logError(
+          'LoginAuthMixin.workerSignIn - signOut hatası',
+          error: e,
+          stackTrace: stackTrace,
+        );
         debugPrint(
           '⚠️ Kullanıcı oturumu temizlenirken hata (devam ediliyor): $e',
         );
@@ -253,7 +263,8 @@ mixin LoginAuthMixin<T extends StatefulWidget> on State<T> {
     final user = await _authService.currentUser;
     if (user != null && mounted) {
       debugPrint('✅ Yönetici session bulundu, /home\'a yönlendiriliyor');
-      authStateNotifier.value = true;
+      // ⚡ PHASE 3: Riverpod AuthProvider kullan
+      ref.read(authStateProvider.notifier).login();
       context.go('/home');
       return;
     }

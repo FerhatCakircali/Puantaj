@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/app_globals.dart';
+import '../../../../core/providers/theme_provider.dart';
 import '../mixins/login_auth_mixin.dart';
 import '../mixins/login_credential_mixin.dart';
 import '../../../../features/worker/services/worker_notification_listener_service.dart';
 import '../../../../widgets/theme_toggle_animation.dart';
 import '../widgets/index.dart';
 
-class LoginScreen extends StatefulWidget {
+// ⚡ PHASE 3: ConsumerStatefulWidget'a geçiş
+class LoginScreen extends ConsumerStatefulWidget {
   final bool isFromAccountSwitch;
 
   const LoginScreen({super.key, this.isFromAccountSwitch = false});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
+class _LoginScreenState extends ConsumerState<LoginScreen>
     with LoginAuthMixin, LoginCredentialMixin {
   // Admin controllers
   final TextEditingController _usernameController = TextEditingController();
@@ -129,18 +131,11 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Future<void> _saveThemeMode(ThemeMode mode) async {
-    final prefs = await SharedPreferences.getInstance();
-    final modeString = mode == ThemeMode.dark
-        ? 'dark'
-        : mode == ThemeMode.light
-        ? 'light'
-        : 'system';
-    await prefs.setString('theme_mode', modeString);
-  }
+  // ⚡ PHASE 3: _saveThemeMode kaldırıldı, Riverpod ThemeProvider kullanılıyor
 
   void _toggleThemeWithAnimation() async {
-    final currentMode = themeModeNotifier.value;
+    // ⚡ PHASE 3: Riverpod ThemeProvider kullan
+    final currentMode = ref.read(themeStateProvider);
     final newMode = currentMode == ThemeMode.dark
         ? ThemeMode.light
         : ThemeMode.dark;
@@ -157,8 +152,7 @@ class _LoginScreenState extends State<LoginScreen>
     }
 
     // Apply theme change
-    themeModeNotifier.value = newMode;
-    _saveThemeMode(newMode);
+    await ref.read(themeStateProvider.notifier).setTheme(newMode);
 
     // Show animation
     if (mounted) {
@@ -230,13 +224,16 @@ class _LoginScreenState extends State<LoginScreen>
               ],
             ),
           ),
-          ValueListenableBuilder<ThemeMode>(
-            valueListenable: themeModeNotifier,
-            builder: (context, mode, _) => ThemeToggleButton(
-              currentMode: mode,
-              onToggle: _toggleThemeWithAnimation,
-              iconKey: _themeIconKey,
-            ),
+          // ⚡ PHASE 3: Riverpod ThemeProvider kullan
+          Consumer(
+            builder: (context, ref, _) {
+              final mode = ref.watch(themeStateProvider);
+              return ThemeToggleButton(
+                currentMode: mode,
+                onToggle: _toggleThemeWithAnimation,
+                iconKey: _themeIconKey,
+              );
+            },
           ),
         ],
       ),
