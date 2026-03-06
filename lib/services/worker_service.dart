@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/worker.dart';
 import '../models/employee.dart';
 import '../utils/date_formatter.dart';
+import '../core/error_logger.dart';
 import 'auth_service.dart';
 import 'validation_service.dart';
 
@@ -31,8 +32,12 @@ class WorkerService {
       return (response as List)
           .map((map) => Employee.fromMap(map as Map<String, dynamic>))
           .toList();
-    } catch (e) {
-      debugPrint('⚠️ WorkerService.getEmployees hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.getEmployees hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -51,7 +56,12 @@ class WorkerService {
           .order('full_name', ascending: true);
 
       return data.map((worker) => Worker.fromMap(worker)).toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.getWorkers hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -71,8 +81,11 @@ class WorkerService {
       debugPrint('✅ getWorkerById: Worker bulundu: ${data['full_name']}');
       return Worker.fromMap(data);
     } catch (e, stackTrace) {
-      debugPrint('❌ getWorkerById: Hata: $e');
-      debugPrint('❌ Stack trace: $stackTrace');
+      ErrorLogger.instance.logError(
+        'WorkerService.getWorkerById hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -100,8 +113,12 @@ class WorkerService {
       final data = await supabase.from('workers').insert(map).select().single();
 
       return Worker.fromMap(data);
-    } catch (e) {
-      debugPrint('❌ addWorker: Hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.addWorker hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -128,8 +145,12 @@ class WorkerService {
           })
           .select('id');
       return response.first['id'] as int;
-    } catch (e) {
-      debugPrint('Error adding employee: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.addEmployee hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -146,8 +167,12 @@ class WorkerService {
       final exists = result != null;
       debugPrint('✅ isUsernameExists: Sonuç: $exists');
       return exists;
-    } catch (e) {
-      debugPrint('❌ isUsernameExists: Hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.isUsernameExists hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return false;
     }
   }
@@ -167,8 +192,12 @@ class WorkerService {
       final exists = result != null;
       debugPrint('✅ isEmailExists: Sonuç: $exists');
       return exists;
-    } catch (e) {
-      debugPrint('❌ isEmailExists: Hata: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.isEmailExists hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return false;
     }
   }
@@ -199,8 +228,11 @@ class WorkerService {
       debugPrint('✅ updateWorker: Başarıyla güncellendi');
       return true;
     } catch (e, stackTrace) {
-      debugPrint('❌ updateWorker: Hata: $e');
-      debugPrint('❌ Stack trace: $stackTrace');
+      ErrorLogger.instance.logError(
+        'WorkerService.updateWorker hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -215,8 +247,12 @@ class WorkerService {
         lowercaseEmail,
         excludeWorkerId: workerId,
       );
-    } catch (e) {
-      debugPrint('Email kontrolü hatası: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService._checkEmailAvailability hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return 'E-posta kontrolü sırasında bir hata oluştu';
     }
   }
@@ -243,8 +279,12 @@ class WorkerService {
           .eq('id', employee.id)
           .eq('user_id', userId);
       return employee.id;
-    } catch (e) {
-      debugPrint('Error updating employee: $e');
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.updateEmployee hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -264,7 +304,12 @@ class WorkerService {
           .eq('user_id', userId);
 
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.deleteWorker hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return false;
     }
   }
@@ -282,7 +327,12 @@ class WorkerService {
           .eq('user_id', userId);
 
       return 1;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.deleteEmployee hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return -1;
     }
   }
@@ -303,7 +353,12 @@ class WorkerService {
       await supabase.from('workers').delete().eq('user_id', userId);
 
       return 1;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.deleteAllEmployees hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return -1;
     }
   }
@@ -324,7 +379,12 @@ class WorkerService {
           .order('full_name', ascending: true);
 
       return data.map((worker) => Worker.fromMap(worker)).toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.searchWorkers hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return [];
     }
   }
@@ -360,7 +420,12 @@ class WorkerService {
           .limit(1);
 
       return paymentResults.isNotEmpty;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.hasRecordsBeforeDate hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return false;
     }
   }
@@ -402,8 +467,12 @@ class WorkerService {
 
       // 5. Kalan ödemeleri güncelle
       await _updateRemainingPayments(userId, workerId);
-    } catch (e) {
-      // ignore
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService.deleteRecordsBeforeDate hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -433,8 +502,12 @@ class WorkerService {
           await supabase.from('payments').delete().eq('id', paymentId);
         }
       }
-    } catch (e) {
-      // ignore
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService._deleteOrphanedPayments hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -471,8 +544,12 @@ class WorkerService {
             .update({'full_days': fullDays, 'half_days': halfDays})
             .eq('id', paymentId);
       }
-    } catch (e) {
-      // ignore
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'WorkerService._updateRemainingPayments hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

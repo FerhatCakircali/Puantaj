@@ -174,7 +174,7 @@ Bu implementation plan, Flutter Puantaj uygulamasının 6 fazlı optimizasyon s�
     - _Estimated time: 2 hours_
 
 - [ ] 8. Error handling standardizasyonu
-  - [ ] 8.1 worker_service.dart'ta error handling'i iyileştir
+  - [x] 8.1 worker_service.dart'ta error handling'i iyileştir
     - Boş catch bloklarını ErrorLogger ile doldur
     - Null assertion (!) yerine null-aware operatörler (??, ?.) kullan
     - Context bilgisi ile error logla
