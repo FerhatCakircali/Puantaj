@@ -5,6 +5,7 @@ import '../../../../../models/employee.dart';
 import '../../../../../services/attendance_service.dart';
 import '../../../../../services/payment_service.dart';
 import '../../../../../services/worker_service.dart';
+import '../../../../../data/local/hive_service.dart';
 import 'report_controller_helpers.dart';
 
 /// Veri yükleme ve filtreleme işlemleri mixin'i
@@ -12,6 +13,7 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
   final WorkerService workerService = WorkerService();
   final AttendanceService attendanceService = AttendanceService();
   final PaymentService paymentService = PaymentService();
+  final _hiveService = HiveService.instance;
 
   List<Employee> get employees;
   List<Employee> get filteredEmployees;
@@ -25,7 +27,7 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
   set statsMap(Map<int, Map<String, dynamic>> value);
   set isLoading(bool value);
 
-  /// Verileri yükle
+  /// Verileri yükle (Optimized - Hive cache + paralel queries)
   Future<void> loadData() async {
     if (!mounted) return;
 
@@ -34,53 +36,23 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
     setState(() => isLoading = true);
 
     try {
+      // 1. Önce cache'den employees al (hızlı)
+      final cachedEmployees = _hiveService.employees.values.toList();
+
+      if (cachedEmployees.isNotEmpty) {
+        debugPrint('⚡ Cache\'den ${cachedEmployees.length} çalışan yüklendi');
+
+        // Arka planda gerçek veriyi çek (non-blocking)
+        _loadDataInBackground();
+
+        // Cache'den hızlı sonuç göster
+        await _processReportData(cachedEmployees);
+        return;
+      }
+
+      // Cache yoksa normal yükle
       final allEmployees = await workerService.getEmployees();
-
-      debugPrint('📊 Toplam ${allEmployees.length} çalışan bulundu');
-
-      final allAttendance = await attendanceService.getAttendanceBetween(
-        startDate,
-        endDate,
-      );
-
-      debugPrint('📊 Dönem içi ${allAttendance.length} yevmiye kaydı bulundu');
-
-      final attendanceMap = <int, List<attendance.Attendance>>{};
-
-      for (var record in allAttendance) {
-        attendanceMap.putIfAbsent(record.workerId, () => []).add(record);
-      }
-
-      // ✅ TÜM çalışanları göster (yevmiye kaydı olsun veya olmasın)
-      final newStatsMap = <int, Map<String, dynamic>>{};
-      for (var emp in allEmployees) {
-        final records = attendanceMap[emp.id] ?? [];
-        final unpaidDays = await paymentService.getUnpaidDays(emp.id);
-        newStatsMap[emp.id] = ReportControllerHelpers.calculateAttendanceStats(
-          emp,
-          records,
-          startDate,
-          endDate,
-          unpaidDays,
-        );
-      }
-
-      allEmployees.sort(
-        (a, b) => ReportControllerHelpers.collateTurkish(a.name, b.name),
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        employees = allEmployees;
-        filteredEmployees = allEmployees;
-        statsMap = newStatsMap;
-        isLoading = false;
-      });
-
-      debugPrint(
-        '✅ ReportControllerMixin: ${employees.length} çalışan yüklendi',
-      );
+      await _processReportData(allEmployees);
     } catch (e) {
       debugPrint('❌ ReportControllerMixin: Veri yükleme hatası: $e');
 
@@ -88,6 +60,79 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
 
       setState(() => isLoading = false);
     }
+  }
+
+  /// Arka planda veri güncelle (non-blocking)
+  Future<void> _loadDataInBackground() async {
+    try {
+      final freshEmployees = await workerService.getEmployees();
+      if (!mounted) return;
+      await _processReportData(freshEmployees);
+    } catch (e) {
+      debugPrint('⚠️ Arka plan güncelleme hatası: $e');
+    }
+  }
+
+  /// Report verilerini işle (paralel queries ile optimize edildi)
+  Future<void> _processReportData(List<Employee> allEmployees) async {
+    debugPrint('📊 Toplam ${allEmployees.length} çalışan bulundu');
+
+    final allAttendance = await attendanceService.getAttendanceBetween(
+      startDate,
+      endDate,
+    );
+
+    debugPrint('📊 Dönem içi ${allAttendance.length} yevmiye kaydı bulundu');
+
+    final attendanceMap = <int, List<attendance.Attendance>>{};
+
+    for (var record in allAttendance) {
+      attendanceMap.putIfAbsent(record.workerId, () => []).add(record);
+    }
+
+    // ✅ Paralel olarak tüm unpaid days'leri çek (N+1 query problemi çözüldü)
+    final unpaidDaysFutures = allEmployees.map((emp) async {
+      try {
+        final unpaidDays = await paymentService.getUnpaidDays(emp.id);
+        return MapEntry(emp.id, unpaidDays);
+      } catch (e) {
+        debugPrint('⚠️ ${emp.name} için unpaid days alınamadı: $e');
+        return MapEntry(emp.id, {'fullDays': 0, 'halfDays': 0});
+      }
+    });
+
+    final unpaidDaysResults = await Future.wait(unpaidDaysFutures);
+    final unpaidDaysMap = Map.fromEntries(unpaidDaysResults);
+
+    // Stats hesapla
+    final newStatsMap = <int, Map<String, dynamic>>{};
+    for (var emp in allEmployees) {
+      final records = attendanceMap[emp.id] ?? [];
+      final unpaidDays =
+          unpaidDaysMap[emp.id] ?? {'fullDays': 0, 'halfDays': 0};
+      newStatsMap[emp.id] = ReportControllerHelpers.calculateAttendanceStats(
+        emp,
+        records,
+        startDate,
+        endDate,
+        unpaidDays,
+      );
+    }
+
+    allEmployees.sort(
+      (a, b) => ReportControllerHelpers.collateTurkish(a.name, b.name),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      employees = allEmployees;
+      filteredEmployees = allEmployees;
+      statsMap = newStatsMap;
+      isLoading = false;
+    });
+
+    debugPrint('✅ ReportControllerMixin: ${employees.length} çalışan yüklendi');
   }
 
   /// Çalışanları filtrele
