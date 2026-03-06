@@ -15,7 +15,12 @@ class AttendanceService {
   Future<List<Attendance>> getAttendanceByDate(DateTime date) async {
     try {
       final userId = await _authService.getUserId();
-      if (userId == null) return [];
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'AttendanceService.getAttendanceByDate: userId null',
+        );
+        return [];
+      }
 
       final formattedDate = DateFormatter.toIso8601Date(date);
 
@@ -43,7 +48,12 @@ class AttendanceService {
   }) async {
     try {
       final userId = await _authService.getUserId();
-      if (userId == null) return [];
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'AttendanceService.getAttendanceBetween: userId null',
+        );
+        return [];
+      }
 
       final formattedStartDate = DateFormatter.toIso8601Date(startDate);
       final formattedEndDate = DateFormatter.toIso8601Date(endDate);
@@ -79,7 +89,12 @@ class AttendanceService {
   }) async {
     try {
       final userId = await _authService.getUserId();
-      if (userId == null) return;
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'AttendanceService.markAttendance: userId null',
+        );
+        return;
+      }
 
       final formattedDate = DateFormatter.toIso8601Date(date);
 

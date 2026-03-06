@@ -15,7 +15,12 @@ class AdvanceService {
   Future<List<Advance>> getAdvances() async {
     try {
       final userId = await _authService.getUserId();
-      if (userId == null) return [];
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'AdvanceService.getAdvances: userId null',
+        );
+        return [];
+      }
 
       debugPrint('💰 Avanslar getiriliyor...');
 
@@ -43,7 +48,12 @@ class AdvanceService {
   Future<List<Advance>> getWorkerAdvances(int workerId) async {
     try {
       final userId = await _authService.getUserId();
-      if (userId == null) return [];
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'AdvanceService.getWorkerAdvances: userId null',
+        );
+        return [];
+      }
 
       debugPrint('💰 Çalışan avansları getiriliyor: workerId=$workerId');
 
@@ -72,7 +82,12 @@ class AdvanceService {
   Future<double> getWorkerPendingAdvances(int workerId) async {
     try {
       final userId = await _authService.getUserId();
-      if (userId == null) return 0.0;
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'AdvanceService.getWorkerPendingAdvances: userId null',
+        );
+        return 0.0;
+      }
 
       debugPrint('💰 Bekleyen avanslar hesaplanıyor: workerId=$workerId');
 
@@ -128,6 +143,7 @@ class AdvanceService {
     try {
       final userId = await _authService.getUserId();
       if (userId == null) {
+        ErrorLogger.instance.logError('AdvanceService.addAdvance: userId null');
         throw Exception('Kullanıcı oturumu bulunamadı');
       }
 
@@ -151,8 +167,11 @@ class AdvanceService {
 
       return newAdvance;
     } catch (e, stackTrace) {
-      debugPrint('❌ Avans ekleme hatası: $e');
-      debugPrint('Stack trace: $stackTrace');
+      ErrorLogger.instance.logError(
+        'AdvanceService.addAdvance hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
@@ -230,7 +249,12 @@ class AdvanceService {
   ) async {
     try {
       final userId = await _authService.getUserId();
-      if (userId == null) return 0.0;
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'AdvanceService.getMonthlyAdvances: userId null',
+        );
+        return 0.0;
+      }
 
       debugPrint('💰 Aylık avans hesaplanıyor: $monthStart - $monthEnd');
 
@@ -263,7 +287,12 @@ class AdvanceService {
   Future<void> _sendAdvanceNotification(Advance advance) async {
     try {
       final userId = await _authService.getUserId();
-      if (userId == null) return;
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'AdvanceService._sendAdvanceNotification: userId null',
+        );
+        return;
+      }
 
       final message =
           '${CurrencyFormatter.formatWithSymbol(advance.amount)} avans verildi';

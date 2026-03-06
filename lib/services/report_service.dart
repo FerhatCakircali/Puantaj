@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import '../models/attendance.dart' as attendance;
 import '../models/employee.dart';
@@ -159,93 +160,114 @@ class ReportService {
     Employee employee,
     PeriodRange periodRange,
   ) async {
-    // Giriş tarihinden sonraki kayıtları kontrol et
-    final effectiveStartDate = employee.startDate.isAfter(periodRange.startDate)
-        ? employee.startDate
-        : periodRange.startDate;
+    try {
+      // Giriş tarihinden sonraki kayıtları kontrol et
+      final effectiveStartDate =
+          employee.startDate.isAfter(periodRange.startDate)
+          ? employee.startDate
+          : periodRange.startDate;
 
-    // Dönem içindeki devam kayıtlarını al
-    final attendanceRecords = await _attendanceService.getAttendanceBetween(
-      effectiveStartDate,
-      periodRange.endDate,
-      workerId: employee.id,
-    );
-
-    // İstatistikler
-    int fullDays = 0;
-    int halfDays = 0;
-    int absentDays = 0;
-
-    // Her gün için devam durumunu hesapla
-    DateTime currentDate = effectiveStartDate;
-    final Map<DateTime, attendance.AttendanceStatus> dailyStatus = {};
-
-    while (!currentDate.isAfter(periodRange.endDate)) {
-      // O güne ait devam kaydı var mı kontrol et
-      final record = attendanceRecords.firstWhere(
-        (r) =>
-            r.date.year == currentDate.year &&
-            r.date.month == currentDate.month &&
-            r.date.day == currentDate.day,
-        orElse: () => attendance.Attendance(
-          userId: 0,
-          workerId: employee.id,
-          date: currentDate,
-          status: attendance.AttendanceStatus.absent,
-        ),
+      // Dönem içindeki devam kayıtlarını al
+      final attendanceRecords = await _attendanceService.getAttendanceBetween(
+        effectiveStartDate,
+        periodRange.endDate,
+        workerId: employee.id,
       );
 
-      dailyStatus[DateTime(
-            currentDate.year,
-            currentDate.month,
-            currentDate.day,
-          )] =
-          record.status;
+      // İstatistikler
+      int fullDays = 0;
+      int halfDays = 0;
+      int absentDays = 0;
 
-      switch (record.status) {
-        case attendance.AttendanceStatus.fullDay:
-          fullDays++;
-          break;
-        case attendance.AttendanceStatus.halfDay:
-          halfDays++;
-          break;
-        case attendance.AttendanceStatus.absent:
-          absentDays++;
-          break;
+      // Her gün için devam durumunu hesapla
+      DateTime currentDate = effectiveStartDate;
+      final Map<DateTime, attendance.AttendanceStatus> dailyStatus = {};
+
+      while (!currentDate.isAfter(periodRange.endDate)) {
+        // O güne ait devam kaydı var mı kontrol et
+        final record = attendanceRecords.firstWhere(
+          (r) =>
+              r.date.year == currentDate.year &&
+              r.date.month == currentDate.month &&
+              r.date.day == currentDate.day,
+          orElse: () => attendance.Attendance(
+            userId: 0,
+            workerId: employee.id,
+            date: currentDate,
+            status: attendance.AttendanceStatus.absent,
+          ),
+        );
+
+        dailyStatus[DateTime(
+              currentDate.year,
+              currentDate.month,
+              currentDate.day,
+            )] =
+            record.status;
+
+        switch (record.status) {
+          case attendance.AttendanceStatus.fullDay:
+            fullDays++;
+            break;
+          case attendance.AttendanceStatus.halfDay:
+            halfDays++;
+            break;
+          case attendance.AttendanceStatus.absent:
+            absentDays++;
+            break;
+        }
+        currentDate = currentDate.add(const Duration(days: 1));
       }
-      currentDate = currentDate.add(const Duration(days: 1));
+
+      // Dönem içindeki ödemeleri al
+      final payments = await _paymentService.getPaymentsByWorkerId(employee.id);
+      final periodPayments = payments
+          .where(
+            (payment) =>
+                !payment.paymentDate.isBefore(periodRange.startDate) &&
+                !payment.paymentDate.isAfter(periodRange.endDate),
+          )
+          .toList();
+
+      // Toplam ödeme miktarı
+      final totalAmount = periodPayments.fold<double>(
+        0,
+        (sum, payment) => sum + payment.amount,
+      );
+
+      return {
+        'employee': employee,
+        'periodRange': periodRange,
+        'stats': {
+          'fullDays': fullDays,
+          'halfDays': halfDays,
+          'absentDays': absentDays,
+          'totalWorkDays': fullDays + (halfDays / 2),
+          'totalPayment': totalAmount,
+          'attendances': attendanceRecords,
+        },
+        'dailyStatus': dailyStatus,
+        'payments': periodPayments,
+      };
+    } catch (e, stackTrace) {
+      // ErrorLogger import edilmeli
+      debugPrint('❌ ReportService.getEmployeeAttendanceSummary hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+      return {
+        'employee': employee,
+        'periodRange': periodRange,
+        'stats': {
+          'fullDays': 0,
+          'halfDays': 0,
+          'absentDays': 0,
+          'totalWorkDays': 0.0,
+          'totalPayment': 0.0,
+          'attendances': <attendance.Attendance>[],
+        },
+        'dailyStatus': <DateTime, attendance.AttendanceStatus>{},
+        'payments': [],
+      };
     }
-
-    // Dönem içindeki ödemeleri al
-    final payments = await _paymentService.getPaymentsByWorkerId(employee.id);
-    final periodPayments = payments
-        .where(
-          (payment) =>
-              !payment.paymentDate.isBefore(periodRange.startDate) &&
-              !payment.paymentDate.isAfter(periodRange.endDate),
-        )
-        .toList();
-
-    // Toplam ödeme miktarı
-    final totalAmount = periodPayments.fold<double>(
-      0,
-      (sum, payment) => sum + payment.amount,
-    );
-
-    return {
-      'employee': employee,
-      'periodRange': periodRange,
-      'stats': {
-        'fullDays': fullDays,
-        'halfDays': halfDays,
-        'absentDays': absentDays,
-        'totalWorkDays': fullDays + (halfDays / 2),
-        'totalPayment': totalAmount,
-        'attendances': attendanceRecords,
-      },
-      'dailyStatus': dailyStatus,
-      'payments': periodPayments,
-    };
   }
 
   // Tüm çalışanlar için dönemsel özet
@@ -256,65 +278,90 @@ class ReportService {
     DateTime? customEnd,
     int? specificEmployeeId,
   }) async {
-    final periodRange = calculatePeriodRange(
-      period,
-      referenceDate: referenceDate,
-      customStart: customStart,
-      customEnd: customEnd,
-    );
+    try {
+      final periodRange = calculatePeriodRange(
+        period,
+        referenceDate: referenceDate,
+        customStart: customStart,
+        customEnd: customEnd,
+      );
 
-    List<Employee> employees;
-    if (specificEmployeeId != null) {
-      // Tek bir çalışan için rapor
-      final allEmployees = await _workerService.getEmployees();
-      employees = allEmployees
-          .where((e) => e.id == specificEmployeeId)
-          .toList();
-    } else {
-      // Tüm çalışanlar için rapor
-      employees = await _workerService.getEmployees();
+      List<Employee> employees;
+      if (specificEmployeeId != null) {
+        // Tek bir çalışan için rapor
+        final allEmployees = await _workerService.getEmployees();
+        employees = allEmployees
+            .where((e) => e.id == specificEmployeeId)
+            .toList();
+      } else {
+        // Tüm çalışanlar için rapor
+        employees = await _workerService.getEmployees();
+      }
+
+      // Her çalışan için dönemsel özet topla
+      final employeeSummaries = <Map<String, dynamic>>[];
+
+      for (final employee in employees) {
+        final summary = await getEmployeeAttendanceSummary(
+          employee,
+          periodRange,
+        );
+        employeeSummaries.add(summary);
+      }
+
+      // Genel totaller
+      final totalFullDays = employeeSummaries.fold<int>(
+        0,
+        (sum, summary) => sum + (summary['stats']['fullDays'] as int),
+      );
+
+      final totalHalfDays = employeeSummaries.fold<int>(
+        0,
+        (sum, summary) => sum + (summary['stats']['halfDays'] as int),
+      );
+
+      final totalAbsentDays = employeeSummaries.fold<int>(
+        0,
+        (sum, summary) => sum + (summary['stats']['absentDays'] as int),
+      );
+
+      final totalPayment = employeeSummaries.fold<double>(
+        0,
+        (sum, summary) => sum + (summary['stats']['totalPayment'] as double),
+      );
+
+      return {
+        'periodRange': periodRange,
+        'employees': employees,
+        'employeeSummaries': employeeSummaries,
+        'totals': {
+          'fullDays': totalFullDays,
+          'halfDays': totalHalfDays,
+          'absentDays': totalAbsentDays,
+          'totalWorkDays': totalFullDays + (totalHalfDays / 2),
+          'totalPayment': totalPayment,
+        },
+      };
+    } catch (e, stackTrace) {
+      debugPrint('❌ ReportService.getPeriodSummaryReport hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+      return {
+        'periodRange': calculatePeriodRange(
+          period,
+          referenceDate: referenceDate,
+          customStart: customStart,
+          customEnd: customEnd,
+        ),
+        'employees': <Employee>[],
+        'employeeSummaries': <Map<String, dynamic>>[],
+        'totals': {
+          'fullDays': 0,
+          'halfDays': 0,
+          'absentDays': 0,
+          'totalWorkDays': 0.0,
+          'totalPayment': 0.0,
+        },
+      };
     }
-
-    // Her çalışan için dönemsel özet topla
-    final employeeSummaries = <Map<String, dynamic>>[];
-
-    for (final employee in employees) {
-      final summary = await getEmployeeAttendanceSummary(employee, periodRange);
-      employeeSummaries.add(summary);
-    }
-
-    // Genel totaller
-    final totalFullDays = employeeSummaries.fold<int>(
-      0,
-      (sum, summary) => sum + (summary['stats']['fullDays'] as int),
-    );
-
-    final totalHalfDays = employeeSummaries.fold<int>(
-      0,
-      (sum, summary) => sum + (summary['stats']['halfDays'] as int),
-    );
-
-    final totalAbsentDays = employeeSummaries.fold<int>(
-      0,
-      (sum, summary) => sum + (summary['stats']['absentDays'] as int),
-    );
-
-    final totalPayment = employeeSummaries.fold<double>(
-      0,
-      (sum, summary) => sum + (summary['stats']['totalPayment'] as double),
-    );
-
-    return {
-      'periodRange': periodRange,
-      'employees': employees,
-      'employeeSummaries': employeeSummaries,
-      'totals': {
-        'fullDays': totalFullDays,
-        'halfDays': totalHalfDays,
-        'absentDays': totalAbsentDays,
-        'totalWorkDays': totalFullDays + (totalHalfDays / 2),
-        'totalPayment': totalPayment,
-      },
-    };
   }
 }

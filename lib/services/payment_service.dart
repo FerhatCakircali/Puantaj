@@ -66,8 +66,11 @@ class PaymentService {
       // Payment ID'yi döndür
       return paymentId;
     } catch (e, stackTrace) {
-      debugPrint('❌ Ödeme eklenirken hata: $e');
-      debugPrint('Stack trace: $stackTrace');
+      ErrorLogger.instance.logError(
+        'PaymentService.addPayment hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow; // Hatayı yukarı fırlat ki dialog'da yakalansın
     }
   }
@@ -108,108 +111,173 @@ class PaymentService {
   }
 
   Future<void> _markDayAsPaid(Attendance record, int paymentId) async {
-    final userId = await _authService.getUserId();
-    if (userId == null) return;
+    try {
+      final userId = await _authService.getUserId();
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'PaymentService._markDayAsPaid: userId null',
+        );
+        return;
+      }
 
-    await supabase.from('paid_days').insert({
-      'user_id': userId,
-      'worker_id': record.workerId,
-      'date': DateFormatter.toIso8601Date(record.date),
-      'status': record.status == AttendanceStatus.fullDay
-          ? 'fullDay'
-          : 'halfDay',
-      'payment_id': paymentId,
-    });
+      await supabase.from('paid_days').insert({
+        'user_id': userId,
+        'worker_id': record.workerId,
+        'date': DateFormatter.toIso8601Date(record.date),
+        'status': record.status == AttendanceStatus.fullDay
+            ? 'fullDay'
+            : 'halfDay',
+        'payment_id': paymentId,
+      });
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService._markDayAsPaid hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   Future<List<Attendance>> _getUnpaidAttendanceForWorker(int workerId) async {
-    final userId = await _authService.getUserId();
-    if (userId == null) return [];
+    try {
+      final userId = await _authService.getUserId();
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'PaymentService._getUnpaidAttendanceForWorker: userId null',
+        );
+        return [];
+      }
 
-    final allAttendanceResults = await supabase
-        .from('attendance')
-        .select()
-        .eq('worker_id', workerId)
-        .eq('user_id', userId)
-        .or('status.eq.fullDay,status.eq.halfDay')
-        .order('date');
+      final allAttendanceResults = await supabase
+          .from('attendance')
+          .select()
+          .eq('worker_id', workerId)
+          .eq('user_id', userId)
+          .or('status.eq.fullDay,status.eq.halfDay')
+          .order('date');
 
-    final paidDaysResults = await supabase
-        .from('paid_days')
-        .select('date, status')
-        .eq('worker_id', workerId)
-        .eq('user_id', userId);
+      final paidDaysResults = await supabase
+          .from('paid_days')
+          .select('date, status')
+          .eq('worker_id', workerId)
+          .eq('user_id', userId);
 
-    final paidDays = paidDaysResults
-        .map(
-          (row) => {
-            'date': row['date'] as String,
-            'status': row['status'] as String,
-          },
-        )
-        .toList();
+      final paidDays = paidDaysResults
+          .map(
+            (row) => {
+              'date': row['date'] as String,
+              'status': row['status'] as String,
+            },
+          )
+          .toList();
 
-    final unpaidAttendance = allAttendanceResults
-        .where((record) {
-          final recordDate = DateFormatter.toIso8601Date(
-            DateTime.parse(record['date'] as String),
-          );
-          final recordStatus = record['status'] as String;
+      final unpaidAttendance = allAttendanceResults
+          .where((record) {
+            final recordDate = DateFormatter.toIso8601Date(
+              DateTime.parse(record['date'] as String),
+            );
+            final recordStatus = record['status'] as String;
 
-          return !paidDays.any(
-            (paidDay) =>
-                paidDay['date'] == recordDate &&
-                paidDay['status'] == recordStatus,
-          );
-        })
-        .map((map) => Attendance.fromMap(map))
-        .toList();
+            return !paidDays.any(
+              (paidDay) =>
+                  paidDay['date'] == recordDate &&
+                  paidDay['status'] == recordStatus,
+            );
+          })
+          .map((map) => Attendance.fromMap(map))
+          .toList();
 
-    return unpaidAttendance;
+      return unpaidAttendance;
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService._getUnpaidAttendanceForWorker hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
   }
 
   Future<List<Payment>> getPaymentsByWorker(int workerId) async {
-    final currentUser = await _authService.currentUser;
-    if (currentUser == null) return [];
+    try {
+      final currentUser = await _authService.currentUser;
+      if (currentUser == null) {
+        ErrorLogger.instance.logWarning(
+          'PaymentService.getPaymentsByWorker: currentUser null',
+        );
+        return [];
+      }
 
-    final maps = await supabase
-        .from('payments')
-        .select()
-        .eq('worker_id', workerId)
-        .eq('user_id', currentUser['id']);
+      final maps = await supabase
+          .from('payments')
+          .select()
+          .eq('worker_id', workerId)
+          .eq('user_id', currentUser['id']);
 
-    return List.generate(maps.length, (i) => Payment.fromMap(maps[i]));
+      return List.generate(maps.length, (i) => Payment.fromMap(maps[i]));
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService.getPaymentsByWorker hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
   }
 
   Future<List<Payment>> getPaymentsByWorkerId(int workerId) async {
-    final userId = await _authService.getUserId();
-    if (userId == null) return [];
+    try {
+      final userId = await _authService.getUserId();
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'PaymentService.getPaymentsByWorkerId: userId null',
+        );
+        return [];
+      }
 
-    final maps = await supabase
-        .from('payments')
-        .select()
-        .eq('worker_id', workerId)
-        .eq('user_id', userId)
-        .order('payment_date', ascending: false);
+      final maps = await supabase
+          .from('payments')
+          .select()
+          .eq('worker_id', workerId)
+          .eq('user_id', userId)
+          .order('payment_date', ascending: false);
 
-    return List.generate(maps.length, (i) => Payment.fromMap(maps[i]));
+      return List.generate(maps.length, (i) => Payment.fromMap(maps[i]));
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService.getPaymentsByWorkerId hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return [];
+    }
   }
 
   Future<Map<String, int>> getUnpaidDays(int workerId) async {
-    final unpaidAttendance = await _getUnpaidAttendanceForWorker(workerId);
+    try {
+      final unpaidAttendance = await _getUnpaidAttendanceForWorker(workerId);
 
-    int fullDays = 0;
-    int halfDays = 0;
+      int fullDays = 0;
+      int halfDays = 0;
 
-    for (var record in unpaidAttendance) {
-      if (record.status == AttendanceStatus.fullDay) {
-        fullDays++;
-      } else if (record.status == AttendanceStatus.halfDay) {
-        halfDays++;
+      for (var record in unpaidAttendance) {
+        if (record.status == AttendanceStatus.fullDay) {
+          fullDays++;
+        } else if (record.status == AttendanceStatus.halfDay) {
+          halfDays++;
+        }
       }
-    }
 
-    return {'fullDays': fullDays, 'halfDays': halfDays};
+      return {'fullDays': fullDays, 'halfDays': halfDays};
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService.getUnpaidDays hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return {'fullDays': 0, 'halfDays': 0};
+    }
   }
 
   /// Belirli bir ödemeyi hariç tutarak ödenmemiş günleri getir
@@ -294,23 +362,37 @@ class PaymentService {
     DateTime date,
     AttendanceStatus status,
   ) async {
-    final userId = await _authService.getUserId();
-    if (userId == null) return false;
+    try {
+      final userId = await _authService.getUserId();
+      if (userId == null) {
+        ErrorLogger.instance.logWarning(
+          'PaymentService.isDayPaid: userId null',
+        );
+        return false;
+      }
 
-    final formattedDate = DateFormatter.toIso8601Date(date);
-    final statusStr = status == AttendanceStatus.fullDay
-        ? 'fullDay'
-        : 'halfDay';
+      final formattedDate = DateFormatter.toIso8601Date(date);
+      final statusStr = status == AttendanceStatus.fullDay
+          ? 'fullDay'
+          : 'halfDay';
 
-    final results = await supabase
-        .from('paid_days')
-        .select()
-        .eq('worker_id', workerId)
-        .eq('user_id', userId)
-        .eq('date', formattedDate)
-        .eq('status', statusStr);
+      final results = await supabase
+          .from('paid_days')
+          .select()
+          .eq('worker_id', workerId)
+          .eq('user_id', userId)
+          .eq('date', formattedDate)
+          .eq('status', statusStr);
 
-    return results.isNotEmpty;
+      return results.isNotEmpty;
+    } catch (e, stackTrace) {
+      ErrorLogger.instance.logError(
+        'PaymentService.isDayPaid hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
   }
 
   /// Ödeme kaydını güncelle ve çalışana bildirim gönder

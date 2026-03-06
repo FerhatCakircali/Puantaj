@@ -150,6 +150,7 @@ class ExpenseService {
     try {
       final userId = await _authService.getUserId();
       if (userId == null) {
+        ErrorLogger.instance.logError('ExpenseService.addExpense: userId null');
         throw Exception('Kullanıcı oturumu bulunamadı');
       }
 
@@ -172,8 +173,11 @@ class ExpenseService {
 
       return newExpense;
     } catch (e, stackTrace) {
-      debugPrint('❌ Masraf ekleme hatası: $e');
-      debugPrint('Stack trace: $stackTrace');
+      ErrorLogger.instance.logError(
+        'ExpenseService.addExpense hatası',
+        error: e,
+        stackTrace: stackTrace,
+      );
       rethrow;
     }
   }
