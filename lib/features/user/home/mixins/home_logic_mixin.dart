@@ -23,7 +23,7 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Tema değiştirme fonksiyonu
-  /  void toggleTheme() async {
+  void toggleTheme() async {
     final currentMode = ref.read(themeStateProvider);
     final newMode = currentMode == ThemeMode.dark
         ? ThemeMode.light
@@ -87,7 +87,7 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 // Çıkış yap
                 await authService.signOut();
 
-                                ref.read(authStateProvider.notifier).logout();
+                ref.read(authStateProvider.notifier).logout();
 
                 debugPrint(
                   '✅ Çıkış işlemi tamamlandı, login ekranına yönlendiriliyor',

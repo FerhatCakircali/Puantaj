@@ -39,14 +39,14 @@ void main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     logError('Flutter Error', details.exception, details.stack);
-    
+
     // Firebase Crashlytics'e gönder
     FirebaseCrashlytics.instance.recordFlutterFatalError(details);
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
     logError('Platform Dispatcher Error', error, stack);
-    
+
     // Firebase Crashlytics'e gönder
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
@@ -60,7 +60,7 @@ void main() async {
   // Firebase'i başlat
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
@@ -85,7 +85,7 @@ void main() async {
   // FCM servisini başlat
   await FCMService.instance.initialize();
 
-    runApp(const ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerStatefulWidget {
@@ -109,7 +109,7 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   StreamSubscription<String>? _notificationClickSubscription;
 
-    // late final ValueNotifier<AppState> _appStateNotifier; // DEPRECATED
+  // late final ValueNotifier<AppState> _appStateNotifier; // DEPRECATED
 
   @override
   void initState() {
@@ -117,7 +117,7 @@ class _MyAppState extends ConsumerState<MyApp> {
 
     _navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'appNavigator');
 
-        // _appStateNotifier artık gerekli değil, Riverpod watch ile dinlenecek
+    // _appStateNotifier artık gerekli değil, Riverpod watch ile dinlenecek
 
     _bootstrapSession();
 
@@ -132,9 +132,9 @@ class _MyAppState extends ConsumerState<MyApp> {
       },
     );
 
-        // authStateNotifier.addListener(_onAuthStateChanged); // DEPRECATED
+    // authStateNotifier.addListener(_onAuthStateChanged); // DEPRECATED
 
-        // Service katmanı hala userDataNotifier kullanıyor, UI katmanı UserDataProvider kullanıyor
+    // Service katmanı hala userDataNotifier kullanıyor, UI katmanı UserDataProvider kullanıyor
     // ignore: deprecated_member_use
     userDataNotifier.addListener(_syncUserDataToProvider);
 
@@ -164,7 +164,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       if (workerSession != null) {
         _isLoggedIn = false;
         _isCurrentUserAdmin = false;
-                ref.read(authStateProvider.notifier).logout();
+        ref.read(authStateProvider.notifier).logout();
 
         setState(() {
           _isBootstrappingSession = false;
@@ -178,17 +178,17 @@ class _MyAppState extends ConsumerState<MyApp> {
       final userSession = await AppBootstrap.checkUserSession();
 
       if (userSession == null) {
-                ref.read(authStateProvider.notifier).logout();
+        ref.read(authStateProvider.notifier).logout();
         _isLoggedIn = false;
         _isCurrentUserAdmin = false;
       } else {
         _isCurrentUserAdmin = userSession['isAdmin'] as bool;
         _isLoggedIn = true;
-                ref.read(authStateProvider.notifier).login();
+        ref.read(authStateProvider.notifier).login();
       }
     } catch (e, stack) {
       ErrorHandler.logError('Bootstrap.session', e, stack);
-            ref.read(authStateProvider.notifier).logout();
+      ref.read(authStateProvider.notifier).logout();
       _isLoggedIn = false;
       _isCurrentUserAdmin = false;
     }
@@ -222,7 +222,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     _initializeRouter();
   }
 
-    void _onAuthStateChanged(bool? previous, bool next) {
+  void _onAuthStateChanged(bool? previous, bool next) {
     debugPrint('Auth state listener tetiklendi: $_isLoggedIn -> $next');
 
     // Sadece login durumu değiştiyse işlem yap
@@ -266,9 +266,9 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
   }
 
-    // void _onThemeChanged() { ... } // DEPRECATED
+  // void _onThemeChanged() { ... } // DEPRECATED
 
-  /  /// Service katmanı hala userDataNotifier kullanıyor, bu fonksiyon değişiklikleri
+  /// Service katmanı hala userDataNotifier kullanıyor, bu fonksiyon değişiklikleri
   /// UserDataProvider'a aktarıyor. UI katmanı sadece UserDataProvider kullanmalı.
   void _syncUserDataToProvider() {
     // ignore: deprecated_member_use
@@ -379,7 +379,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void dispose() {
     _notificationClickSubscription?.cancel();
-        // authStateNotifier.removeListener(_onAuthStateChanged); // DEPRECATED
+    // authStateNotifier.removeListener(_onAuthStateChanged); // DEPRECATED
     // ignore: deprecated_member_use
     userDataNotifier.removeListener(_syncUserDataToProvider);
     super.dispose();
@@ -389,9 +389,9 @@ class _MyAppState extends ConsumerState<MyApp> {
   Widget build(BuildContext context) {
     final appRouter = _router;
 
-        final themeMode = ref.watch(themeStateProvider);
+    final themeMode = ref.watch(themeStateProvider);
 
-        ref.listen<bool>(authStateProvider, (previous, next) {
+    ref.listen<bool>(authStateProvider, (previous, next) {
       _onAuthStateChanged(previous, next);
     });
 
@@ -402,17 +402,19 @@ class _MyAppState extends ConsumerState<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: themeMode,         home: Scaffold(body: Center(child: CircularProgressIndicator())),
+        themeMode: themeMode,
+        home: Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
 
-        return MaterialApp.router(
+    return MaterialApp.router(
       scaffoldMessengerKey: appScaffoldMessengerKey,
       title: 'Puantaj',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,       routerConfig: appRouter,
+      themeMode: themeMode,
+      routerConfig: appRouter,
       builder: (context, child) {
         return ResponsiveBreakpoints.builder(
           child: child!,
