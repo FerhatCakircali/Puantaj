@@ -36,8 +36,18 @@ jobs:
           cp .env.example .env || echo "SUPABASE_URL=dummy" > .env
           echo "SUPABASE_ANON_KEY=dummy" >> .env
       
+      - name: Clean iOS
+        run: |
+          flutter clean
+          rm -rf ios/Pods ios/.symlinks ios/Podfile.lock
+      
       - name: Install dependencies
         run: flutter pub get
+      
+      - name: Pod install
+        run: |
+          cd ios
+          pod install
       
       - name: Build iOS
         run: flutter build ios --release --no-codesign
