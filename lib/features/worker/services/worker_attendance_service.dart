@@ -308,7 +308,7 @@ class WorkerAttendanceService {
     }
   }
 
-  /// Ödeme geçmişini getir
+  /// Ödeme geçmişini getir (avans bilgisi ile)
   Future<List<Map<String, dynamic>>> getPaymentHistory({
     required int workerId,
     required DateTime startDate,
@@ -323,7 +323,32 @@ class WorkerAttendanceService {
           .lte('payment_date', _formatDate(endDate))
           .order('created_at', ascending: false);
 
-      return List<Map<String, dynamic>>.from(response);
+      final payments = List<Map<String, dynamic>>.from(response);
+
+      // Her ödeme için avans bilgisini ekle
+      for (var payment in payments) {
+        final paymentId = payment['id'];
+
+        // Bu ödemeden düşülen avansları getir
+        final advances = await supabase
+            .from('advances')
+            .select('amount, description')
+            .eq('deducted_from_payment_id', paymentId);
+
+        if (advances.isNotEmpty) {
+          final totalAdvance = advances.fold<double>(
+            0.0,
+            (sum, adv) => sum + (adv['amount'] as num).toDouble(),
+          );
+          payment['advance_deducted'] = totalAdvance;
+          payment['advance_count'] = advances.length;
+        } else {
+          payment['advance_deducted'] = 0.0;
+          payment['advance_count'] = 0;
+        }
+      }
+
+      return payments;
     } catch (e) {
       debugPrint('❌ getPaymentHistory hata: $e');
       return [];

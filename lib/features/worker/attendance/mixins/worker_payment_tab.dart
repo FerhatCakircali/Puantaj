@@ -66,6 +66,9 @@ class WorkerPaymentTab extends StatelessWidget {
           final displayTime = _getDisplayTime(payment);
           final amount = (payment['amount'] as num).toDouble();
           final notes = _getEffectiveNotes(payment);
+          final advanceDeducted =
+              (payment['advance_deducted'] as num?)?.toDouble() ?? 0.0;
+          final advanceCount = payment['advance_count'] as int? ?? 0;
 
           final daysInfo = WorkerAttendanceHelpers.extractDaysInfo(notes);
           final fullDays = WorkerAttendanceHelpers.extractFullDays(notes);
@@ -190,7 +193,7 @@ class WorkerPaymentTab extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (fullDays > 0 || halfDays > 0) ...[
+                if (fullDays > 0 || halfDays > 0 || advanceDeducted > 0) ...[
                   SizedBox(height: h * 0.01),
                   Container(
                     height: 1,
@@ -218,6 +221,16 @@ class WorkerPaymentTab extends StatelessWidget {
                           icon: Icons.schedule,
                           color: Colors.orange,
                           text: '$halfDays Yarım Gün',
+                        ),
+                      if (advanceDeducted > 0)
+                        _buildDayBadge(
+                          w: w,
+                          h: h,
+                          isDark: isDark,
+                          icon: Icons.remove_circle_outline,
+                          color: Colors.red,
+                          text:
+                              '-₺${WorkerAttendanceHelpers.formatCurrencySimple(advanceDeducted)} Avans',
                         ),
                     ],
                   ),
