@@ -31,7 +31,6 @@ class _ExpensesTabState extends State<ExpensesTab> {
   bool _isLoading = true;
 
   ExpenseCategory? _selectedCategory;
-  bool _showMonthlyTotal = true; // true = Bu Ay Toplam, false = Toplam
 
   static const Color primaryColor = Color(0xFF4338CA);
 
@@ -107,35 +106,6 @@ class _ExpensesTabState extends State<ExpensesTab> {
     });
   }
 
-  double _calculateFilteredTotal() {
-    if (_filteredExpenses.isEmpty) return 0.0;
-
-    if (_showMonthlyTotal) {
-      // Bu ay toplam - sadece bu ayki masrafları hesapla
-      final now = DateTime.now();
-      final startOfMonth = DateTime(now.year, now.month, 1);
-      final endOfMonth = DateTime(now.year, now.month + 1, 0);
-
-      return _filteredExpenses
-          .where(
-            (expense) =>
-                expense.expenseDate.isAfter(
-                  startOfMonth.subtract(const Duration(days: 1)),
-                ) &&
-                expense.expenseDate.isBefore(
-                  endOfMonth.add(const Duration(days: 1)),
-                ),
-          )
-          .fold(0.0, (sum, expense) => sum + expense.amount);
-    } else {
-      // Toplam - tüm masrafları hesapla
-      return _filteredExpenses.fold(
-        0.0,
-        (sum, expense) => sum + expense.amount,
-      );
-    }
-  }
-
   void _showAddExpenseDialog() {
     AddExpenseDialog.show(context, onExpenseAdded: _loadData);
   }
@@ -179,8 +149,8 @@ class _ExpensesTabState extends State<ExpensesTab> {
                     // Arama çubuğu
                     _buildSearchBar(theme),
                     SizedBox(height: h * 0.015),
-                    // Toplam filtreleme butonları
-                    _buildTotalFilters(),
+                    // Toplam kartları
+                    _buildTotalCards(),
                     SizedBox(height: h * 0.015),
                     // Liste
                     Expanded(
@@ -218,7 +188,6 @@ class _ExpensesTabState extends State<ExpensesTab> {
 
   Widget _buildCategoryFilters() {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,7 +251,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
                 isSelected: _selectedCategory == ExpenseCategory.diger,
                 onTap: () => _filterByCategory(ExpenseCategory.diger),
               ),
-              const SizedBox(width: 8), // Sağ padding
+              const SizedBox(width: 8),
             ],
           ),
         ),
@@ -353,169 +322,125 @@ class _ExpensesTabState extends State<ExpensesTab> {
     );
   }
 
-  Widget _buildTotalFilters() {
+  Widget _buildTotalCards() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final filteredTotal = _calculateFilteredTotal();
+    
+    final monthlyTotal = _calculateMonthlyTotal();
+    final overallTotal = _calculateOverallTotal();
 
     return Row(
       children: [
         Expanded(
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _showMonthlyTotal = true;
-              });
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: _showMonthlyTotal
-                    ? LinearGradient(
-                        colors: [
-                          primaryColor,
-                          primaryColor.withValues(alpha: 0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                color: _showMonthlyTotal
-                    ? null
-                    : isDark
-                    ? theme.colorScheme.surfaceContainerHighest
-                    : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: _showMonthlyTotal
-                    ? [
-                        BoxShadow(
-                          color: primaryColor.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Bu Ay Toplam',
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? theme.colorScheme.surfaceContainerHighest
+                  : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Bu Ay Toplam',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? theme.colorScheme.onSurface.withValues(alpha: 0.6)
+                        : Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '₺${CurrencyFormatter.format(monthlyTotal)}',
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: _showMonthlyTotal
-                          ? Colors.white.withValues(alpha: 0.9)
-                          : isDark
-                          ? theme.colorScheme.onSurface.withValues(alpha: 0.6)
-                          : Colors.grey.shade600,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: primaryColor,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      _showMonthlyTotal
-                          ? '₺${CurrencyFormatter.format(filteredTotal)}'
-                          : '₺-',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: _showMonthlyTotal
-                            ? Colors.white
-                            : isDark
-                            ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
-                            : Colors.grey.shade500,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _showMonthlyTotal = false;
-              });
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: !_showMonthlyTotal
-                    ? LinearGradient(
-                        colors: [
-                          primaryColor,
-                          primaryColor.withValues(alpha: 0.8),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : null,
-                color: !_showMonthlyTotal
-                    ? null
-                    : isDark
-                    ? theme.colorScheme.surfaceContainerHighest
-                    : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: !_showMonthlyTotal
-                    ? [
-                        BoxShadow(
-                          color: primaryColor.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Toplam',
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? theme.colorScheme.surfaceContainerHighest
+                  : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Toplam',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? theme.colorScheme.onSurface.withValues(alpha: 0.6)
+                        : Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '₺${CurrencyFormatter.format(overallTotal)}',
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: !_showMonthlyTotal
-                          ? Colors.white.withValues(alpha: 0.9)
-                          : isDark
-                          ? theme.colorScheme.onSurface.withValues(alpha: 0.6)
-                          : Colors.grey.shade600,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.orange,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      !_showMonthlyTotal
-                          ? '₺${CurrencyFormatter.format(filteredTotal)}'
-                          : '₺-',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: !_showMonthlyTotal
-                            ? Colors.white
-                            : isDark
-                            ? theme.colorScheme.onSurface.withValues(alpha: 0.5)
-                            : Colors.grey.shade500,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  double _calculateMonthlyTotal() {
+    if (_filteredExpenses.isEmpty) return 0.0;
+
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0);
+
+    return _filteredExpenses
+        .where(
+          (expense) =>
+              expense.expenseDate.isAfter(
+                startOfMonth.subtract(const Duration(days: 1)),
+              ) &&
+              expense.expenseDate.isBefore(
+                endOfMonth.add(const Duration(days: 1)),
+              ),
+        )
+        .fold(0.0, (sum, expense) => sum + expense.amount);
+  }
+
+  double _calculateOverallTotal() {
+    if (_filteredExpenses.isEmpty) return 0.0;
+    return _filteredExpenses.fold(
+      0.0,
+      (sum, expense) => sum + expense.amount,
     );
   }
 }
