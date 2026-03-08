@@ -189,92 +189,89 @@ class WorkerAdvanceTab extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (description.isNotEmpty || isDeducted) ...[
-                  SizedBox(height: h * 0.01),
-                  Container(
-                    height: 1,
-                    color: theme.colorScheme.outline.withValues(alpha: 0.1),
+                // Her zaman göster: açıklama, durum badge'i veya "Bekliyor"
+                SizedBox(height: h * 0.01),
+                Container(
+                  height: 1,
+                  color: theme.colorScheme.outline.withValues(alpha: 0.1),
+                ),
+                SizedBox(height: h * 0.008),
+                if (description.isNotEmpty)
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: w * 0.033,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
                   ),
-                  SizedBox(height: h * 0.008),
-                  if (description.isNotEmpty)
-                    Text(
-                      description,
-                      style: TextStyle(
-                        fontSize: w * 0.033,
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.7,
-                        ),
+                if (isDeducted) ...[
+                  if (description.isNotEmpty) SizedBox(height: h * 0.006),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: w * 0.025,
+                      vertical: h * 0.005,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: Colors.green.withValues(alpha: 0.3),
                       ),
                     ),
-                  if (isDeducted) ...[
-                    if (description.isNotEmpty) SizedBox(height: h * 0.006),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: w * 0.025,
-                        vertical: h * 0.005,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: Colors.green.withValues(alpha: 0.3),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: w * 0.035,
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.check_circle,
+                        SizedBox(width: w * 0.01),
+                        Text(
+                          'Ödemeden düşüldü',
+                          style: TextStyle(
                             color: Colors.green,
-                            size: w * 0.035,
+                            fontSize: w * 0.03,
+                            fontWeight: FontWeight.w600,
                           ),
-                          SizedBox(width: w * 0.01),
-                          Text(
-                            'Ödemeden düşüldü',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontSize: w * 0.03,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ] else if (description.isEmpty) ...[
-                    // Açıklama yoksa ve düşülmediyse "Bekliyor" göster
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: w * 0.025,
-                        vertical: h * 0.005,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: Colors.orange.withValues(alpha: 0.3),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.schedule,
-                            color: Colors.orange,
-                            size: w * 0.035,
-                          ),
-                          SizedBox(width: w * 0.01),
-                          Text(
-                            'Bekliyor',
-                            style: TextStyle(
-                              color: Colors.orange,
-                              fontSize: w * 0.03,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      ],
+                    ),
+                  ),
+                ] else if (description.isEmpty) ...[
+                  // Açıklama yoksa ve düşülmediyse "Bekliyor" göster
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: w * 0.025,
+                      vertical: h * 0.005,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.3),
                       ),
                     ),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.schedule,
+                          color: Colors.orange,
+                          size: w * 0.035,
+                        ),
+                        SizedBox(width: w * 0.01),
+                        Text(
+                          'Bekliyor',
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontSize: w * 0.03,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ],
             ),
