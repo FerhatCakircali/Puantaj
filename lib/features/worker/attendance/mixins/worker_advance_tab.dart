@@ -240,6 +240,40 @@ class WorkerAdvanceTab extends StatelessWidget {
                         ],
                       ),
                     ),
+                  ] else if (description.isEmpty) ...[
+                    // Açıklama yoksa ve düşülmediyse "Bekliyor" göster
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: w * 0.025,
+                        vertical: h * 0.005,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: Colors.orange.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            color: Colors.orange,
+                            size: w * 0.035,
+                          ),
+                          SizedBox(width: w * 0.01),
+                          Text(
+                            'Bekliyor',
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontSize: w * 0.03,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ],
               ],
