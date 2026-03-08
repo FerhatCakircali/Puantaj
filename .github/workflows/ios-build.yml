@@ -2,7 +2,7 @@ name: iOS Build
 
 on:
   push:
-    branches: [ main, master, feature/optimization-phase-3 ]
+    branches: [ main, feature/optimization-phase-3 ]
   workflow_dispatch:
 
 jobs:
@@ -11,23 +11,35 @@ jobs:
     runs-on: macos-latest
     
     steps:
-    - uses: actions/checkout@v4
-    
-    - uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.32.0'
-        channel: 'stable'
-    
-    - run: flutter pub get
-    
-    - run: |
-        flutter build ios --release --no-codesign
-        cd build/ios/iphoneos
-        mkdir Payload
-        cp -r Runner.app Payload/
-        zip -r app.ipa Payload
-    
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ios-build
-        path: build/ios/iphoneos/app.ipa
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: 'stable'
+      
+      - name: Create .env
+        run: |
+          cp .env.example .env || echo "SUPABASE_URL=dummy" > .env
+          echo "SUPABASE_ANON_KEY=dummy" >> .env
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
+      
+      - name: Create IPA
+        run: |
+          cd build/ios/iphoneos
+          mkdir Payload
+          cp -r Runner.app Payload/
+          zip -r ios-app.zip Payload
+      
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: build/ios/iphoneos/ios-app.zip
