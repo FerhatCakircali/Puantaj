@@ -25,7 +25,7 @@ class ActivityLogService {
         'target_user_id': targetUserId,
         'target_username': targetUsername,
         'details': details,
-        'created_at': DateTime.now().toIso8601String(),
+        // created_at otomatik olarak Supabase tarafından UTC'de eklenir
       });
 
       debugPrint('📝 Aktivite logu kaydedildi: $actionType');
