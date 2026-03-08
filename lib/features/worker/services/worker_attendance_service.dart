@@ -375,11 +375,6 @@ class WorkerAttendanceService {
       debugPrint('❌ getAdvanceHistory hata: $e');
       return [];
     }
-  }      return payments;
-    } catch (e) {
-      debugPrint('❌ getPaymentHistory hata: $e');
-      return [];
-    }
   }
 
   /// Ödeme detaylarını getir
