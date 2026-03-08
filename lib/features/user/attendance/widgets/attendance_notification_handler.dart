@@ -173,7 +173,7 @@ class AttendanceNotificationHandler {
         'title': title,
         'message': message,
         'is_read': false,
-        'created_at': DateTime.now().toIso8601String(),
+        // created_at otomatik olarak Supabase tarafından UTC'de eklenir
       });
 
       debugPrint('✅ Çalışan $workerName için yevmiye bildirimi kaydedildi');
