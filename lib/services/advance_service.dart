@@ -282,8 +282,11 @@ class AdvanceService {
           '${userProfile['first_name']} ${userProfile['last_name']}';
       final formattedAmount = _formatAmount(advance.amount);
       final formattedDate = _formatDate(advance.advanceDate);
+
+      // Gerçek saat bilgisi için DateTime.now() kullan
+      final now = DateTime.now();
       final formattedTime =
-          '${advance.advanceDate.hour.toString().padLeft(2, '0')}:${advance.advanceDate.minute.toString().padLeft(2, '0')}';
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
       final message =
           '$userName tarafından avans ödemesi: ₺$formattedAmount\n$formattedDate $formattedTime';
@@ -339,8 +342,11 @@ class AdvanceService {
       final oldAmount = _formatAmount(oldAdvance.amount);
       final newAmount = _formatAmount(newAdvance.amount);
       final formattedDate = _formatDate(newAdvance.advanceDate);
+
+      // Gerçek saat bilgisi için DateTime.now() kullan
+      final now = DateTime.now();
       final formattedTime =
-          '${newAdvance.advanceDate.hour.toString().padLeft(2, '0')}:${newAdvance.advanceDate.minute.toString().padLeft(2, '0')}';
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
       final message =
           '$userName tarafından avans ödemesi güncellendi: ₺$oldAmount → ₺$newAmount\n$formattedDate $formattedTime';
@@ -381,8 +387,11 @@ class AdvanceService {
           '${userProfile['first_name']} ${userProfile['last_name']}';
       final formattedAmount = _formatAmount(advance.amount);
       final formattedDate = _formatDate(advance.advanceDate);
+
+      // Gerçek saat bilgisi için DateTime.now() kullan
+      final now = DateTime.now();
       final formattedTime =
-          '${advance.advanceDate.hour.toString().padLeft(2, '0')}:${advance.advanceDate.minute.toString().padLeft(2, '0')}';
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
       final message =
           '$userName tarafından avans ödemesi silindi: ₺$formattedAmount\n$formattedDate $formattedTime';
