@@ -189,14 +189,15 @@ class WorkerAdvanceTab extends StatelessWidget {
                     ),
                   ],
                 ),
-                // Her zaman göster: açıklama, durum badge'i veya "Bekliyor"
+                // Her zaman göster: açıklama ve durum badge'i
                 SizedBox(height: h * 0.01),
                 Container(
                   height: 1,
                   color: theme.colorScheme.outline.withValues(alpha: 0.1),
                 ),
                 SizedBox(height: h * 0.008),
-                if (description.isNotEmpty)
+                // Açıklama varsa göster
+                if (description.isNotEmpty) ...[
                   Text(
                     description,
                     style: TextStyle(
@@ -204,8 +205,10 @@ class WorkerAdvanceTab extends StatelessWidget {
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
-                if (isDeducted) ...[
-                  if (description.isNotEmpty) SizedBox(height: h * 0.006),
+                  SizedBox(height: h * 0.006),
+                ],
+                // Durum badge'i (her zaman göster)
+                if (isDeducted)
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: w * 0.025,
@@ -237,9 +240,8 @@ class WorkerAdvanceTab extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
-                ] else if (description.isEmpty) ...[
-                  // Açıklama yoksa ve düşülmediyse "Bekliyor" göster
+                  )
+                else
                   Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: w * 0.025,
@@ -272,7 +274,6 @@ class WorkerAdvanceTab extends StatelessWidget {
                       ],
                     ),
                   ),
-                ],
               ],
             ),
           );
