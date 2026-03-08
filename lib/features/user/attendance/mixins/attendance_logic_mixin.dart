@@ -199,17 +199,20 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
 
     setState(() => isLoading = true);
     try {
-      for (final entry in pendingChanges.entries) {
-        debugPrint(
-          '💾 [Attendance] Kaydediliyor: Worker ${entry.key} -> ${entry.value}',
-        );
-        await AttendanceService().markAttendance(
-          workerId: entry.key,
-          date: selectedDate,
-          status: entry.value,
-        );
-        debugPrint('✅ [Attendance] Kaydedildi: Worker ${entry.key}');
-      }
+      // PARALEL KAYDETME - Tüm kayıtları aynı anda gönder
+      await Future.wait(
+        pendingChanges.entries.map((entry) async {
+          debugPrint(
+            '💾 [Attendance] Kaydediliyor: Worker ${entry.key} -> ${entry.value}',
+          );
+          await AttendanceService().markAttendance(
+            workerId: entry.key,
+            date: selectedDate,
+            status: entry.value,
+          );
+          debugPrint('✅ [Attendance] Kaydedildi: Worker ${entry.key}');
+        }),
+      );
 
       // Bugün için yevmiye girişi yapıldığını işaretle
       final today = DateTime.now();
@@ -227,21 +230,32 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
         debugPrint('✅ [Attendance] Bildirim durumu güncellendi');
       }
 
-      // Çalışanlara bildirim gönder (her zaman, hangi tarih olursa olsun)
-      debugPrint('📢📢📢 [Attendance] Çalışanlara bildirim gönderiliyor...');
-      debugPrint('📢 pendingChanges sayısı: ${pendingChanges.length}');
-      debugPrint('📢 pendingChanges içeriği: $pendingChanges');
+      // Çalışanlara bildirim gönder (asenkron - beklemeden)
+      debugPrint('📢 [Attendance] Bildirimler arka planda gönderiliyor...');
+      _sendAttendanceNotificationsToWorkers().catchError((e) {
+        debugPrint('❌ [Attendance] Bildirim gönderme hatası: $e');
+      });
 
-      try {
-        await _sendAttendanceNotificationsToWorkers();
-        debugPrint('✅✅✅ [Attendance] Bildirim gönderme tamamlandı');
-      } catch (e, stackTrace) {
-        debugPrint('❌❌❌ [Attendance] Bildirim gönderme HATASI: $e');
-        debugPrint('Stack trace: $stackTrace');
+      // OPTIMIZASYON: Tüm veriyi yeniden yüklemek yerine sadece state'i güncelle
+      debugPrint(
+        '🔄 [Attendance] State güncelleniyor (veritabanı sorgusu YOK)',
+      );
+
+      // Pending changes'i attendanceMap'e aktar
+      for (final entry in pendingChanges.entries) {
+        attendanceMap[entry.key] = attendance.Attendance(
+          id: attendanceMap[entry.key]?.id ?? 0,
+          userId: attendanceMap[entry.key]?.userId ?? 0,
+          workerId: entry.key,
+          date: selectedDate,
+          status: entry.value,
+        );
       }
 
-      debugPrint('🔄 [Attendance] Veriler yeniden yükleniyor...');
-      await loadData();
+      // Pending changes'i temizle
+      pendingChanges.clear();
+
+      setState(() => isLoading = false);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -252,7 +266,7 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
                   : 'Yevmiye kayıtları başarıyla kaydedildi (${unselectedEmployees.length} çalışan "gelmedi" olarak işaretlendi)',
             ),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -266,19 +280,17 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
             duration: const Duration(seconds: 3),
           ),
         );
+        setState(() => isLoading = false);
       }
-    } finally {
-      setState(() => isLoading = false);
     }
   }
 
-  /// Çalışanlara yevmiye girişi yapıldı bildirimi gönder
+  /// Çalışanlara yevmiye girişi yapıldı bildirimi gönder (PARALEL)
   Future<void> _sendAttendanceNotificationsToWorkers() async {
     try {
-      debugPrint('🔔🔔🔔 _sendAttendanceNotificationsToWorkers BAŞLADI');
+      debugPrint('🔔 _sendAttendanceNotificationsToWorkers BAŞLADI');
 
       final now = DateTime.now();
-      // Yevmiye girişi yapılan tarihi kullan (selectedDate)
       final formattedDate = DateFormat(
         'dd.MM.yyyy',
         'tr_TR',
@@ -290,54 +302,45 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
         '👥 Bildirim gönderilecek çalışan sayısı: ${pendingChanges.length}',
       );
 
-      for (final entry in pendingChanges.entries) {
-        final workerId = entry.key;
-        final newStatus = entry.value;
-        final employee = employees.firstWhere((e) => e.id == workerId);
+      // PARALEL BİLDİRİM GÖNDERME - Tüm bildirimleri aynı anda gönder
+      await Future.wait(
+        pendingChanges.entries.map((entry) async {
+          final workerId = entry.key;
+          final newStatus = entry.value;
+          final employee = employees.firstWhere((e) => e.id == workerId);
 
-        // Önceki durumu kontrol et
-        final oldAttendance = attendanceMap[workerId];
-        final isUpdate = oldAttendance != null;
-        final oldStatus = oldAttendance?.status;
+          // Önceki durumu kontrol et
+          final oldAttendance = attendanceMap[workerId];
+          final isUpdate = oldAttendance != null;
+          final oldStatus = oldAttendance?.status;
 
-        debugPrint('');
-        debugPrint(
-          '📢📢📢 Bildirim gönderiliyor: ${employee.name} (ID: $workerId)',
-        );
-        debugPrint(
-          '  Güncelleme: $isUpdate, Eski: $oldStatus, Yeni: $newStatus',
-        );
+          // Eğer durum değişmemişse bildirim gönderme
+          if (isUpdate && oldStatus == newStatus) {
+            debugPrint('  ⏭️ ${employee.name}: Durum değişmedi, atlandı');
+            return;
+          }
 
-        // Eğer durum değişmemişse bildirim gönderme
-        if (isUpdate && oldStatus == newStatus) {
-          debugPrint('  ⏭️ Durum değişmedi, bildirim gönderilmiyor');
-          continue;
-        }
+          try {
+            await AttendanceNotificationHandler.sendAttendanceEntryNotification(
+              workerId: workerId,
+              workerName: employee.name,
+              date: formattedDate,
+              time: formattedTime,
+              isUpdate: isUpdate,
+              oldStatus: oldStatus,
+              newStatus: newStatus,
+            );
 
-        try {
-          // Veritabanına bildirim kaydı ekle
-          await AttendanceNotificationHandler.sendAttendanceEntryNotification(
-            workerId: workerId,
-            workerName: employee.name,
-            date: formattedDate,
-            time: formattedTime,
-            isUpdate: isUpdate,
-            oldStatus: oldStatus,
-            newStatus: newStatus,
-          );
+            debugPrint('✅ Bildirim gönderildi: ${employee.name}');
+          } catch (e) {
+            debugPrint('❌ ${employee.name} için bildirim HATASI: $e');
+          }
+        }),
+      );
 
-          debugPrint('✅✅✅ Bildirim gönderildi: ${employee.name}');
-        } catch (e, stackTrace) {
-          debugPrint('❌❌❌ ${employee.name} için bildirim HATASI: $e');
-          debugPrint('Stack trace: $stackTrace');
-        }
-      }
-
-      debugPrint('');
       debugPrint('✅ [Attendance] Tüm bildirimler gönderildi');
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('❌ [Attendance] Bildirim gönderme hatası: $e');
-      debugPrint('Stack trace: $stackTrace');
     }
   }
 
@@ -543,39 +546,53 @@ mixin AttendanceLogicMixin<T extends StatefulWidget> on State<T> {
     }
   }
 
-  /// Tüm çalışanların durumunu toplu olarak değiştir
+  /// Tüm çalışanların durumunu toplu olarak değiştir (OPTIMIZE)
   Future<void> bulkChangeStatus(attendance.AttendanceStatus status) async {
-    // Ödeme yapılmış günleri kontrol et
     final List<String> paidEmployees = [];
     final List<String> notStartedEmployees = [];
 
-    for (final employee in filteredEmployees) {
-      // İşe başlama tarihinden önceki tarihlerde değişiklik yapılmasını engelle
-      if (selectedDate.isBefore(employee.startDate)) {
-        notStartedEmployees.add(employee.name);
-        continue;
-      }
-
-      // Mevcut durumu al
-      final currentStatus =
-          pendingChanges[employee.id] ?? attendanceMap[employee.id]?.status;
-
-      // Eğer durum değişiyorsa ve mevcut durum ödenmişse, listeye ekle
-      if (currentStatus != null && currentStatus != status) {
-        final isPaid = await paymentService.isDayPaid(
-          employee.id,
-          selectedDate,
-          currentStatus,
-        );
-
-        if (isPaid) {
-          paidEmployees.add(employee.name);
-          continue; // Bu çalışanı atla
+    // PARALEL ÖDEME KONTROLÜ - Tüm kontrolleri aynı anda yap
+    final results = await Future.wait(
+      filteredEmployees.map((employee) async {
+        // İşe başlama tarihinden önceki tarihlerde değişiklik yapılmasını engelle
+        if (selectedDate.isBefore(employee.startDate)) {
+          return {'employee': employee, 'status': 'notStarted'};
         }
-      }
 
-      // Durum değişikliğini kaydet
-      pendingChanges[employee.id] = status;
+        // Mevcut durumu al
+        final currentStatus =
+            pendingChanges[employee.id] ?? attendanceMap[employee.id]?.status;
+
+        // Eğer durum değişiyorsa ve mevcut durum ödenmişse, kontrol et
+        if (currentStatus != null && currentStatus != status) {
+          final isPaid = await paymentService.isDayPaid(
+            employee.id,
+            selectedDate,
+            currentStatus,
+          );
+
+          if (isPaid) {
+            return {'employee': employee, 'status': 'paid'};
+          }
+        }
+
+        return {'employee': employee, 'status': 'ok'};
+      }),
+    );
+
+    // Sonuçları işle
+    for (final result in results) {
+      final employee = result['employee'] as Employee;
+      final resultStatus = result['status'] as String;
+
+      if (resultStatus == 'notStarted') {
+        notStartedEmployees.add(employee.name);
+      } else if (resultStatus == 'paid') {
+        paidEmployees.add(employee.name);
+      } else {
+        // Durum değişikliğini kaydet
+        pendingChanges[employee.id] = status;
+      }
     }
 
     setState(() {});
