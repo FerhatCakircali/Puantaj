@@ -195,16 +195,40 @@ class _PaymentDialogState extends State<PaymentDialog> {
       return;
     }
 
-    // Avans düşme kontrolü
-    if (_deductAdvances && _totalPendingAdvances > 0) {
-      if (amount < _totalPendingAdvances) {
-        _showErrorDialog(
-          'Ödeme tutarı (₺${amount.toStringAsFixed(2)}) bekleyen avans tutarından (₺${_totalPendingAdvances.toStringAsFixed(2)}) az olamaz.',
-        );
-        return;
+    // Avans düşme kontrolü ve kısmi düşme
+    double remainingPayment = amount;
+    List<Map<String, dynamic>> advancesToUpdate = [];
+
+    if (_deductAdvances && _pendingAdvances.isNotEmpty) {
+      // Avansları en eskiden yeniye sırala
+      final sortedAdvances = List<Advance>.from(_pendingAdvances)
+        ..sort((a, b) => a.advanceDate.compareTo(b.advanceDate));
+
+      for (final advance in sortedAdvances) {
+        if (remainingPayment <= 0) break;
+
+        if (remainingPayment >= advance.amount) {
+          // Avansın tamamı düşülecek
+          advancesToUpdate.add({
+            'id': advance.id!,
+            'amount': advance.amount,
+            'isFullyDeducted': true,
+          });
+          remainingPayment -= advance.amount;
+        } else {
+          // Avansın bir kısmı düşülecek
+          advancesToUpdate.add({
+            'id': advance.id!,
+            'amount': remainingPayment,
+            'isFullyDeducted': false,
+            'remainingAmount': advance.amount - remainingPayment,
+          });
+          remainingPayment = 0;
+        }
       }
-      // Avansı düş
-      amount -= _totalPendingAdvances;
+
+      // Ödeme tutarından düşülen avans miktarını çıkar
+      amount = remainingPayment;
     }
 
     setState(() => _isLoading = true);
@@ -218,10 +242,23 @@ class _PaymentDialogState extends State<PaymentDialog> {
         amount: amount,
       );
 
-      // Avansları düşülmüş olarak işaretle
-      if (_deductAdvances && _pendingAdvances.isNotEmpty && paymentId != null) {
-        for (final advance in _pendingAdvances) {
-          await _advanceService.markAsDeducted(advance.id!, paymentId);
+      // Avansları güncelle
+      if (_deductAdvances && advancesToUpdate.isNotEmpty && paymentId != null) {
+        for (final advanceUpdate in advancesToUpdate) {
+          if (advanceUpdate['isFullyDeducted']) {
+            // Tamamen düşürüldü olarak işaretle
+            await _advanceService.markAsDeducted(
+              advanceUpdate['id'],
+              paymentId,
+            );
+          } else {
+            // Kısmi düşme - avans tutarını güncelle
+            await _advanceService.partiallyDeduct(
+              advanceUpdate['id'],
+              advanceUpdate['remainingAmount'],
+              paymentId,
+            );
+          }
         }
       }
 
@@ -230,9 +267,12 @@ class _PaymentDialogState extends State<PaymentDialog> {
         widget.onPaymentComplete();
 
         String message = 'Ödeme başarıyla kaydedildi';
-        if (_deductAdvances && _totalPendingAdvances > 0) {
-          message +=
-              '\n₺${_totalPendingAdvances.toStringAsFixed(2)} avans düşüldü';
+        if (_deductAdvances && advancesToUpdate.isNotEmpty) {
+          final totalDeducted = advancesToUpdate.fold<double>(
+            0,
+            (sum, adv) => sum + adv['amount'],
+          );
+          message += '\n₺${totalDeducted.toStringAsFixed(2)} avans düşüldü';
         }
 
         ScaffoldMessenger.of(context).showSnackBar(

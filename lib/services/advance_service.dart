@@ -222,6 +222,32 @@ class AdvanceService {
     }
   }
 
+  /// Avansı kısmi olarak düş (tutarı güncelle)
+  Future<void> partiallyDeduct(
+    int advanceId,
+    double remainingAmount,
+    int paymentId,
+  ) async {
+    try {
+      debugPrint(
+        '💰 Avans kısmi düşülüyor: advanceId=$advanceId, kalan=$remainingAmount, paymentId=$paymentId',
+      );
+
+      await supabase
+          .from('advances')
+          .update({
+            'amount': remainingAmount,
+            'deducted_from_payment_id': paymentId,
+          })
+          .eq('id', advanceId);
+
+      debugPrint('✅ Avans kısmi olarak düşüldü, kalan tutar: $remainingAmount');
+    } catch (e) {
+      debugPrint('❌ Avans kısmi düşme hatası: $e');
+      rethrow;
+    }
+  }
+
   /// Aylık avans toplamını getir
   Future<double> getMonthlyAdvances(
     DateTime monthStart,
