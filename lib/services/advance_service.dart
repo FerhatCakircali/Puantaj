@@ -255,15 +255,28 @@ class AdvanceService {
   /// Çalışana avans oluşturma bildirimi gönder
   Future<void> _sendAdvanceCreatedNotification(Advance advance) async {
     try {
+      debugPrint('🔔 === AVANS BİLDİRİMİ BAŞLIYOR ===');
+      debugPrint('🔔 Advance ID: ${advance.id}');
+      debugPrint('🔔 Worker ID: ${advance.workerId}');
+      debugPrint('🔔 Amount: ${advance.amount}');
+
       final userId = await _authService.getUserId();
-      if (userId == null) return;
+      debugPrint('🔔 User ID: $userId');
+
+      if (userId == null) {
+        debugPrint('❌ User ID null, bildirim gönderilemiyor!');
+        return;
+      }
 
       // Yönetici adını al (users tablosundan)
+      debugPrint('🔔 Yönetici bilgisi çekiliyor...');
       final userProfile = await supabase
           .from('users')
           .select('first_name, last_name')
           .eq('id', userId)
           .single();
+
+      debugPrint('🔔 User profile: $userProfile');
 
       final userName =
           '${userProfile['first_name']} ${userProfile['last_name']}';
@@ -275,9 +288,9 @@ class AdvanceService {
       final message =
           '$userName tarafından avans ödemesi: ₺$formattedAmount\n$formattedDate $formattedTime';
 
-      debugPrint('📢 Avans oluşturma bildirimi gönderiliyor: $message');
+      debugPrint('📢 Bildirim mesajı: $message');
 
-      await supabase.from('notifications').insert({
+      final notificationData = {
         'sender_id': userId,
         'sender_type': 'user',
         'recipient_id': advance.workerId,
@@ -286,11 +299,22 @@ class AdvanceService {
         'title': 'Avans Ödemesi',
         'message': message,
         'related_id': advance.id,
-      });
+      };
 
-      debugPrint('✅ Avans oluşturma bildirimi gönderildi');
-    } catch (e) {
-      debugPrint('⚠️ Avans bildirimi gönderilemedi: $e');
+      debugPrint('📢 Notification data: $notificationData');
+      debugPrint('📢 Database\'e yazılıyor...');
+
+      final result = await supabase
+          .from('notifications')
+          .insert(notificationData)
+          .select();
+
+      debugPrint('✅ Bildirim database\'e yazıldı: $result');
+      debugPrint('🔔 === AVANS BİLDİRİMİ TAMAMLANDI ===');
+    } catch (e, stackTrace) {
+      debugPrint('❌ === AVANS BİLDİRİMİ HATASI ===');
+      debugPrint('❌ Hata: $e');
+      debugPrint('❌ Stack trace: $stackTrace');
     }
   }
 
