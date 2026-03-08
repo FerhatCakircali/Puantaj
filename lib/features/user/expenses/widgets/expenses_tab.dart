@@ -5,10 +5,11 @@ import '../controllers/expense_controller.dart';
 import 'expense_summary_cards.dart';
 import 'expense_list_tile.dart';
 import 'expense_empty_state.dart';
-import 'category_chip.dart';
+import 'expense_category_filter.dart';
+import 'expense_search_bar.dart';
+import 'expense_total_cards.dart';
 import '../dialogs/add_expense_dialog.dart';
 import '../dialogs/expense_detail_dialog.dart';
-import '../../../user/payments/utils/currency_formatter.dart';
 
 /// Masraflar tab widget'ı
 class ExpensesTab extends StatefulWidget {
@@ -67,16 +68,12 @@ class _ExpensesTabState extends State<ExpensesTab> {
         _expenseCount = data.expenseCount;
         _isLoading = false;
       });
-
-      debugPrint('✅ Masraf verileri yüklendi: ${_expenses.length} masraf');
     } catch (e) {
       debugPrint('⚠️ Masraf verileri yükleme hatası: $e');
 
       if (!mounted) return;
 
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
@@ -106,6 +103,31 @@ class _ExpensesTabState extends State<ExpensesTab> {
     });
   }
 
+  double _calculateMonthlyTotal() {
+    if (_filteredExpenses.isEmpty) return 0.0;
+
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0);
+
+    return _filteredExpenses
+        .where(
+          (expense) =>
+              expense.expenseDate.isAfter(
+                startOfMonth.subtract(const Duration(days: 1)),
+              ) &&
+              expense.expenseDate.isBefore(
+                endOfMonth.add(const Duration(days: 1)),
+              ),
+        )
+        .fold(0.0, (sum, expense) => sum + expense.amount);
+  }
+
+  double _calculateOverallTotal() {
+    if (_filteredExpenses.isEmpty) return 0.0;
+    return _filteredExpenses.fold(0.0, (sum, expense) => sum + expense.amount);
+  }
+
   void _showAddExpenseDialog() {
     AddExpenseDialog.show(context, onExpenseAdded: _loadData);
   }
@@ -123,12 +145,10 @@ class _ExpensesTabState extends State<ExpensesTab> {
     final size = MediaQuery.sizeOf(context);
     final w = size.width;
     final h = size.height;
-    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: primaryColor))
+          ? const Center(child: CircularProgressIndicator())
           : SafeArea(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: w * 0.06),
@@ -136,23 +156,27 @@ class _ExpensesTabState extends State<ExpensesTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: h * 0.005),
-                    // Özet kartları
                     ExpenseSummaryCards(
                       monthlyTotal: _monthlyTotal,
                       overallTotal: _overallTotal,
                       expenseCount: _expenseCount,
                     ),
                     SizedBox(height: h * 0.015),
-                    // Kategori filtreleme
-                    _buildCategoryFilters(),
+                    ExpenseCategoryFilter(
+                      selectedCategory: _selectedCategory,
+                      onCategorySelected: _filterByCategory,
+                    ),
                     SizedBox(height: h * 0.015),
-                    // Arama çubuğu
-                    _buildSearchBar(theme),
+                    ExpenseSearchBar(
+                      controller: _searchController,
+                      onChanged: _filterExpenses,
+                    ),
                     SizedBox(height: h * 0.015),
-                    // Toplam kartları
-                    _buildTotalCards(),
+                    ExpenseTotalCards(
+                      monthlyTotal: _calculateMonthlyTotal(),
+                      overallTotal: _calculateOverallTotal(),
+                    ),
                     SizedBox(height: h * 0.015),
-                    // Liste
                     Expanded(
                       child: _expenses.isEmpty
                           ? const ExpenseEmptyState()
@@ -183,264 +207,6 @@ class _ExpensesTabState extends State<ExpensesTab> {
         backgroundColor: primaryColor,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-    );
-  }
-
-  Widget _buildCategoryFilters() {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.filter_list,
-              size: 16,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'Kategori Filtrele',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
-            ),
-            const Spacer(),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 12,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 40,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              CategoryChip(
-                category: null,
-                isSelected: _selectedCategory == null,
-                onTap: () => _filterByCategory(null),
-              ),
-              const SizedBox(width: 8),
-              CategoryChip(
-                category: ExpenseCategory.malzeme,
-                isSelected: _selectedCategory == ExpenseCategory.malzeme,
-                onTap: () => _filterByCategory(ExpenseCategory.malzeme),
-              ),
-              const SizedBox(width: 8),
-              CategoryChip(
-                category: ExpenseCategory.ulasim,
-                isSelected: _selectedCategory == ExpenseCategory.ulasim,
-                onTap: () => _filterByCategory(ExpenseCategory.ulasim),
-              ),
-              const SizedBox(width: 8),
-              CategoryChip(
-                category: ExpenseCategory.ekipman,
-                isSelected: _selectedCategory == ExpenseCategory.ekipman,
-                onTap: () => _filterByCategory(ExpenseCategory.ekipman),
-              ),
-              const SizedBox(width: 8),
-              CategoryChip(
-                category: ExpenseCategory.diger,
-                isSelected: _selectedCategory == ExpenseCategory.diger,
-                onTap: () => _filterByCategory(ExpenseCategory.diger),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchBar(ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-
-    return SingleChildScrollView(
-      child: TextField(
-        controller: _searchController,
-        onChanged: _filterExpenses,
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-          fontSize: 16,
-        ),
-        decoration: InputDecoration(
-          hintText: 'Masraf ara...',
-          hintStyle: TextStyle(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.5)
-                : Colors.grey.shade600,
-          ),
-          prefixIcon: Icon(
-            Icons.search,
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.7)
-                : Colors.grey.shade700,
-          ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: Icon(
-                    Icons.clear,
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.7)
-                        : Colors.grey.shade700,
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                    _filterExpenses('');
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTotalCards() {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    final monthlyTotal = _calculateMonthlyTotal();
-    final overallTotal = _calculateOverallTotal();
-
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? theme.colorScheme.surfaceContainerHighest
-                  : Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Bu Ay Toplam',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.6)
-                        : Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    '₺${CurrencyFormatter.format(monthlyTotal)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: primaryColor,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? theme.colorScheme.surfaceContainerHighest
-                  : Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Toplam',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.6)
-                        : Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    '₺${CurrencyFormatter.format(overallTotal)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.orange,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  double _calculateMonthlyTotal() {
-    if (_filteredExpenses.isEmpty) return 0.0;
-
-    final now = DateTime.now();
-    final startOfMonth = DateTime(now.year, now.month, 1);
-    final endOfMonth = DateTime(now.year, now.month + 1, 0);
-
-    return _filteredExpenses
-        .where(
-          (expense) =>
-              expense.expenseDate.isAfter(
-                startOfMonth.subtract(const Duration(days: 1)),
-              ) &&
-              expense.expenseDate.isBefore(
-                endOfMonth.add(const Duration(days: 1)),
-              ),
-        )
-        .fold(0.0, (sum, expense) => sum + expense.amount);
-  }
-
-  double _calculateOverallTotal() {
-    if (_filteredExpenses.isEmpty) return 0.0;
-    return _filteredExpenses.fold(
-      0.0,
-      (sum, expense) => sum + expense.amount,
     );
   }
 }
