@@ -9,6 +9,7 @@ class Payment {
   final int halfDays;
   final DateTime paymentDate;
   final double amount;
+  final double advanceDeducted;
 
   Payment({
     this.id,
@@ -18,6 +19,7 @@ class Payment {
     required this.halfDays,
     required this.paymentDate,
     this.amount = 0.0,
+    this.advanceDeducted = 0.0,
   });
 
   // PDF için getter, daha sonra silinen çalışan raporları için
@@ -46,7 +48,7 @@ class Payment {
       'half_days': halfDays,
       'payment_date': formattedDate,
       'amount': amount,
-      // ⚡ FIX: 'notes' kolonu database'de yok, kaldırıldı
+      'advance_deducted': advanceDeducted,
     };
 
     // id değeri varsa ekle, yoksa Supabase'in otomatik atamasına izin ver
@@ -68,6 +70,9 @@ class Payment {
         'yyyy-MM-dd',
       ).parse(map['payment_date'] as String),
       amount: map['amount'] != null ? (map['amount'] as num).toDouble() : 0.0,
+      advanceDeducted: map['advance_deducted'] != null
+          ? (map['advance_deducted'] as num).toDouble()
+          : 0.0,
     );
   }
 }

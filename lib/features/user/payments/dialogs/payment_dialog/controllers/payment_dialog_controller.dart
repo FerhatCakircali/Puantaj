@@ -68,6 +68,7 @@ class PaymentDialogController {
     required int fullDays,
     required int halfDays,
     required double amount,
+    double advanceDeducted = 0.0,
   }) async {
     final currentUser = await _authService.currentUser;
     if (currentUser == null) {
@@ -84,6 +85,7 @@ class PaymentDialogController {
       halfDays: halfDays,
       paymentDate: today,
       amount: amount,
+      advanceDeducted: advanceDeducted,
     );
 
     return await _paymentService.addPayment(payment);

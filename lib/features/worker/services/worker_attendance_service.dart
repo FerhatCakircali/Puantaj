@@ -325,27 +325,21 @@ class WorkerAttendanceService {
 
       final payments = List<Map<String, dynamic>>.from(response);
 
-      // Her ödeme için avans bilgisini ekle
+      // Her ödeme için avans bilgisini ekle (artık payments tablosunda var)
       for (var payment in payments) {
-        final paymentId = payment['id'];
+        // advance_deducted zaten payments tablosunda
+        if (!payment.containsKey('advance_deducted')) {
+          payment['advance_deducted'] = 0.0;
+        }
 
-        // Bu ödemeden düşülen avansları getir
+        // Avans sayısını hesapla
+        final paymentId = payment['id'];
         final advances = await supabase
             .from('advances')
-            .select('amount, description')
+            .select('id')
             .eq('deducted_from_payment_id', paymentId);
 
-        if (advances.isNotEmpty) {
-          final totalAdvance = advances.fold<double>(
-            0.0,
-            (sum, adv) => sum + (adv['amount'] as num).toDouble(),
-          );
-          payment['advance_deducted'] = totalAdvance;
-          payment['advance_count'] = advances.length;
-        } else {
-          payment['advance_deducted'] = 0.0;
-          payment['advance_count'] = 0;
-        }
+        payment['advance_count'] = advances.length;
       }
 
       return payments;

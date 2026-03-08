@@ -231,6 +231,12 @@ class _PaymentDialogState extends State<PaymentDialog> {
       amount = remainingPayment;
     }
 
+    // Düşülen toplam avans tutarını hesapla
+    final totalAdvanceDeducted = advancesToUpdate.fold<double>(
+      0,
+      (sum, adv) => sum + adv['amount'],
+    );
+
     setState(() => _isLoading = true);
 
     try {
@@ -240,6 +246,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
         fullDays: fullDays,
         halfDays: halfDays,
         amount: amount,
+        advanceDeducted: totalAdvanceDeducted,
       );
 
       // Avansları güncelle
