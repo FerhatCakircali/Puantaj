@@ -24,8 +24,8 @@
 -- Kullanım:
 --   SELECT * FROM get_payment_summary(
 --     'user-uuid-here',
---     '2024-01-01',
---     '2024-01-31'
+--     '2026-01-01',
+--     '2026-01-31'
 --   );
 --
 -- Saat Dilimi: Europe/Istanbul (UTC+3)
@@ -99,6 +99,6 @@ GRANT EXECUTE ON FUNCTION get_payment_summary(UUID, DATE, DATE) TO authenticated
 -- =====================================================
 -- SELECT * FROM get_payment_summary(
 --   'your-user-id-here',
---   '2024-01-01',
---   '2024-12-31'
+--   '2026-01-01',
+--   '2026-12-31'
 -- );

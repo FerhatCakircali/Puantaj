@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../../../../models/employee.dart';
-import '../../../../../../utils/formatters/thousands_separator_formatter.dart';
-import '../../../../../../utils/currency_formatter.dart';
-import 'payment_auto_calculate_toggle.dart';
-import 'payment_available_days_card.dart';
-import 'payment_input_field.dart';
+import '../../../../../../models/advance.dart';
+import '../../../../../../services/advance_service.dart';
+import '../../../../../../shared/widgets/dialog/dialog_handle_bar.dart';
 import '../controllers/payment_dialog_controller.dart';
+import '../handlers/payment_submission_handler.dart';
+import '../helpers/payment_dialog_helper.dart';
+import '../helpers/payment_validation_helper.dart';
+import '../helpers/payment_focus_helper.dart';
 import 'payment_dialog_header.dart';
 import 'payment_dialog_actions.dart';
-import '../../../../../../services/advance_service.dart';
-import '../../../../../../models/advance.dart';
+import 'payment_available_days_card.dart';
+import 'payment_auto_calculate_toggle.dart';
+import 'payment_form_fields.dart';
+import 'payment_advance_section.dart';
+import '../../../../../../core/di/service_locator.dart';
 
 /// Ödeme dialog widget'ı
+///
+/// Çalışan ödemelerini kaydetmek için kullanılır
 class PaymentDialog extends StatefulWidget {
   final Employee employee;
   final VoidCallback onPaymentComplete;
@@ -48,7 +54,9 @@ class PaymentDialog extends StatefulWidget {
 
 class _PaymentDialogState extends State<PaymentDialog> {
   final _controller = PaymentDialogController();
-  final _advanceService = AdvanceService();
+  late final PaymentSubmissionHandler _submissionHandler;
+  late final PaymentFocusHelper _focusHelper;
+  late final AdvanceService _advanceService;
   final _fullDaysController = TextEditingController();
   final _halfDaysController = TextEditingController();
   final _amountController = TextEditingController();
@@ -60,17 +68,11 @@ class _PaymentDialogState extends State<PaymentDialog> {
   final _halfDaysKey = GlobalKey();
   final _amountKey = GlobalKey();
 
-  late final FocusNode _dailyRateFocus;
-  late final FocusNode _fullDaysFocus;
-  late final FocusNode _halfDaysFocus;
-  late final FocusNode _amountFocus;
-
   bool _isLoading = true;
   bool _autoCalculate = false;
   int _availableFullDays = 0;
   int _availableHalfDays = 0;
 
-  // Avans değişkenleri
   List<Advance> _pendingAdvances = [];
   bool _deductAdvances = false;
   double _totalPendingAdvances = 0;
@@ -78,26 +80,32 @@ class _PaymentDialogState extends State<PaymentDialog> {
   @override
   void initState() {
     super.initState();
+    _advanceService = getIt<AdvanceService>();
+    _submissionHandler = PaymentSubmissionHandler(controller: _controller);
     _scrollController = ScrollController();
-    _dailyRateFocus = FocusNode();
-    _fullDaysFocus = FocusNode();
-    _halfDaysFocus = FocusNode();
-    _amountFocus = FocusNode();
-
-    _dailyRateFocus.addListener(() {
-      if (_dailyRateFocus.hasFocus) _ensureVisible(_dailyRateKey);
-    });
-    _fullDaysFocus.addListener(() {
-      if (_fullDaysFocus.hasFocus) _ensureVisible(_fullDaysKey);
-    });
-    _halfDaysFocus.addListener(() {
-      if (_halfDaysFocus.hasFocus) _ensureVisible(_halfDaysKey);
-    });
-    _amountFocus.addListener(() {
-      if (_amountFocus.hasFocus) _ensureVisible(_amountKey);
-    });
-
+    _initializeFocusHelper();
+    _setupCalculationListeners();
     _loadUnpaidDays();
+  }
+
+  void _initializeFocusHelper() {
+    _focusHelper = PaymentFocusHelper(
+      scrollController: _scrollController,
+      dailyRateFocus: FocusNode(),
+      fullDaysFocus: FocusNode(),
+      halfDaysFocus: FocusNode(),
+      amountFocus: FocusNode(),
+    );
+
+    _focusHelper.setupListeners(
+      dailyRateKey: _dailyRateKey,
+      fullDaysKey: _fullDaysKey,
+      halfDaysKey: _halfDaysKey,
+      amountKey: _amountKey,
+    );
+  }
+
+  void _setupCalculationListeners() {
     _fullDaysController.addListener(_calculateAmount);
     _halfDaysController.addListener(_calculateAmount);
     _dailyRateController.addListener(_calculateAmount);
@@ -114,43 +122,29 @@ class _PaymentDialogState extends State<PaymentDialog> {
     _amountController.dispose();
     _dailyRateController.dispose();
     _scrollController.dispose();
-    _dailyRateFocus.dispose();
-    _fullDaysFocus.dispose();
-    _halfDaysFocus.dispose();
-    _amountFocus.dispose();
+    _focusHelper.dispose();
     super.dispose();
-  }
-
-  Future<void> _ensureVisible(GlobalKey key) async {
-    await Future.delayed(const Duration(milliseconds: 60));
-    final ctx = key.currentContext;
-    if (ctx == null) return;
-    await Scrollable.ensureVisible(
-      ctx,
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOutCubic,
-      alignment: 0.2,
-    );
   }
 
   Future<void> _loadUnpaidDays() async {
     setState(() => _isLoading = true);
     final unpaidDays = await _controller.loadUnpaidDays(widget.employee.id);
 
-    // Bekleyen avansları yükle
     final pendingAdvances = await _advanceService.getWorkerAdvances(
       widget.employee.id,
     );
     final pending = pendingAdvances.where((a) => !a.isDeducted).toList();
     final totalPending = pending.fold<double>(0, (sum, a) => sum + a.amount);
 
-    setState(() {
-      _availableFullDays = unpaidDays['fullDays'] ?? 0;
-      _availableHalfDays = unpaidDays['halfDays'] ?? 0;
-      _pendingAdvances = pending;
-      _totalPendingAdvances = totalPending;
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _availableFullDays = unpaidDays['fullDays'] ?? 0;
+        _availableHalfDays = unpaidDays['halfDays'] ?? 0;
+        _pendingAdvances = pending;
+        _totalPendingAdvances = totalPending;
+        _isLoading = false;
+      });
+    }
   }
 
   void _calculateAmount() {
@@ -176,143 +170,64 @@ class _PaymentDialogState extends State<PaymentDialog> {
   Future<void> _makePayment() async {
     final fullDays = int.tryParse(_fullDaysController.text) ?? 0;
     final halfDays = int.tryParse(_halfDaysController.text) ?? 0;
-    final amountText = _amountController.text.replaceAll('.', '');
-    var amount = double.tryParse(amountText) ?? 0.0;
+    final amount = PaymentValidationHelper.parseAmount(_amountController.text);
 
-    final validationError = _controller.validatePayment(
+    setState(() => _isLoading = true);
+
+    final result = await _submissionHandler.submitPayment(
+      employee: widget.employee,
       fullDays: fullDays,
       halfDays: halfDays,
       amount: amount,
       availableFullDays: _availableFullDays,
       availableHalfDays: _availableHalfDays,
+      deductAdvances: _deductAdvances,
+      pendingAdvances: _pendingAdvances,
+      totalPendingAdvances: _totalPendingAdvances,
     );
 
-    if (validationError != null) {
-      _showErrorDialog(validationError);
-      return;
-    }
+    if (!mounted) return;
 
-    // Avans düşme kontrolü
-    if (_deductAdvances && _totalPendingAdvances > 0) {
-      if (amount < _totalPendingAdvances) {
-        _showErrorDialog(
-          'Ödeme tutarı (${CurrencyFormatter.formatWithSymbol(amount)}) bekleyen avans tutarından (${CurrencyFormatter.formatWithSymbol(_totalPendingAdvances)}) az olamaz.',
-        );
-        return;
-      }
-      // Avansı düş
-      amount -= _totalPendingAdvances;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      // Ödeme yap
-      final paymentId = await _controller.makePayment(
-        employee: widget.employee,
-        fullDays: fullDays,
-        halfDays: halfDays,
-        amount: amount,
+    if (result.isSuccess) {
+      PaymentDialogHelper.showSuccessAndClose(
+        context,
+        message: result.getSuccessMessage(),
+        onComplete: widget.onPaymentComplete,
       );
-
-      // Avansları düşülmüş olarak işaretle
-      if (_deductAdvances && _pendingAdvances.isNotEmpty && paymentId != null) {
-        for (final advance in _pendingAdvances) {
-          await _advanceService.markAsDeducted(advance.id!, paymentId);
-        }
-      }
-
-      if (mounted) {
-        String message = 'Ödeme başarıyla kaydedildi';
-        if (_deductAdvances && _totalPendingAdvances > 0) {
-          message +=
-              '\n${CurrencyFormatter.formatWithSymbol(_totalPendingAdvances)} avans düşüldü';
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    message,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-
-        await Future.delayed(const Duration(milliseconds: 500));
-        if (mounted) {
-          Navigator.pop(context);
-          widget.onPaymentComplete();
-        }
-      }
-    } catch (e, stackTrace) {
-      debugPrint('Ödeme hatası: $e');
-      debugPrint('Stack trace: $stackTrace');
+    } else {
       setState(() => _isLoading = false);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Ödeme kaydedilirken bir hata oluştu: $e',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
+      PaymentDialogHelper.showErrorDialog(context, result.errorMessage!);
     }
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Hata'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Tamam'),
-          ),
-        ],
-      ),
+  void _handleFullDaysChanged(String value) {
+    PaymentValidationHelper.validateAndCorrectFullDays(
+      value,
+      _availableFullDays,
+      _fullDaysController,
     );
+    setState(() {});
+  }
+
+  void _handleHalfDaysChanged(String value) {
+    PaymentValidationHelper.validateAndCorrectHalfDays(
+      value,
+      _availableHalfDays,
+      _halfDaysController,
+    );
+    setState(() {});
+  }
+
+  double _getPaymentAmount() {
+    return PaymentValidationHelper.parseAmount(_amountController.text);
   }
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
+    final screenWidth = MediaQuery.sizeOf(context).width;
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF0A0E1A) : Colors.white;
 
@@ -334,13 +249,16 @@ class _PaymentDialogState extends State<PaymentDialog> {
             child: _isLoading
                 ? Center(
                     child: CircularProgressIndicator(
-                      color: theme.colorScheme.primary,
+                      color: colorScheme.primary,
                     ),
                   )
                 : Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildDragHandle(isDark),
+                      DialogHandleBar(
+                        screenWidth: screenWidth,
+                        colorScheme: colorScheme,
+                      ),
                       const SizedBox(height: 16),
                       RepaintBoundary(
                         child: PaymentDialogHeader(
@@ -351,7 +269,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
                       const SizedBox(height: 12),
                       _buildAvailableDaysCard(),
                       const SizedBox(height: 12),
-                      Expanded(child: _buildForm(isDark)),
+                      Expanded(child: _buildForm()),
                       RepaintBoundary(
                         child: PaymentDialogActions(
                           onPayment: _makePayment,
@@ -366,20 +284,6 @@ class _PaymentDialogState extends State<PaymentDialog> {
     );
   }
 
-  Widget _buildDragHandle(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      width: 40,
-      height: 4,
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.3)
-            : Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(2),
-      ),
-    );
-  }
-
   Widget _buildAvailableDaysCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -390,7 +294,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
     );
   }
 
-  Widget _buildForm(bool isDark) {
+  Widget _buildForm() {
     return SingleChildScrollView(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -411,216 +315,35 @@ class _PaymentDialogState extends State<PaymentDialog> {
             },
           ),
           const SizedBox(height: 16),
-          if (_autoCalculate) ...[
-            Container(
-              key: _dailyRateKey,
-              child: PaymentInputField(
-                icon: Icons.currency_lira,
-                label: 'Günlük Ücret',
-                hint: '0',
-                controller: _dailyRateController,
-                focusNode: _dailyRateFocus,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  ThousandsSeparatorInputFormatter(),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          if (_availableFullDays > 0) ...[
-            Container(
-              key: _fullDaysKey,
-              child: PaymentInputField(
-                icon: Icons.wb_sunny_outlined,
-                label: 'Tam Gün Sayısı',
-                hint: 'Maks: $_availableFullDays',
-                controller: _fullDaysController,
-                focusNode: _fullDaysFocus,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) {
-                  final val = int.tryParse(value) ?? 0;
-                  if (val > _availableFullDays) {
-                    _fullDaysController.text = _availableFullDays.toString();
-                    _fullDaysController.selection = TextSelection.fromPosition(
-                      TextPosition(offset: _fullDaysController.text.length),
-                    );
-                  }
-                  setState(() {});
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          if (_availableHalfDays > 0) ...[
-            Container(
-              key: _halfDaysKey,
-              child: PaymentInputField(
-                icon: Icons.wb_twilight_outlined,
-                label: 'Yarım Gün Sayısı',
-                hint: 'Maks: $_availableHalfDays',
-                controller: _halfDaysController,
-                focusNode: _halfDaysFocus,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) {
-                  final val = int.tryParse(value) ?? 0;
-                  if (val > _availableHalfDays) {
-                    _halfDaysController.text = _availableHalfDays.toString();
-                    _halfDaysController.selection = TextSelection.fromPosition(
-                      TextPosition(offset: _halfDaysController.text.length),
-                    );
-                  }
-                  setState(() {});
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          if ((int.tryParse(_fullDaysController.text) ?? 0) > 0 ||
-              (int.tryParse(_halfDaysController.text) ?? 0) > 0) ...[
-            Container(
-              key: _amountKey,
-              child: PaymentInputField(
-                icon: Icons.account_balance_wallet_outlined,
-                label: 'Ödenecek Miktar',
-                hint: '0',
-                controller: _amountController,
-                focusNode: _amountFocus,
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  ThousandsSeparatorInputFormatter(),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Avans bölümü
-            if (_pendingAdvances.isNotEmpty) _buildAdvanceSection(isDark),
-          ],
+          PaymentFormFields(
+            autoCalculate: _autoCalculate,
+            availableFullDays: _availableFullDays,
+            availableHalfDays: _availableHalfDays,
+            dailyRateController: _dailyRateController,
+            fullDaysController: _fullDaysController,
+            halfDaysController: _halfDaysController,
+            amountController: _amountController,
+            dailyRateFocus: _focusHelper.dailyRateFocus,
+            fullDaysFocus: _focusHelper.fullDaysFocus,
+            halfDaysFocus: _focusHelper.halfDaysFocus,
+            amountFocus: _focusHelper.amountFocus,
+            dailyRateKey: _dailyRateKey,
+            fullDaysKey: _fullDaysKey,
+            halfDaysKey: _halfDaysKey,
+            amountKey: _amountKey,
+            onFullDaysChanged: _handleFullDaysChanged,
+            onHalfDaysChanged: _handleHalfDaysChanged,
+          ),
+          PaymentAdvanceSection(
+            pendingAdvances: _pendingAdvances,
+            totalPendingAdvances: _totalPendingAdvances,
+            deductAdvances: _deductAdvances,
+            onDeductChanged: (value) => setState(() => _deductAdvances = value),
+            paymentAmount: _getPaymentAmount(),
+          ),
           const SizedBox(height: 32),
         ],
       ),
     );
-  }
-
-  Widget _buildAdvanceSection(bool isDark) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _deductAdvances
-              ? theme.colorScheme.primary.withValues(alpha: 0.5)
-              : Colors.transparent,
-          width: 2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.account_balance_wallet,
-                color: theme.colorScheme.primary,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Bekleyen Avanslar',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  color: Colors.orange.shade700,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${_pendingAdvances.length} adet bekleyen avans',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.orange.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Toplam: ${CurrencyFormatter.formatWithSymbol(_totalPendingAdvances)}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.orange.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          CheckboxListTile(
-            value: _deductAdvances,
-            onChanged: (value) {
-              setState(() {
-                _deductAdvances = value ?? false;
-              });
-            },
-            title: Text(
-              'Avansları ödemeden düş',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            subtitle: _deductAdvances
-                ? Text(
-                    'Ödenecek tutar: ${CurrencyFormatter.formatWithSymbol(_getPaymentAmount() - _totalPendingAdvances)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  )
-                : null,
-            controlAffinity: ListTileControlAffinity.leading,
-            contentPadding: EdgeInsets.zero,
-            activeColor: theme.colorScheme.primary,
-          ),
-        ],
-      ),
-    );
-  }
-
-  double _getPaymentAmount() {
-    final amountText = _amountController.text.replaceAll('.', '');
-    return double.tryParse(amountText) ?? 0.0;
   }
 }

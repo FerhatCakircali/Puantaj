@@ -6,14 +6,24 @@ import '../../../../../services/attendance_service.dart';
 import '../../../../../services/payment_service.dart';
 import '../../../../../services/worker_service.dart';
 import '../../../../../data/local/hive_service.dart';
+import '../../../../../core/di/service_locator.dart';
 import 'report_controller_helpers.dart';
 
 /// Veri yükleme ve filtreleme işlemleri mixin'i
 mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
-  final WorkerService workerService = WorkerService();
-  final AttendanceService attendanceService = AttendanceService();
-  final PaymentService paymentService = PaymentService();
-  final _hiveService = HiveService.instance;
+  late final WorkerService workerService;
+  late final AttendanceService attendanceService;
+  late final PaymentService paymentService;
+  late final HiveService _hiveService;
+
+  @override
+  void initState() {
+    super.initState();
+    workerService = getIt<WorkerService>();
+    attendanceService = getIt<AttendanceService>();
+    paymentService = getIt<PaymentService>();
+    _hiveService = getIt<HiveService>();
+  }
 
   List<Employee> get employees;
   List<Employee> get filteredEmployees;
@@ -36,7 +46,6 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
     setState(() => isLoading = true);
 
     try {
-      // 1. Önce cache'den employees al (hızlı)
       final cachedEmployees = _hiveService.employees.values.toList();
 
       if (cachedEmployees.isNotEmpty) {
@@ -90,7 +99,7 @@ mixin ReportControllerDataMixin<T extends StatefulWidget> on State<T> {
       attendanceMap.putIfAbsent(record.workerId, () => []).add(record);
     }
 
-        final unpaidDaysFutures = allEmployees.map((emp) async {
+    final unpaidDaysFutures = allEmployees.map((emp) async {
       try {
         final unpaidDays = await paymentService.getUnpaidDays(emp.id);
         return MapEntry(emp.id, unpaidDays);

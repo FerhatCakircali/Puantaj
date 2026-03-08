@@ -5,11 +5,13 @@ import '../core/providers/auth_provider.dart';
 import '../core/providers/user_data_provider.dart';
 import '../core/providers/theme_provider.dart';
 import '../services/auth_service.dart';
+import '../core/di/service_locator.dart';
 
+/// Ana menü drawer widget'ı
 class AppDrawer extends ConsumerWidget {
-  final AuthService _authService = AuthService();
+  final AuthService _authService;
 
-  AppDrawer({super.key});
+  AppDrawer({super.key}) : _authService = getIt<AuthService>();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -83,7 +85,7 @@ class AppDrawer extends ConsumerWidget {
                   endIndent: 20,
                   color: Colors.grey,
                 ),
-                                Builder(
+                Builder(
                   builder: (context) {
                     final themeMode = ref.watch(themeStateProvider);
                     final isDark = themeMode == ThemeMode.dark;
@@ -292,7 +294,7 @@ class AppDrawer extends ConsumerWidget {
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               await _authService.signOut();
-                            // Consumer ile ref'e erişim sağlanıyor
+              // Consumer ile ref'e erişim sağlanıyor
               if (context.mounted) {
                 final container = ProviderScope.containerOf(context);
                 container.read(authStateProvider.notifier).logout();

@@ -2,9 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../data/services/password_hasher.dart';
 import '../../../../services/validation_service.dart';
+import '../../../../core/di/service_locator.dart';
 
 mixin AuthRegisterMixin {
-  final _validationService = ValidationService.instance;
+  ValidationService get _validationService => getIt<ValidationService>();
 
   /// Yeni kullanıcı kaydı
   Future<String?> register(

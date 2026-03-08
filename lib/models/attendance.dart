@@ -1,3 +1,5 @@
+import '../core/constants/database_constants.dart';
+
 enum AttendanceStatus { absent, halfDay, fullDay }
 
 class Attendance {
@@ -47,7 +49,6 @@ class Attendance {
       'status': _statusToString(status),
       if (createdBy != null) 'created_by': createdBy,
       'notification_sent': notificationSent,
-      // workerName is not included in toMap as it's a join field
     };
   }
 
@@ -76,17 +77,17 @@ class Attendance {
 
   static AttendanceStatus _statusFromString(String status) {
     return switch (status) {
-      'halfDay' => AttendanceStatus.halfDay,
-      'fullDay' => AttendanceStatus.fullDay,
+      DatabaseConstants.statusHalfDay => AttendanceStatus.halfDay,
+      DatabaseConstants.statusFullDay => AttendanceStatus.fullDay,
       _ => AttendanceStatus.absent,
     };
   }
 
   static String _statusToString(AttendanceStatus status) {
     return switch (status) {
-      AttendanceStatus.halfDay => 'halfDay',
-      AttendanceStatus.fullDay => 'fullDay',
-      AttendanceStatus.absent => 'absent',
+      AttendanceStatus.halfDay => DatabaseConstants.statusHalfDay,
+      AttendanceStatus.fullDay => DatabaseConstants.statusFullDay,
+      AttendanceStatus.absent => DatabaseConstants.statusAbsent,
     };
   }
 }

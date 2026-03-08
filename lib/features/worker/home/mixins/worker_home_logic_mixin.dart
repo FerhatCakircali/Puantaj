@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Worker home ekranı iş mantığı
-/// ⚠️ DEPRECATED: Bu mixin themeModeNotifier kullanıyor (eski yöntem)
-/// Widget'ı ConsumerStatefulWidget'a çevirip ThemeProvider kullanmalısınız
-@Deprecated('Convert widget to ConsumerStatefulWidget and use ThemeProvider')
 mixin WorkerHomeLogicMixin<T extends StatefulWidget> on State<T> {
   int selectedIndex = 0;
 
@@ -39,8 +36,6 @@ mixin WorkerHomeLogicMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Tema modunu kaydet
-  /// ⚠️ DEPRECATED: ThemeStateProvider otomatik kaydediyor
-  @Deprecated('ThemeStateProvider automatically saves theme')
   Future<void> saveThemeMode(ThemeMode mode) async {
     final prefs = await SharedPreferences.getInstance();
     switch (mode) {
@@ -57,9 +52,6 @@ mixin WorkerHomeLogicMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// Tema değiştir (animasyonlu)
-  /// ⚠️ DEPRECATED: themeModeNotifier kullanıyor (eski yöntem)
-  /// Widget'ı ConsumerStatefulWidget'a çevirip ref.read(themeStateProvider) kullanın
-  @Deprecated('Use ThemeProvider with ConsumerStatefulWidget')
   Future<void> toggleThemeWithAnimation(
     BuildContext context,
     GlobalKey themeIconKey,

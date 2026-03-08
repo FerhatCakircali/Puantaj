@@ -63,6 +63,4 @@ class HomeNotificationHandler {
       debugPrint('Bildirim dinleme durdurulurken hata: $e');
     }
   }
-
-  // FCM ile anında bildirim gönderildiği için zamanlanmış kontrol artık gerekli değil
 }

@@ -6,10 +6,9 @@ import '../../../../services/notification_service.dart' as old_ns;
 import '../../services/employee_reminder_service.dart';
 import '../../../../services/worker_service.dart';
 import '../../../../services/auth_service.dart';
+import '../../../../core/di/service_locator.dart';
 
 /// Notification Settings ekranı için state management mixin'i
-/// Bu mixin, NotificationSettingsScreen'in tüm state değişkenlerini
-/// ve controller'larını yönetir.
 mixin NotificationStateMixin<T extends StatefulWidget>
     on State<T>, SingleTickerProviderStateMixin<T> {
   // Services
@@ -18,7 +17,7 @@ mixin NotificationStateMixin<T extends StatefulWidget>
   final old_ns.NotificationService notificationServiceV2 =
       old_ns.NotificationService();
   final EmployeeReminderService reminderService = EmployeeReminderService();
-  final WorkerService workerService = WorkerService();
+  final WorkerService workerService = getIt<WorkerService>();
   final AuthService authService = AuthService();
 
   // Controllers

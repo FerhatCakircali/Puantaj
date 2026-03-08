@@ -5,12 +5,16 @@ import '../controllers/expense_controller.dart';
 import 'expense_summary_cards.dart';
 import 'expense_list_tile.dart';
 import 'expense_empty_state.dart';
-import 'category_chip.dart';
+import 'expense_no_search_results.dart';
+import 'expense_category_filters.dart';
+import 'expense_total_display.dart';
+import 'expense_search_bar.dart';
 import '../dialogs/add_expense_dialog.dart';
 import '../dialogs/expense_detail_dialog.dart';
-import '../../../user/payments/utils/currency_formatter.dart';
 
 /// Masraflar tab widget'ı
+///
+/// Masrafları listeler, filtreler ve yönetir.
 class ExpensesTab extends StatefulWidget {
   const ExpensesTab({super.key});
 
@@ -31,7 +35,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
   bool _isLoading = true;
 
   ExpenseCategory? _selectedCategory;
-  bool _showMonthlyTotal = true; // true = Bu Ay Toplam, false = Toplam
+  bool _showMonthlyTotal = true;
 
   static const Color primaryColor = Color(0xFF4338CA);
 
@@ -111,7 +115,6 @@ class _ExpensesTabState extends State<ExpensesTab> {
     if (_filteredExpenses.isEmpty) return 0.0;
 
     if (_showMonthlyTotal) {
-      // Bu ay toplam - sadece bu ayki masrafları hesapla
       final now = DateTime.now();
       final startOfMonth = DateTime(now.year, now.month, 1);
       final endOfMonth = DateTime(now.year, now.month + 1, 0);
@@ -128,7 +131,6 @@ class _ExpensesTabState extends State<ExpensesTab> {
           )
           .fold(0.0, (sum, expense) => sum + expense.amount);
     } else {
-      // Toplam - tüm masrafları hesapla
       return _filteredExpenses.fold(
         0.0,
         (sum, expense) => sum + expense.amount,
@@ -166,49 +168,48 @@ class _ExpensesTabState extends State<ExpensesTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: h * 0.005),
-                    // Özet kartları
                     ExpenseSummaryCards(
                       monthlyTotal: _monthlyTotal,
                       overallTotal: _overallTotal,
                       expenseCount: _expenseCount,
                     ),
                     SizedBox(height: h * 0.015),
-                    // Kategori filtreleme + Toplam göstergeleri
                     Row(
                       children: [
-                        Expanded(flex: 3, child: _buildCategoryFilters()),
+                        Expanded(
+                          flex: 3,
+                          child: ExpenseCategoryFilters(
+                            selectedCategory: _selectedCategory,
+                            onCategorySelected: _filterByCategory,
+                          ),
+                        ),
                         SizedBox(width: w * 0.02),
-                        Expanded(flex: 2, child: _buildCompactTotalDisplay()),
+                        Expanded(
+                          flex: 2,
+                          child: ExpenseTotalDisplay(
+                            filteredTotal: _calculateFilteredTotal(),
+                            showMonthlyTotal: _showMonthlyTotal,
+                            onToggle: () {
+                              setState(() {
+                                _showMonthlyTotal = !_showMonthlyTotal;
+                              });
+                            },
+                            primaryColor: primaryColor,
+                          ),
+                        ),
                       ],
                     ),
                     SizedBox(height: h * 0.015),
-                    // Arama çubuğu
-                    _buildSearchBar(theme),
-                    SizedBox(height: h * 0.015),
-                    // Liste
-                    Expanded(
-                      child: _expenses.isEmpty
-                          ? const ExpenseEmptyState()
-                          : _filteredExpenses.isEmpty
-                          ? const ExpenseNoSearchResults()
-                          : ListView.builder(
-                              padding: EdgeInsets.only(bottom: h * 0.02),
-                              itemCount: _filteredExpenses.length,
-                              cacheExtent: h * 0.5,
-                              keyboardDismissBehavior:
-                                  ScrollViewKeyboardDismissBehavior
-                                      .onDrag,                               itemBuilder: (context, index) {
-                                final expense = _filteredExpenses[index];
-                                return RepaintBoundary(
-                                  child: ExpenseListTile(
-                                    expense: expense,
-                                    onTap: () => _showExpenseDetails(expense),
-                                    primaryColor: primaryColor,
-                                  ),
-                                );
-                              },
-                            ),
+                    ExpenseSearchBar(
+                      controller: _searchController,
+                      onChanged: _filterExpenses,
+                      onClear: () {
+                        _searchController.clear();
+                        _filterExpenses('');
+                      },
                     ),
+                    SizedBox(height: h * 0.015),
+                    Expanded(child: _buildExpenseList(h)),
                   ],
                 ),
               ),
@@ -221,177 +222,30 @@ class _ExpensesTabState extends State<ExpensesTab> {
     );
   }
 
-  Widget _buildCategoryFilters() {
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          CategoryChip(
-            category: null,
-            isSelected: _selectedCategory == null,
-            onTap: () => _filterByCategory(null),
-          ),
-          const SizedBox(width: 8),
-          CategoryChip(
-            category: ExpenseCategory.malzeme,
-            isSelected: _selectedCategory == ExpenseCategory.malzeme,
-            onTap: () => _filterByCategory(ExpenseCategory.malzeme),
-          ),
-          const SizedBox(width: 8),
-          CategoryChip(
-            category: ExpenseCategory.ulasim,
-            isSelected: _selectedCategory == ExpenseCategory.ulasim,
-            onTap: () => _filterByCategory(ExpenseCategory.ulasim),
-          ),
-          const SizedBox(width: 8),
-          CategoryChip(
-            category: ExpenseCategory.ekipman,
-            isSelected: _selectedCategory == ExpenseCategory.ekipman,
-            onTap: () => _filterByCategory(ExpenseCategory.ekipman),
-          ),
-          const SizedBox(width: 8),
-          CategoryChip(
-            category: ExpenseCategory.diger,
-            isSelected: _selectedCategory == ExpenseCategory.diger,
-            onTap: () => _filterByCategory(ExpenseCategory.diger),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildExpenseList(double h) {
+    if (_expenses.isEmpty) {
+      return const ExpenseEmptyState();
+    }
 
-  /// Kompakt toplam göstergesi (her zaman görünür)
-  Widget _buildCompactTotalDisplay() {
-    final filteredTotal = _calculateFilteredTotal();
+    if (_filteredExpenses.isEmpty) {
+      return const ExpenseNoSearchResults();
+    }
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _showMonthlyTotal = !_showMonthlyTotal;
-        });
+    return ListView.builder(
+      padding: EdgeInsets.only(bottom: h * 0.02),
+      itemCount: _filteredExpenses.length,
+      cacheExtent: h * 0.5,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      itemBuilder: (context, index) {
+        final expense = _filteredExpenses[index];
+        return RepaintBoundary(
+          child: ExpenseListTile(
+            expense: expense,
+            onTap: () => _showExpenseDetails(expense),
+            primaryColor: primaryColor,
+          ),
+        );
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [primaryColor, primaryColor.withValues(alpha: 0.8)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: primaryColor.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    _showMonthlyTotal ? 'Bu Ay' : 'Toplam',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Icon(
-                  _showMonthlyTotal
-                      ? Icons.calendar_month
-                      : Icons.all_inclusive,
-                  size: 12,
-                  color: Colors.white.withValues(alpha: 0.8),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '₺${CurrencyFormatter.format(filteredTotal)}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-
-    return TextField(
-      controller: _searchController,
-      onChanged: _filterExpenses,
-      style: TextStyle(
-        color: isDark ? Colors.white : Colors.black,
-        fontSize: 16,
-      ),
-      decoration: InputDecoration(
-        hintText: 'Masraf ara...',
-        hintStyle: TextStyle(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.5)
-              : Colors.grey.shade600,
-        ),
-        prefixIcon: Icon(
-          Icons.search,
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.7)
-              : Colors.grey.shade700,
-        ),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: Icon(
-                  Icons.clear,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.7)
-                      : Colors.grey.shade700,
-                ),
-                onPressed: () {
-                  _searchController.clear();
-                  _filterExpenses('');
-                },
-              )
-            : null,
-        filled: true,
-        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
     );
   }
 }

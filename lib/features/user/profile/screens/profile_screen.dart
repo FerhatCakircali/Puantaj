@@ -3,7 +3,7 @@ import '../../../../services/auth_service.dart';
 import '../../../../shared/widgets/profile/shared_profile_avatar_card.dart';
 import '../../../../shared/widgets/profile/shared_profile_info_card.dart';
 import '../../../../shared/widgets/profile/shared_password_card.dart';
-import '../widgets/user_profile_edit_dialog.dart';
+import '../dialogs/user_profile_edit_dialog.dart';
 import '../widgets/screen_widgets/profile_password_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -89,7 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         lastName: _lastName ?? '',
         jobTitle: _jobTitle ?? '',
         email: _email ?? '',
-        onSave:
+        onSaveCallback:
             ({
               required String username,
               required String firstName,

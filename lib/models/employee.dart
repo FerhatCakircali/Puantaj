@@ -79,8 +79,7 @@ class Employee {
     isTrusted: false, // Default for old model
   );
 
-  /// Convert to Worker model (old model - deprecated)
-  @Deprecated('Use Employee model directly instead of Worker')
+  /// Employee modelini Worker modeline dönüştürür
   Worker toWorker() => Worker(
     id: id != 0 ? id : null,
     userId: userId,
@@ -107,8 +106,8 @@ class Employee {
     createdAt: map['created_at'] != null
         ? DateTime.parse(map['created_at'] as String)
         : null,
-    username:
-        map['username'] as String?,     isActive: map['is_active'] as bool? ?? true,
+    username: map['username'] as String?,
+    isActive: map['is_active'] as bool? ?? true,
     isTrusted: map['is_trusted'] as bool? ?? false,
   );
 

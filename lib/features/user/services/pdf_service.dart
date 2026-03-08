@@ -7,7 +7,7 @@ import '../../../models/expense.dart';
 import 'pdf/pdf_employee_terminated_report.dart';
 import 'pdf/pdf_employee_report.dart';
 import 'pdf/pdf_period_employee_report.dart';
-import 'pdf/pdf_period_general_report.dart';
+import 'pdf/period_general/pdf_period_general_service.dart';
 import 'pdf/pdf_financial_summary_report.dart';
 import 'package:open_file/open_file.dart';
 import 'dart:typed_data';
@@ -86,7 +86,7 @@ class PdfService {
     Uint8List? robotoFontBytes,
     Uint8List? robotoBoldFontBytes,
   }) async {
-    return PdfPeriodGeneralReportService().generate(
+    return PdfPeriodGeneralService().generate(
       periodTitle: periodTitle,
       periodStart: periodStart,
       periodEnd: periodEnd,

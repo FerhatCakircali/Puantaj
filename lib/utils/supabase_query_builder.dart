@@ -28,13 +28,13 @@ class SupabaseQueryBuilder {
   SupabaseQueryBuilder._();
 
   /// Belirtilen tablo için user_id bazlı sorgu oluşturur.
-    /// Bu metod, user_id ile filtreleme yapan standart bir sorgu pattern'i sağlar.
+  /// Bu metod, user_id ile filtreleme yapan standart bir sorgu pattern'i sağlar.
   /// Null userId kontrolü yapar ve güvenli sorgu oluşturur.
-    /// Parametreler:
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder (örn: supabase.from('workers'))
   /// - [userId]: Filtrelenecek kullanıcı ID'si
   /// - [additionalSelect]: Ek select alanları (opsiyonel, varsayılan: '*')
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.forUser(
   ///   supabase.from('workers'),
@@ -43,7 +43,7 @@ class SupabaseQueryBuilder {
   /// );
   /// final results = await query.order('full_name');
   /// ```
-    /// Throws [ArgumentError] eğer userId null ise.
+  /// Throws [ArgumentError] eğer userId null ise.
   static PostgrestFilterBuilder forUser(
     PostgrestQueryBuilder queryBuilder,
     String? userId, {
@@ -57,20 +57,20 @@ class SupabaseQueryBuilder {
   }
 
   /// Tarih aralığı sorgusu oluşturur (gte ve lte kullanarak).
-    /// Bu metod, belirtilen tarih alanı için başlangıç ve bitiş tarihleri
+  /// Bu metod, belirtilen tarih alanı için başlangıç ve bitiş tarihleri
   /// arasında filtreleme yapar. ISO 8601 formatı (YYYY-MM-DD) kullanır.
-    /// Parametreler:
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder
   /// - [dateField]: Tarih alanının adı (örn: 'payment_date', 'expense_date')
   /// - [startDate]: Başlangıç tarihi (ISO 8601 formatı)
   /// - [endDate]: Bitiş tarihi (ISO 8601 formatı)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.dateRange(
   ///   supabase.from('payments').select().eq('user_id', userId),
   ///   'payment_date',
-  ///   '2024-01-01',
-  ///   '2024-12-31',
+  ///   '2026-01-01',
+  ///   '2026-12-31',
   /// );
   /// final results = await query;
   /// ```
@@ -84,20 +84,20 @@ class SupabaseQueryBuilder {
   }
 
   /// Tarih aralığı sorgusu oluşturur (DateTime nesneleri ile).
-    /// Bu metod, DateTime nesnelerini otomatik olarak ISO 8601 formatına
+  /// Bu metod, DateTime nesnelerini otomatik olarak ISO 8601 formatına
   /// çevirir ve tarih aralığı sorgusu oluşturur.
-    /// Parametreler:
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder
   /// - [dateField]: Tarih alanının adı
   /// - [startDate]: Başlangıç tarihi (DateTime)
   /// - [endDate]: Bitiş tarihi (DateTime)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.dateRangeFromDateTime(
   ///   supabase.from('payments').select().eq('user_id', userId),
   ///   'payment_date',
-  ///   DateTime(2024, 1, 1),
-  ///   DateTime(2024, 12, 31),
+  ///   DateTime(2026, 1, 1),
+  ///   DateTime(2026, 12, 31),
   /// );
   /// ```
   static PostgrestFilterBuilder dateRangeFromDateTime(
@@ -115,13 +115,13 @@ class SupabaseQueryBuilder {
   }
 
   /// Pagination desteği ile sorgu oluşturur.
-    /// Bu metod, sayfalama için limit ve offset parametreleri ekler.
+  /// Bu metod, sayfalama için limit ve offset parametreleri ekler.
   /// Büyük veri setlerinde performans için kullanışlıdır.
-    /// Parametreler:
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder
   /// - [page]: Sayfa numarası (0'dan başlar)
   /// - [pageSize]: Sayfa başına kayıt sayısı (varsayılan: 20)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.paginate(
   ///   supabase.from('workers').select().eq('user_id', userId),
@@ -140,18 +140,18 @@ class SupabaseQueryBuilder {
   }
 
   /// Belirli bir tarihten önceki kayıtları sorgular.
-    /// Bu metod, belirtilen tarih alanı için verilen tarihten önceki
+  /// Bu metod, belirtilen tarih alanı için verilen tarihten önceki
   /// kayıtları filtreler (lt - less than).
-    /// Parametreler:
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder
   /// - [dateField]: Tarih alanının adı
   /// - [date]: Referans tarihi (ISO 8601 formatı)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.beforeDate(
   ///   supabase.from('attendance').select().eq('user_id', userId),
   ///   'date',
-  ///   '2024-01-01',
+  ///   '2026-01-01',
   /// );
   /// ```
   static PostgrestFilterBuilder beforeDate(
@@ -163,18 +163,18 @@ class SupabaseQueryBuilder {
   }
 
   /// Belirli bir tarihten sonraki kayıtları sorgular.
-    /// Bu metod, belirtilen tarih alanı için verilen tarihten sonraki
+  /// Bu metod, belirtilen tarih alanı için verilen tarihten sonraki
   /// kayıtları filtreler (gt - greater than).
-    /// Parametreler:
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder
   /// - [dateField]: Tarih alanının adı
   /// - [date]: Referans tarihi (ISO 8601 formatı)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.afterDate(
   ///   supabase.from('attendance').select().eq('user_id', userId),
   ///   'date',
-  ///   '2024-01-01',
+  ///   '2026-01-01',
   /// );
   /// ```
   static PostgrestFilterBuilder afterDate(
@@ -186,18 +186,18 @@ class SupabaseQueryBuilder {
   }
 
   /// Worker ID ile filtreleme yapar.
-    /// Bu metod, worker_id alanı ile filtreleme yapan standart pattern sağlar.
-    /// Parametreler:
+  /// Bu metod, worker_id alanı ile filtreleme yapan standart pattern sağlar.
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder
   /// - [workerId]: Filtrelenecek worker ID'si
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.forWorker(
   ///   supabase.from('attendance').select().eq('user_id', userId),
   ///   workerId,
   /// );
   /// ```
-    /// Throws [ArgumentError] eğer workerId null ise.
+  /// Throws [ArgumentError] eğer workerId null ise.
   static PostgrestFilterBuilder forWorker(
     PostgrestFilterBuilder queryBuilder,
     int? workerId,
@@ -210,13 +210,13 @@ class SupabaseQueryBuilder {
   }
 
   /// Arama sorgusu oluşturur (case-insensitive).
-    /// Bu metod, belirtilen alanda case-insensitive arama yapar.
+  /// Bu metod, belirtilen alanda case-insensitive arama yapar.
   /// ILIKE operatörü kullanır (PostgreSQL).
-    /// Parametreler:
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder
   /// - [field]: Aranacak alan adı
   /// - [searchTerm]: Arama terimi
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.search(
   ///   supabase.from('workers').select().eq('user_id', userId),
@@ -233,12 +233,12 @@ class SupabaseQueryBuilder {
   }
 
   /// Sıralama ekler.
-    /// Bu metod, sonuçları belirtilen alana göre sıralar.
-    /// Parametreler:
+  /// Bu metod, sonuçları belirtilen alana göre sıralar.
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder
   /// - [field]: Sıralanacak alan adı
   /// - [ascending]: Artan sıralama (varsayılan: true)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.orderBy(
   ///   supabase.from('workers').select().eq('user_id', userId),
@@ -255,11 +255,11 @@ class SupabaseQueryBuilder {
   }
 
   /// Limit ekler (maksimum kayıt sayısı).
-    /// Bu metod, döndürülecek maksimum kayıt sayısını belirler.
-    /// Parametreler:
+  /// Bu metod, döndürülecek maksimum kayıt sayısını belirler.
+  /// Parametreler:
   /// - [queryBuilder]: Supabase query builder
   /// - [count]: Maksimum kayıt sayısı
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final query = SupabaseQueryBuilder.limit(
   ///   supabase.from('workers').select().eq('user_id', userId),

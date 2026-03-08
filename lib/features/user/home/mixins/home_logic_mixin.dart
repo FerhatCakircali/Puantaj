@@ -46,8 +46,6 @@ mixin HomeLogicMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   /// Tema tercihini kaydet
-  /// ⚠️ DEPRECATED: ThemeStateProvider otomatik kaydediyor
-  @Deprecated('ThemeStateProvider automatically saves theme')
   Future<void> saveThemeMode(ThemeMode mode) async {
     final prefs = await SharedPreferences.getInstance();
     switch (mode) {

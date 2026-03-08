@@ -10,7 +10,7 @@ export 'profile_tab.dart';
 export 'user_card.dart';
 export 'user_edit_dialog.dart';
 export 'user_filter_chip.dart';
-export 'users_tab.dart';
+export '../users/users_tab.dart';
 export 'user_growth_chart.dart';
 export 'user_distribution_card.dart';
 export 'recent_activities_card.dart';

@@ -2,11 +2,18 @@ import '../../../../../../models/employee.dart';
 import '../../../../../../models/payment.dart';
 import '../../../../../../services/auth_service.dart';
 import '../../../../../../services/payment_service.dart';
+import '../../../../../../core/di/service_locator.dart';
 
 /// Ödeme dialog'u iş mantığı kontrolcüsü
 class PaymentDialogController {
-  final PaymentService _paymentService = PaymentService();
-  final AuthService _authService = AuthService();
+  final PaymentService _paymentService;
+  final AuthService _authService;
+
+  PaymentDialogController({
+    PaymentService? paymentService,
+    AuthService? authService,
+  }) : _paymentService = paymentService ?? getIt<PaymentService>(),
+       _authService = authService ?? getIt<AuthService>();
 
   /// Ödenmemiş günleri yükler
   Future<Map<String, int>> loadUnpaidDays(int employeeId) async {

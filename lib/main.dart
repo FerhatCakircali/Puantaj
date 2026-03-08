@@ -1,31 +1,24 @@
 import 'dart:async';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:puantaj/config/index.dart';
 import 'package:puantaj/core/app_bootstrap.dart';
 import 'package:puantaj/core/app_globals.dart';
-import 'package:puantaj/core/app_notification_handler.dart';
-// import 'package:puantaj/core/app_state.dart'; // DEPRECATED
-import 'package:puantaj/core/error_handler.dart';
-// ignore: deprecated_member_use
-import 'package:puantaj/core/user_data_notifier.dart'; // Service katmanı için gerekli
+import 'package:puantaj/core/user_data_notifier.dart';
 import 'package:puantaj/core/providers/theme_provider.dart';
 import 'package:puantaj/core/providers/auth_provider.dart';
 import 'package:puantaj/core/providers/user_data_provider.dart';
-import 'package:puantaj/data/local/hive_service.dart';
-import 'package:puantaj/data/local/sync_manager.dart';
-import 'package:puantaj/firebase_options.dart';
-import 'package:puantaj/services/fcm_service.dart';
+import 'package:puantaj/core/initialization/firebase_initializer.dart';
+import 'package:puantaj/core/initialization/app_initializer.dart';
+import 'package:puantaj/core/initialization/session_bootstrap_handler.dart';
+import 'package:puantaj/core/initialization/router_manager.dart';
+import 'package:puantaj/core/initialization/notification_message_handler.dart';
+import 'package:puantaj/core/di/service_locator.dart';
 import 'package:puantaj/services/notification/notification_helpers.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 const kResponsiveBreakpoints = [
   Breakpoint(start: 0, end: 450, name: 'MOBILE'),
@@ -35,55 +28,17 @@ const kResponsiveBreakpoints = [
 ];
 
 void main() async {
-  // Global hata yakalayıcılar - Firebase Crashlytics ile entegre
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    logError('Flutter Error', details.exception, details.stack);
-
-    // Firebase Crashlytics'e gönder
-    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-  };
-
-  PlatformDispatcher.instance.onError = (error, stack) {
-    logError('Platform Dispatcher Error', error, stack);
-
-    // Firebase Crashlytics'e gönder
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
-
+  // Flutter binding'i ilk başlat (Firebase için gerekli)
   WidgetsFlutterBinding.ensureInitialized();
 
-  // .env dosyasını yükle
-  await dotenv.load(fileName: '.env');
-
   // Firebase'i başlat
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseInitializer.initialize();
 
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
+  // Dependency Injection setup (ServiceInitializer'dan önce!)
+  await setupServiceLocator();
 
-  // Hive yerel veritabanını başlat
-  await HiveService.instance.initialize();
-
-  // Sync Manager'ı başlat
-  await SyncManager.instance.initialize();
-
-  // Initialize all services
-  await ServiceInitializer.initialize();
-
-  // Get Supabase client reference
-  supabase = Supabase.instance.client;
-
-  // ⚠️ DEPRECATED: loadSavedThemeMode artık kullanılmıyor
-  // ThemeStateProvider otomatik olarak tema yüklüyor
-  // await loadSavedThemeMode(); // REMOVED
-
-  // FCM servisini başlat
-  await FCMService.instance.initialize();
+  // Diğer initialization'lar (ServiceInitializer içinde DI kullanıyor)
+  await AppInitializer.initialize();
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -97,9 +52,9 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp> {
   bool _isLoggedIn = false;
-  bool _isHandlingNotification = false;
   static const String _notificationChannel = 'com.example.puantaj/notification';
   late BasicMessageChannel<String> _messageChannel;
+  late NotificationMessageHandler _notificationHandler;
 
   GoRouter? _router;
   late GlobalKey<NavigatorState> _navigatorKey;
@@ -109,135 +64,70 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   StreamSubscription<String>? _notificationClickSubscription;
 
-  // late final ValueNotifier<AppState> _appStateNotifier; // DEPRECATED
-
   @override
   void initState() {
     super.initState();
 
     _navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'appNavigator');
-
-    // _appStateNotifier artık gerekli değil, Riverpod watch ile dinlenecek
+    _notificationHandler = NotificationMessageHandler();
 
     _bootstrapSession();
 
-    // Bildirim tıklama olaylarını dinle
     _notificationClickSubscription = notificationClickStream.stream.listen(
-      (payload) {
-        debugPrint('Notification click event alındı: $payload');
-        _handleNotificationClick(payload);
-      },
-      onError: (error) {
-        debugPrint('Notification click stream hatası: $error');
-      },
+      (payload) => _notificationHandler.handleNotificationClick(payload),
+      onError: (error) =>
+          debugPrint('Notification click stream hatası: $error'),
     );
 
-    // authStateNotifier.addListener(_onAuthStateChanged); // DEPRECATED
-
-    // Service katmanı hala userDataNotifier kullanıyor, UI katmanı UserDataProvider kullanıyor
-    // ignore: deprecated_member_use
     userDataNotifier.addListener(_syncUserDataToProvider);
 
-    // Android'den mesaj alma kanalını oluştur
     _messageChannel = const BasicMessageChannel<String>(
       _notificationChannel,
       StringCodec(),
     );
-    _messageChannel.setMessageHandler(_handlePlatformMessage);
+    _messageChannel.setMessageHandler(
+      _notificationHandler.handlePlatformMessage,
+    );
   }
 
   /// Uygulama açılışında oturum ve bildirim durumunu yönetir
   Future<void> _bootstrapSession() async {
-    try {
-      ErrorHandler.logInfo('Bootstrap', 'Session başlatılıyor...');
-      setState(() {
-        _isRouterReady = false;
-        _isBootstrappingSession = true;
-      });
+    setState(() {
+      _isRouterReady = false;
+      _isBootstrappingSession = true;
+    });
 
-      // Bildirim durumunu kontrol et
-      await AppBootstrap.checkInitialNotificationState();
+    final sessionData = await SessionBootstrapHandler.bootstrap();
 
-      // Çalışan oturumunu kontrol et
-      final workerSession = await AppBootstrap.checkWorkerSession();
+    _isLoggedIn = sessionData['isLoggedIn'] as bool;
+    _isCurrentUserAdmin = sessionData['isAdmin'] as bool;
 
-      if (workerSession != null) {
-        _isLoggedIn = false;
-        _isCurrentUserAdmin = false;
-        ref.read(authStateProvider.notifier).logout();
-
-        setState(() {
-          _isBootstrappingSession = false;
-        });
-
-        _initializeRouter();
-        return;
-      }
-
-      // Kullanıcı oturumunu kontrol et
-      final userSession = await AppBootstrap.checkUserSession();
-
-      if (userSession == null) {
-        ref.read(authStateProvider.notifier).logout();
-        _isLoggedIn = false;
-        _isCurrentUserAdmin = false;
-      } else {
-        _isCurrentUserAdmin = userSession['isAdmin'] as bool;
-        _isLoggedIn = true;
-        ref.read(authStateProvider.notifier).login();
-      }
-    } catch (e, stack) {
-      ErrorHandler.logError('Bootstrap.session', e, stack);
+    if (sessionData['isLoggedIn'] as bool) {
+      ref.read(authStateProvider.notifier).login();
+    } else {
       ref.read(authStateProvider.notifier).logout();
-      _isLoggedIn = false;
-      _isCurrentUserAdmin = false;
     }
 
-    // Widget unmounted kontrolü
-    if (!mounted) {
-      ErrorHandler.logWarning(
-        'Bootstrap',
-        'Widget unmounted, işlem iptal edildi',
-      );
-      setState(() {
-        _isBootstrappingSession = false;
-      });
-      return;
-    }
+    if (!mounted) return;
 
-    // Bildirim işleme
-    ErrorHandler.logInfo('Bootstrap', 'Initial notification işleniyor...');
-    try {
-      await AppNotificationHandler.processInitialNotificationForRouting();
-    } catch (e, stack) {
-      ErrorHandler.logError('Bootstrap.processNotification', e, stack);
-    }
+    await SessionBootstrapHandler.processInitialNotification();
 
     setState(() {
       _isBootstrappingSession = false;
     });
 
-    // Router'ı kur
-    ErrorHandler.logInfo('Bootstrap', 'Router initialize ediliyor...');
     _initializeRouter();
   }
 
   void _onAuthStateChanged(bool? previous, bool next) {
-    debugPrint('Auth state listener tetiklendi: $_isLoggedIn -> $next');
-
-    // Sadece login durumu değiştiyse işlem yap
     if (_isLoggedIn != next) {
       _isLoggedIn = next;
 
       if (_isLoggedIn) {
-        debugPrint('Auth state değişti: Giriş yapıldı');
-
-        // Admin durumunu güncelle - UserDataProvider'dan al
         final userData = ref.read(userDataProvider);
         final isAdmin = AppBootstrap.checkAdminStatus(userData);
         _isCurrentUserAdmin = isAdmin;
 
-        // Router'ı yeniden oluştur
         if (mounted) {
           setState(() {
             _isRouterReady = false;
@@ -245,36 +135,23 @@ class _MyAppState extends ConsumerState<MyApp> {
           _initializeRouter();
         }
       } else {
-        debugPrint('Auth state değişti: Çıkış yapıldı');
-
-        // State'i temizle
         _isCurrentUserAdmin = false;
         _navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'appNavigator');
 
-        // Direkt router'ı yeniden oluştur (loading yok)
         if (mounted) {
           setState(() {
             _isRouterReady = false;
           });
           _initializeRouter(forceInitialLocation: '/login');
         }
-
-        debugPrint('Çıkış işlemi tamamlandı');
       }
-    } else {
-      debugPrint('Auth state değişmedi, işlem yapılmıyor');
     }
   }
 
-  // void _onThemeChanged() { ... } // DEPRECATED
-
-  /// Service katmanı hala userDataNotifier kullanıyor, bu fonksiyon değişiklikleri
-  /// UserDataProvider'a aktarıyor. UI katmanı sadece UserDataProvider kullanmalı.
+  /// Kullanıcı verilerini service katmanından provider'a senkronize eder
   void _syncUserDataToProvider() {
-    // ignore: deprecated_member_use
     final userData = userDataNotifier.value;
 
-    // UserDataProvider'ı güncelle
     if (userData == null) {
       ref.read(userDataProvider.notifier).clearUserData();
     } else {
@@ -284,22 +161,14 @@ class _MyAppState extends ConsumerState<MyApp> {
 
   void _initializeRouter({String? forceInitialLocation}) {
     try {
-      debugPrint('🛣 Router yapılandırılıyor...');
-
-      // UserDataProvider'dan userData al
       final userData = ref.read(userDataProvider);
-      final isWorkerSession =
-          userData != null && userData['id'] is String && !_isLoggedIn;
 
-      // forceInitialLocation parametresi varsa onu kullan, yoksa default davranış
-      final location =
-          forceInitialLocation ?? (isWorkerSession ? '/worker/home' : '/home');
-
-      _router = AppRoutes.createRouter(
+      _router = RouterManager.createRouter(
         isLoggedIn: _isLoggedIn,
         isCurrentUserAdmin: _isCurrentUserAdmin,
+        userData: userData,
         navigatorKey: _isLoggedIn ? _navigatorKey : null,
-        initialLocation: location,
+        forceInitialLocation: forceInitialLocation,
       );
 
       if (mounted) {
@@ -307,10 +176,7 @@ class _MyAppState extends ConsumerState<MyApp> {
           _isRouterReady = true;
         });
       }
-
-      debugPrint('Router yapılandırması tamamlandı');
-    } catch (e, stack) {
-      ErrorHandler.logError('InitializeRouter', e, stack);
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isRouterReady = false;
@@ -319,68 +185,9 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
   }
 
-  Future<String> _handlePlatformMessage(String? message) async {
-    ErrorHandler.logDebug('PlatformMessage', 'Android\'den mesaj alındı', {
-      'message': message,
-    });
-
-    if (message == null) {
-      return 'Mesaj boş';
-    }
-
-    try {
-      if (!_isHandlingNotification) {
-        _isHandlingNotification = true;
-        await _processNotificationMessage(message);
-        Future.delayed(const Duration(seconds: 2), () {
-          _isHandlingNotification = false;
-        });
-      }
-    } catch (e, stack) {
-      ErrorHandler.logError('PlatformMessage.handle', e, stack);
-      _isHandlingNotification = false;
-    }
-
-    return 'Mesaj işlendi';
-  }
-
-  Future<void> _processNotificationMessage(String message) async {
-    try {
-      await AppNotificationHandler.processNotificationMessage(message);
-    } catch (e, stack) {
-      ErrorHandler.logError('ProcessNotificationMessage', e, stack);
-      await _handleNotificationError();
-    }
-  }
-
-  Future<void> _handleNotificationError() async {
-    try {
-      ErrorHandler.logWarning(
-        'NotificationError',
-        'Bildirim hatası - varsayılan davranış uygulanıyor',
-      );
-      if (_router != null && _router!.canPop()) {
-        _router!.go('/home');
-      }
-    } catch (e, stack) {
-      ErrorHandler.logError('NotificationError.fallback', e, stack);
-    }
-  }
-
-  void _handleNotificationClick(String payload) async {
-    try {
-      debugPrint('🔄 Notification click işleniyor: $payload');
-      await AppNotificationHandler.processNotificationMessage(payload);
-    } catch (e, stack) {
-      ErrorHandler.logError('HandleNotificationClick', e, stack);
-    }
-  }
-
   @override
   void dispose() {
     _notificationClickSubscription?.cancel();
-    // authStateNotifier.removeListener(_onAuthStateChanged); // DEPRECATED
-    // ignore: deprecated_member_use
     userDataNotifier.removeListener(_syncUserDataToProvider);
     super.dispose();
   }

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../../../widgets/common/themed_text_field.dart';
-import '../../../../utils/currency_formatter.dart';
 import '../../payment_history/widgets/screen_widgets/index.dart';
 import '../controllers/payment_history_controller.dart';
 import '../widgets/date_range_selector.dart';
 import '../widgets/payment_history_actions.dart';
+import '../handlers/payment_tap_handler.dart';
 
 /// Kullanıcı (Yönetici) Ödeme Geçmişi Ekranı
 class UserPaymentHistoryScreen extends StatefulWidget {
@@ -36,7 +35,7 @@ class _UserPaymentHistoryScreenState extends State<UserPaymentHistoryScreen> {
 
   @override
   void dispose() {
-        _searchController.removeListener(_filterPayments);
+    _searchController.removeListener(_filterPayments);
     _searchController.dispose();
     super.dispose();
   }
@@ -150,7 +149,7 @@ class _UserPaymentHistoryScreenState extends State<UserPaymentHistoryScreen> {
       child: ListView.separated(
         padding: EdgeInsets.fromLTRB(w * 0.06, 0, w * 0.06, h * 0.1),
         itemCount: _filteredPayments.length,
-                addAutomaticKeepAlives: false, // Memory optimizasyonu
+        addAutomaticKeepAlives: false, // Memory optimizasyonu
         addRepaintBoundaries: true, // Repaint optimizasyonu
         separatorBuilder: (context, index) => SizedBox(height: h * 0.015),
         itemBuilder: (context, index) {
@@ -165,195 +164,11 @@ class _UserPaymentHistoryScreenState extends State<UserPaymentHistoryScreen> {
   }
 
   void _handlePaymentTap(Map<String, dynamic> payment) async {
-    final isAdvance = payment['is_advance'] as bool? ?? false;
-
-    if (isAdvance) {
-      // Avans için detay dialog'u göster
-      _handleAdvanceTap(payment);
-    } else {
-      // Ödeme için düzenleme dialog'u göster
-      _handleRegularPaymentTap(payment);
-    }
-  }
-
-  void _handleAdvanceTap(Map<String, dynamic> advance) {
-    // Avans detaylarını göster (sadece görüntüleme, düzenleme yok)
-    showDialog(
+    final handler = PaymentTapHandler(
+      controller: _controller,
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.account_balance_wallet,
-                color: Colors.orange,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text('Avans Detayı'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildAdvanceDetailRow(
-              'Çalışan',
-              advance['workers']['full_name'] as String,
-            ),
-            const SizedBox(height: 12),
-            _buildAdvanceDetailRow(
-              'Tutar',
-              CurrencyFormatter.formatWithSymbol(
-                (advance['amount'] as num).toDouble(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildAdvanceDetailRow(
-              'Tarih',
-              DateFormat(
-                'dd/MM/yyyy',
-              ).format(DateTime.parse(advance['payment_date'] as String)),
-            ),
-            if (advance['description'] != null &&
-                (advance['description'] as String).isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _buildAdvanceDetailRow(
-                'Açıklama',
-                advance['description'] as String,
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Kapat'),
-          ),
-        ],
-      ),
+      onUpdate: _loadPayments,
     );
-  }
-
-  Widget _buildAdvanceDetailRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.grey,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _handleRegularPaymentTap(Map<String, dynamic> payment) async {
-    final details = _controller.parsePaymentDetails(payment);
-
-    debugPrint(
-      '📝 Ödeme düzenleme açılıyor: paymentId=${details.id}, workerId=${details.workerId}',
-    );
-
-    final unpaidDays = await _controller.getUnpaidDaysExcludingPayment(
-      details.workerId,
-      details.id,
-    );
-    final maxFullDays = unpaidDays['fullDays'] ?? 0;
-    final maxHalfDays = unpaidDays['halfDays'] ?? 0;
-
-    if (!mounted) return;
-
-    EditPaymentDialog.show(
-      context,
-      paymentId: details.id,
-      workerId: details.workerId,
-      workerName: details.workerName,
-      currentFullDays: details.fullDays,
-      currentHalfDays: details.halfDays,
-      currentAmount: details.amount,
-      paymentDate: details.paymentDate,
-      displayTime: details.displayTime,
-      maxFullDays: maxFullDays,
-      maxHalfDays: maxHalfDays,
-      onUpdate: _updatePayment,
-      onDelete: () => _confirmDelete(details.id),
-    );
-  }
-
-  Future<void> _updatePayment(
-    int paymentId,
-    int fullDays,
-    int halfDays,
-    double amount,
-  ) async {
-    Navigator.pop(context);
-
-    try {
-      final success = await _controller.updatePayment(
-        paymentId: paymentId,
-        fullDays: fullDays,
-        halfDays: halfDays,
-        amount: amount,
-      );
-
-      if (success && mounted) {
-        PaymentHistoryActions.showSuccessMessage(
-          context,
-          'Ödeme güncellendi ve çalışana bildirim gönderildi',
-        );
-        _loadPayments();
-      }
-    } catch (e) {
-      if (mounted) {
-        PaymentHistoryActions.showErrorMessage(context, e.toString());
-      }
-    }
-  }
-
-  void _confirmDelete(int paymentId) {
-    Navigator.pop(context);
-
-    DeletePaymentDialog.show(
-      context,
-      onConfirm: () => _deletePayment(paymentId),
-    );
-  }
-
-  Future<void> _deletePayment(int paymentId) async {
-    Navigator.pop(context);
-
-    try {
-      final success = await _controller.deletePayment(paymentId);
-
-      if (success && mounted) {
-        PaymentHistoryActions.showSuccessMessage(
-          context,
-          'Ödeme silindi ve çalışana bildirim gönderildi',
-        );
-        _loadPayments();
-      }
-    } catch (e) {
-      if (mounted) {
-        PaymentHistoryActions.showErrorMessage(context, e.toString());
-      }
-    }
+    await handler.handle(payment);
   }
 }

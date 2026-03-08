@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import '../../../../models/expense.dart';
-import '../controllers/expense_controller.dart';
-import '../../../../utils/currency_input_formatter.dart';
+import 'base_expense_dialog.dart';
+import 'helpers/expense_snackbar_helper.dart';
 
 /// Masraf ekleme dialog'u
-class AddExpenseDialog extends StatefulWidget {
+///
+/// Yeni masraf kaydı oluşturur.
+class AddExpenseDialog extends BaseExpenseDialog {
   final VoidCallback onExpenseAdded;
 
   const AddExpenseDialog({super.key, required this.onExpenseAdded});
 
+  /// Dialog'u gösterir
   static Future<void> show(
     BuildContext context, {
     required VoidCallback onExpenseAdded,
@@ -25,395 +25,29 @@ class AddExpenseDialog extends StatefulWidget {
   State<AddExpenseDialog> createState() => _AddExpenseDialogState();
 }
 
-class _AddExpenseDialogState extends State<AddExpenseDialog> {
-  final ExpenseController _controller = ExpenseController();
-  final _formKey = GlobalKey<FormState>();
-  final _expenseTypeController = TextEditingController();
-  final _amountController = TextEditingController();
-  final _descriptionController = TextEditingController();
-
-  ExpenseCategory _selectedCategory = ExpenseCategory.malzeme;
-  DateTime _selectedDate = DateTime.now();
-  bool _isLoading = false;
-
-  static const Color primaryColor = Color(0xFF4338CA);
+class _AddExpenseDialogState extends BaseExpenseDialogState<AddExpenseDialog> {
+  @override
+  IconData get headerIcon => Icons.receipt_long;
 
   @override
-  void dispose() {
-    _expenseTypeController.dispose();
-    _amountController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  String _getCategoryName(ExpenseCategory category) {
-    switch (category) {
-      case ExpenseCategory.malzeme:
-        return 'Malzeme';
-      case ExpenseCategory.ulasim:
-        return 'Ulaşım';
-      case ExpenseCategory.ekipman:
-        return 'Ekipman';
-      case ExpenseCategory.diger:
-        return 'Diğer';
-    }
-  }
-
-  Future<void> _selectDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      locale: const Locale('tr', 'TR'),
-    );
-
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  Future<void> _saveExpense() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final expense = Expense(
-        id: null, // Supabase otomatik oluşturacak
-        userId: 0, // Service katmanında set edilecek
-        expenseType: _expenseTypeController.text.trim(),
-        category: _selectedCategory,
-        amount: double.parse(_amountController.text.replaceAll('.', '')),
-        expenseDate: _selectedDate,
-        description: _descriptionController.text.trim(),
-        receiptUrl: null, // TODO: Fatura yükleme özelliği eklenecek
-      );
-
-      await _controller.addExpense(expense);
-
-      if (!mounted) return;
-
-      Navigator.of(context).pop();
-      widget.onExpenseAdded();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(child: Text('${expense.expenseType} masrafı eklendi', style: const TextStyle(color: Colors.white))),
-              ],
-            ),
-            backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      debugPrint('Masraf ekleme hatası: $e');
-
-      if (!mounted) return;
-
-      setState(() => _isLoading = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: Colors.white, size: 20),
-                const SizedBox(width: 12),
-                Expanded(child: Text('Hata: $e', style: const TextStyle(color: Colors.white))),
-              ],
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            margin: const EdgeInsets.all(16),
-          ),
-      );
-    }
-  }
+  String get headerTitle => 'Masraf Ekle';
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.sizeOf(context);
-    final w = size.width;
+  String get submitButtonText => 'Kaydet';
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Container(
-        padding: EdgeInsets.all(w * 0.06),
-        constraints: const BoxConstraints(maxWidth: 500),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Başlık
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(w * 0.03),
-                      decoration: BoxDecoration(
-                        color: primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.receipt_long,
-                        color: primaryColor,
-                        size: w * 0.06,
-                      ),
-                    ),
-                    SizedBox(width: w * 0.03),
-                    Text(
-                      'Masraf Ekle',
-                      style: TextStyle(
-                        fontSize: w * 0.05,
-                        fontWeight: FontWeight.w700,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-                SizedBox(height: w * 0.06),
+  @override
+  Future<void> onSubmit() async {
+    final expense = createExpense();
 
-                // Masraf Türü
-                Text(
-                  'Masraf Türü',
-                  style: TextStyle(
-                    fontSize: w * 0.035,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-                SizedBox(height: w * 0.02),
-                TextFormField(
-                  controller: _expenseTypeController,
-                  decoration: InputDecoration(
-                    hintText: 'Örn: 1 ton demir',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: w * 0.04,
-                      vertical: w * 0.035,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Masraf türü girin';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: w * 0.04),
+    await controller.addExpense(expense);
 
-                // Kategori
-                Text(
-                  'Kategori',
-                  style: TextStyle(
-                    fontSize: w * 0.035,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-                SizedBox(height: w * 0.02),
-                DropdownButtonFormField<ExpenseCategory>(
-                  value: _selectedCategory,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: w * 0.04,
-                      vertical: w * 0.035,
-                    ),
-                  ),
-                  items: ExpenseCategory.values.map((category) {
-                    return DropdownMenuItem(
-                      value: category,
-                      child: Text(_getCategoryName(category)),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedCategory = value;
-                      });
-                    }
-                  },
-                ),
-                SizedBox(height: w * 0.04),
+    if (!mounted) return;
 
-                // Tutar
-                Text(
-                  'Tutar (₺)',
-                  style: TextStyle(
-                    fontSize: w * 0.035,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-                SizedBox(height: w * 0.02),
-                TextFormField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    CurrencyInputFormatter(),
-                  ],
-                  decoration: InputDecoration(
-                    hintText: '0',
-                    prefixText: '₺ ',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: w * 0.04,
-                      vertical: w * 0.035,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Tutar girin';
-                    }
-                    // Noktaları temizle ve parse et
-                    final cleanValue = value.replaceAll('.', '');
-                    final amount = double.tryParse(cleanValue);
-                    if (amount == null || amount <= 0) {
-                      return 'Geçerli bir tutar girin';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: w * 0.04),
+    widget.onExpenseAdded();
 
-                // Tarih
-                Text(
-                  'Tarih',
-                  style: TextStyle(
-                    fontSize: w * 0.035,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-                SizedBox(height: w * 0.02),
-                InkWell(
-                  onTap: _selectDate,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: w * 0.04,
-                      vertical: w * 0.035,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today, color: Colors.grey.shade600),
-                        SizedBox(width: w * 0.03),
-                        Text(
-                          DateFormat(
-                            'dd MMMM yyyy',
-                            'tr_TR',
-                          ).format(_selectedDate),
-                          style: TextStyle(
-                            fontSize: w * 0.04,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: w * 0.04),
-
-                // Açıklama
-                Text(
-                  'Açıklama (Opsiyonel)',
-                  style: TextStyle(
-                    fontSize: w * 0.035,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                ),
-                SizedBox(height: w * 0.02),
-                TextFormField(
-                  controller: _descriptionController,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'Masraf açıklaması...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: w * 0.04,
-                      vertical: w * 0.035,
-                    ),
-                  ),
-                ),
-                SizedBox(height: w * 0.06),
-
-                // Butonlar
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () => Navigator.of(context).pop(),
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: w * 0.035),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text('İptal'),
-                      ),
-                    ),
-                    SizedBox(width: w * 0.03),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _saveExpense,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: w * 0.035),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? SizedBox(
-                                height: w * 0.05,
-                                width: w * 0.05,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('Kaydet'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    ExpenseSnackbarHelper.showSuccess(
+      context,
+      '${expense.expenseType} masrafı eklendi',
     );
   }
 }

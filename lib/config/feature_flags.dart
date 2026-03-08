@@ -22,112 +22,107 @@
 ///   // Normal FutureBuilder kullan
 /// }
 /// ```
-/// **Deployment Stratejisi:**
-/// 1. Yeni özellik false ile deploy edilir
-/// 2. Staging'de test edilir
-/// 3. Production'da kademeli olarak açılır (%10 → %50 → %100)
-/// 4. Stabil olduktan sonra flag kaldırılır
 /// Saat Dilimi: Europe/Istanbul (UTC+3)
 class FeatureFlags {
   FeatureFlags._();
 
   /// Riverpod state management kullanımı.
-    /// true: Yeni Riverpod provider'ları kullanılır
+  /// true: Yeni Riverpod provider'ları kullanılır
   /// false: Eski ValueNotifier yapıları kullanılır
-    /// **Etkilenen Alanlar:**
+  /// **Etkilenen Alanlar:**
   /// - AuthStateProvider vs authStateNotifier
   /// - ThemeStateProvider vs themeModeNotifier
   /// - UserDataProvider vs userDataNotifier
-    /// **Geçiş Planı:**
+  /// **Geçiş Planı:**
   /// - Phase 1: false (altyapı hazırlığı)
   /// - Phase 3: true (migration başlangıcı)
   /// - Phase 6: true (eski yapılar kaldırılır)
   static const bool useRiverpod = false;
 
   /// Cache mekanizması kullanımı.
-    /// true: CachedFutureBuilder kullanılır
+  /// true: CachedFutureBuilder kullanılır
   /// false: Normal FutureBuilder kullanılır
-    /// **Etkilenen Alanlar:**
+  /// **Etkilenen Alanlar:**
   /// - WorkerListScreen
   /// - PaymentHistoryScreen
   /// - Diğer liste ekranları
-    /// **Geçiş Planı:**
+  /// **Geçiş Planı:**
   /// - Phase 1-3: false
   /// - Phase 4: true (cache implementasyonu)
   /// - Phase 6: true (kalıcı)
   static const bool useCachedQueries = false;
 
   /// Optimize edilmiş ListView kullanımı.
-    /// true: itemExtent ve diğer optimizasyonlar aktif
+  /// true: itemExtent ve diğer optimizasyonlar aktif
   /// false: Standart ListView kullanılır
-    /// **Etkilenen Alanlar:**
+  /// **Etkilenen Alanlar:**
   /// - WorkerListScreen ListView
   /// - PaymentHistoryScreen ListView
   /// - Diğer liste görünümleri
-    /// **Optimizasyonlar:**
+  /// **Optimizasyonlar:**
   /// - itemExtent parametresi
   /// - addAutomaticKeepAlives: false
   /// - addRepaintBoundaries: false (basit widget'lar için)
   /// - Const constructor'lar
-    /// **Geçiş Planı:**
+  /// **Geçiş Planı:**
   /// - Phase 1-3: false
   /// - Phase 4: true (ListView optimizasyonları)
   /// - Phase 6: true (kalıcı)
   static const bool useOptimizedListViews = false;
 
   /// RPC fonksiyonları kullanımı (N+1 query çözümü).
-    /// true: Supabase RPC fonksiyonları kullanılır
+  /// true: Supabase RPC fonksiyonları kullanılır
   /// false: Eski N+1 query implementasyonu kullanılır
-    /// **Etkilenen Alanlar:**
+  /// **Etkilenen Alanlar:**
   /// - WorkerService.getWorkersWithUnpaidDays()
   /// - PaymentService.getPaymentSummary()
-    /// **Geçiş Planı:**
+  /// **Geçiş Planı:**
   /// - Phase 1-3: false
   /// - Phase 4: true (RPC implementasyonu)
   /// - Phase 6: true (kalıcı)
   static const bool useRpcFunctions = false;
 
   /// Image caching kullanımı.
-    /// true: CachedNetworkImage kullanılır
+  /// true: CachedNetworkImage kullanılır
   /// false: Standart Image.network kullanılır
-    /// **Etkilenen Alanlar:**
+  /// **Etkilenen Alanlar:**
   /// - Worker profile resimleri
   /// - Diğer network image'lar
-    /// **Geçiş Planı:**
+  /// **Geçiş Planı:**
   /// - Phase 1-3: false
   /// - Phase 4: true (image caching)
   /// - Phase 6: true (kalıcı)
   static const bool useImageCaching = false;
 
   /// Yeni utility modülleri kullanımı.
-    /// true: DateFormatter, CurrencyFormatter, SupabaseQueryBuilder kullanılır
+  /// true: DateFormatter, CurrencyFormatter, SupabaseQueryBuilder kullanılır
   /// false: Eski helper fonksiyonlar kullanılır
-    /// **Etkilenen Alanlar:**
+  /// **Etkilenen Alanlar:**
   /// - Tüm service dosyaları (_formatDate, _formatAmount)
   /// - UI dosyaları (currency formatting)
-    /// **Geçiş Planı:**
+  /// **Geçiş Planı:**
   /// - Phase 1: false (utility'ler oluşturuldu)
   /// - Phase 2: true (migration başlangıcı)
   /// - Phase 6: true (kalıcı)
   static const bool useNewUtilities = false;
 
   /// Merkezi error logging kullanımı.
-    /// true: ErrorLogger singleton kullanılır
+  /// true: ErrorLogger singleton kullanılır
   /// false: debugPrint ve boş catch blokları kullanılır
-    /// **Etkilenen Alanlar:**
+  /// **Etkilenen Alanlar:**
   /// - Tüm service dosyaları
   /// - Error handling blokları
-    /// **Geçiş Planı:**
+  /// **Geçiş Planı:**
   /// - Phase 1: false (ErrorLogger oluşturuldu)
   /// - Phase 2: true (migration başlangıcı)
   /// - Phase 6: true (kalıcı)
   static const bool useErrorLogger = false;
 
   /// Tüm yeni özelliklerin aktif olup olmadığını kontrol eder.
-    /// Returns:
+  /// Returns:
   /// - true: Tüm feature flag'ler aktif
   /// - false: En az bir feature flag pasif
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// if (FeatureFlags.isFullyMigrated) {
   ///   print('Tüm optimizasyonlar aktif!');
@@ -144,9 +139,9 @@ class FeatureFlags {
   }
 
   /// Aktif feature flag'lerin sayısını döndürür.
-    /// Returns:
+  /// Returns:
   /// - int: Aktif flag sayısı (0-7 arası)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final activeCount = FeatureFlags.activeFeatureCount;
   /// print('$activeCount / 7 özellik aktif');
@@ -164,9 +159,9 @@ class FeatureFlags {
   }
 
   /// Migration ilerleme yüzdesini döndürür.
-    /// Returns:
+  /// Returns:
   /// - double: İlerleme yüzdesi (0.0 - 1.0 arası)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final progress = FeatureFlags.migrationProgress;
   /// print('Migration %${(progress * 100).toStringAsFixed(0)} tamamlandı');

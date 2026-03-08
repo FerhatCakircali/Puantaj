@@ -1,658 +1,237 @@
 import '../models/payment.dart';
 import '../models/payment_summary.dart';
-import 'auth_service.dart';
 import '../models/attendance.dart';
-import '../core/app_globals.dart';
-import '../utils/date_formatter.dart';
-import '../utils/currency_formatter.dart';
-import '../core/error_logger.dart';
-import '../data/local/hive_service.dart';
-import '../data/local/sync_manager.dart';
-import 'package:flutter/foundation.dart';
+import '../core/error_handling/error_handler_mixin.dart';
+import '../core/di/service_locator.dart';
+import 'auth_service.dart';
+import 'payment/repositories/payment_repository.dart';
+import 'payment/repositories/paid_days_repository.dart';
+import 'payment/helpers/payment_calculator.dart';
+import 'payment/helpers/payment_sync_helper.dart';
+import 'payment/helpers/payment_user_helper.dart';
+import 'payment/validators/payment_validator.dart';
 
-class PaymentService {
-  final _authService = AuthService();
-  final _hiveService = HiveService.instance;
-  final _syncManager = SyncManager.instance;
+/// Ödeme yönetimi servisi
+class PaymentService with ErrorHandlerMixin {
+  final PaymentRepository _repository;
+  final PaidDaysRepository _paidDaysRepository;
+  final PaymentCalculator _calculator;
+  final PaymentSyncHelper _syncHelper;
+  final PaymentUserHelper _userHelper;
+  final PaymentValidator _validator;
 
+  PaymentService({
+    AuthService? authService,
+    PaymentRepository? repository,
+    PaidDaysRepository? paidDaysRepository,
+    PaymentCalculator? calculator,
+    PaymentSyncHelper? syncHelper,
+    PaymentUserHelper? userHelper,
+    PaymentValidator? validator,
+  }) : _repository = repository ?? getIt<PaymentRepository>(),
+       _paidDaysRepository = paidDaysRepository ?? getIt<PaidDaysRepository>(),
+       _calculator = calculator ?? PaymentCalculator(),
+       _syncHelper = syncHelper ?? PaymentSyncHelper(),
+       _userHelper =
+           userHelper ?? PaymentUserHelper(authService ?? AuthService()),
+       _validator = validator ?? PaymentValidator();
+
+  /// Yeni ödeme ekler
   Future<int?> addPayment(Payment payment) async {
-    Payment? tempPayment;
     int? tempPaymentId;
 
     try {
-      debugPrint(
-        '💰 Yeni ödeme ekleniyor: Tarih=${payment.paymentDate}, Tutar=${payment.amount}',
-      );
-
-      // 1. Optimistic update: Geçici ID ile Hive'a kaydet
-      tempPaymentId = DateTime.now().millisecondsSinceEpoch;
-      tempPayment = Payment(
-        id: tempPaymentId,
-        userId: payment.userId,
-        workerId: payment.workerId,
-        fullDays: payment.fullDays,
-        halfDays: payment.halfDays,
-        paymentDate: payment.paymentDate,
-        amount: payment.amount,
-      );
-
-      await _hiveService.payments.put(tempPaymentId, tempPayment);
-      debugPrint(
-        '✅ Optimistic: Payment Hive\'a eklendi (temp ID: $tempPaymentId)',
-      );
-
-      // 2. Online ise Supabase'e gönder
-      if (_syncManager.isOnline) {
-        try {
-          final paymentMap = payment.toMap();
-          debugPrint('Ödeme map: $paymentMap');
-
-          final paymentResponse = await supabase
-              .from('payments')
-              .insert(paymentMap)
-              .select('id, payment_date')
-              .single();
-
-          debugPrint('Veritabanına kaydedilen: $paymentResponse');
-
-          final paymentId = paymentResponse['id'] as int;
-
-          // Gerçek ID ile güncelle
-          await _hiveService.payments.delete(tempPaymentId);
-          final realPayment = tempPayment.copyWith(id: paymentId);
-          await _hiveService.payments.put(paymentId, realPayment);
-
-          // Ödeme yapılan çalışan için henüz ödenmemiş günleri al
-          final attendance = await _getUnpaidAttendanceForWorker(
-            payment.workerId,
-          );
-
-          debugPrint('Ödenmemiş gün sayısı: ${attendance.length}');
-
-          // Ödenecek tam ve yarım günlerin sayısı
-          int fullDaysToMark = payment.fullDays;
-          int halfDaysToMark = payment.halfDays;
-
-          // Hangi günlerin ödendiğini kaydet
-          for (var record in attendance) {
-            if (record.status == AttendanceStatus.fullDay &&
-                fullDaysToMark > 0) {
-              await _markDayAsPaid(record, paymentId);
-              fullDaysToMark--;
-              debugPrint('Tam gün işaretlendi: ${record.date}');
-            } else if (record.status == AttendanceStatus.halfDay &&
-                halfDaysToMark > 0) {
-              await _markDayAsPaid(record, paymentId);
-              halfDaysToMark--;
-              debugPrint('Yarım gün işaretlendi: ${record.date}');
-            }
-
-            if (fullDaysToMark <= 0 && halfDaysToMark <= 0) break;
-          }
-
-          debugPrint('Ödeme başarıyla tamamlandı (ID: $paymentId)');
-
-          // Çalışana ödeme bildirimi gönder
-          await _sendPaymentNotification(payment);
-
-          return paymentId;
-        } catch (e) {
-          // Supabase hatası: Pending sync'e ekle
-          await _syncManager.addPendingSync(
-            type: 'payment',
-            data: payment.toMap(),
-            operation: 'create',
-          );
-
-          debugPrint('⚠️ Supabase hatası: Payment pending sync\'e eklendi');
-          return tempPaymentId;
-        }
-      } else {
-        // 3. Offline: Pending sync'e ekle
-        await _syncManager.addPendingSync(
-          type: 'payment',
-          data: payment.toMap(),
-          operation: 'create',
-        );
-
-        debugPrint('📵 Offline: Payment pending sync\'e eklendi');
-        return tempPaymentId;
-      }
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService.addPayment hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-
-      // Rollback: Hive'dan sil
-      if (tempPaymentId != null) {
-        await _hiveService.payments.delete(tempPaymentId);
-        debugPrint('🔄 Rollback: Payment Hive\'dan silindi');
-      }
-
-      rethrow;
-    }
-  }
-
-  /// Çalışana ödeme bildirimi gönder
-  Future<void> _sendPaymentNotification(Payment payment) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) return;
-
-      // Bildirim mesajı oluştur
-      final message =
-          '${payment.fullDays} Tam Gün, ${payment.halfDays} Yarım Gün - Toplam ${CurrencyFormatter.formatWithSymbol(payment.amount)} ödendi';
-
-      debugPrint('📢 Ödeme bildirimi gönderiliyor: $message');
-
-      // Bildirim ekle
-      await supabase.from('notifications').insert({
-        'sender_id': userId,
-        'sender_type': 'user',
-        'recipient_id': payment.workerId,
-        'recipient_type': 'worker',
-        'notification_type': 'payment_received',
-        'title': 'Ödeme Yapıldı',
-        'message': message,
-        'related_id': payment.workerId,
-        'scheduled_time': null,
-      });
-
-      debugPrint('Ödeme bildirimi gönderildi');
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService._sendPaymentNotification hatası',
-        error: e,
-        stackTrace: stackTrace,
+      _validator.validatePayment(payment);
+      final userId = await _userHelper.getUserIdOrThrow();
+      tempPaymentId = await _syncHelper.addPaymentWithSync(payment, userId);
+      return tempPaymentId;
+    } catch (e) {
+      await _syncHelper.cleanupTempPayment(tempPaymentId);
+      return handleErrorSync(
+        () => throw e,
+        null,
+        context: 'PaymentService.addPayment',
       );
     }
   }
 
-  Future<void> _markDayAsPaid(Attendance record, int paymentId) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        ErrorLogger.instance.logWarning(
-          'PaymentService._markDayAsPaid: userId null',
-        );
-        return;
-      }
-
-      await supabase.from('paid_days').insert({
-        'user_id': userId,
-        'worker_id': record.workerId,
-        'date': DateFormatter.toIso8601Date(record.date),
-        'status': record.status == AttendanceStatus.fullDay
-            ? 'fullDay'
-            : 'halfDay',
-        'payment_id': paymentId,
-      });
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService._markDayAsPaid hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  Future<List<Attendance>> _getUnpaidAttendanceForWorker(int workerId) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        ErrorLogger.instance.logWarning(
-          'PaymentService._getUnpaidAttendanceForWorker: userId null',
-        );
-        return [];
-      }
-
-      final allAttendanceResults = await supabase
-          .from('attendance')
-          .select()
-          .eq('worker_id', workerId)
-          .eq('user_id', userId)
-          .or('status.eq.fullDay,status.eq.halfDay')
-          .order('date');
-
-      final paidDaysResults = await supabase
-          .from('paid_days')
-          .select('date, status')
-          .eq('worker_id', workerId)
-          .eq('user_id', userId);
-
-      final paidDays = paidDaysResults
-          .map(
-            (row) => {
-              'date': row['date'] as String,
-              'status': row['status'] as String,
-            },
-          )
-          .toList();
-
-      final unpaidAttendance = allAttendanceResults
-          .where((record) {
-            final recordDate = DateFormatter.toIso8601Date(
-              DateTime.parse(record['date'] as String),
-            );
-            final recordStatus = record['status'] as String;
-
-            return !paidDays.any(
-              (paidDay) =>
-                  paidDay['date'] == recordDate &&
-                  paidDay['status'] == recordStatus,
-            );
-          })
-          .map((map) => Attendance.fromMap(map))
-          .toList();
-
-      return unpaidAttendance;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService._getUnpaidAttendanceForWorker hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return [];
-    }
-  }
-
+  /// Çalışana ait ödemeleri getirir
   Future<List<Payment>> getPaymentsByWorker(int workerId) async {
-    try {
-      final currentUser = await _authService.currentUser;
-      if (currentUser == null) {
-        ErrorLogger.instance.logWarning(
-          'PaymentService.getPaymentsByWorker: currentUser null',
+    return handleError(
+      () async {
+        _validator.validateWorkerId(workerId);
+        return await _userHelper.executeWithUserId(
+          (userId) => _repository.getPaymentsByWorker(workerId, userId),
+          defaultValue: [],
         );
-        return [];
-      }
-
-      final maps = await supabase
-          .from('payments')
-          .select()
-          .eq('worker_id', workerId)
-          .eq('user_id', currentUser['id']);
-
-      return List.generate(maps.length, (i) => Payment.fromMap(maps[i]));
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService.getPaymentsByWorker hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return [];
-    }
+      },
+      [],
+      context: 'PaymentService.getPaymentsByWorker',
+    );
   }
 
+  /// Çalışana ait ödemeleri getirir (alias)
   Future<List<Payment>> getPaymentsByWorkerId(int workerId) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        ErrorLogger.instance.logWarning(
-          'PaymentService.getPaymentsByWorkerId: userId null',
-        );
-        return [];
-      }
-
-      final maps = await supabase
-          .from('payments')
-          .select()
-          .eq('worker_id', workerId)
-          .eq('user_id', userId)
-          .order('payment_date', ascending: false);
-
-      return List.generate(maps.length, (i) => Payment.fromMap(maps[i]));
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService.getPaymentsByWorkerId hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return [];
-    }
+    return await getPaymentsByWorker(workerId);
   }
 
+  /// Çalışanın ödenmemiş günlerini getirir
   Future<Map<String, int>> getUnpaidDays(int workerId) async {
-    try {
-      final unpaidAttendance = await _getUnpaidAttendanceForWorker(workerId);
-
-      int fullDays = 0;
-      int halfDays = 0;
-
-      for (var record in unpaidAttendance) {
-        if (record.status == AttendanceStatus.fullDay) {
-          fullDays++;
-        } else if (record.status == AttendanceStatus.halfDay) {
-          halfDays++;
-        }
-      }
-
-      return {'fullDays': fullDays, 'halfDays': halfDays};
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService.getUnpaidDays hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return {'fullDays': 0, 'halfDays': 0};
-    }
+    return handleError(
+      () async {
+        _validator.validateWorkerId(workerId);
+        return await _userHelper.executeWithUserId((userId) async {
+          final unpaidAttendance = await _paidDaysRepository
+              .getUnpaidAttendance(userId: userId, workerId: workerId);
+          return _calculator.calculateUnpaidDays(unpaidAttendance);
+        }, defaultValue: {'fullDays': 0, 'halfDays': 0});
+      },
+      {'fullDays': 0, 'halfDays': 0},
+      context: 'PaymentService.getUnpaidDays',
+    );
   }
 
-  /// Belirli bir ödemeyi hariç tutarak ödenmemiş günleri getir
-    /// Ödeme düzenlenirken kullanılır. Düzenlenen ödemenin günlerini
-  /// ödenmemiş günlere ekleyerek maksimum değeri hesaplar.
+  /// Belirli bir ödemeyi hariç tutarak ödenmemiş günleri getirir
   Future<Map<String, int>> getUnpaidDaysExcludingPayment(
     int workerId,
     int excludePaymentId,
   ) async {
-    final userId = await _authService.getUserId();
-    if (userId == null) return {'fullDays': 0, 'halfDays': 0};
-
-    // Tüm yevmiye kayıtlarını al
-    final allAttendanceResults = await supabase
-        .from('attendance')
-        .select()
-        .eq('worker_id', workerId)
-        .eq('user_id', userId)
-        .or('status.eq.fullDay,status.eq.halfDay')
-        .order('date');
-
-    // Belirli ödeme hariç tüm ödenmiş günleri al
-    final paidDaysResults = await supabase
-        .from('paid_days')
-        .select('date, status')
-        .eq('worker_id', workerId)
-        .eq('user_id', userId)
-        .neq('payment_id', excludePaymentId); // Bu ödemeyi hariç tut
-
-    final paidDays = paidDaysResults
-        .map(
-          (row) => {
-            'date': row['date'] as String,
-            'status': row['status'] as String,
-          },
-        )
-        .toList();
-
-    debugPrint(
-      '🔍 [getUnpaidDaysExcludingPayment] excludePaymentId: $excludePaymentId',
+    return handleError(
+      () async {
+        _validator.validateWorkerId(workerId);
+        _validator.validatePaymentId(excludePaymentId);
+        return await _userHelper.executeWithUserId(
+          (userId) => _paidDaysRepository.getUnpaidDaysExcludingPayment(
+            userId: userId,
+            workerId: workerId,
+            excludePaymentId: excludePaymentId,
+          ),
+          defaultValue: {'fullDays': 0, 'halfDays': 0},
+        );
+      },
+      {'fullDays': 0, 'halfDays': 0},
+      context: 'PaymentService.getUnpaidDaysExcludingPayment',
     );
-    debugPrint('Toplam yevmiye: ${allAttendanceResults.length}');
-    debugPrint(
-      '🔍 Ödenmiş günler (excludePaymentId hariç): ${paidDays.length}',
-    );
-
-    // Ödenmemiş günleri filtrele
-    final unpaidAttendance = allAttendanceResults.where((record) {
-      final recordDate = DateFormatter.toIso8601Date(
-        DateTime.parse(record['date'] as String),
-      );
-      final recordStatus = record['status'] as String;
-
-      return !paidDays.any(
-        (paidDay) =>
-            paidDay['date'] == recordDate && paidDay['status'] == recordStatus,
-      );
-    }).toList();
-
-    int fullDays = 0;
-    int halfDays = 0;
-
-    for (var record in unpaidAttendance) {
-      final status = record['status'] as String;
-      if (status == 'fullDay') {
-        fullDays++;
-      } else if (status == 'halfDay') {
-        halfDays++;
-      }
-    }
-
-    debugPrint(
-      '🔍 Ödenmemiş günler (düzenlenen ödeme dahil): $fullDays Tam, $halfDays Yarım',
-    );
-
-    return {'fullDays': fullDays, 'halfDays': halfDays};
   }
 
+  /// Günün ödenip ödenmediğini kontrol eder
   Future<bool> isDayPaid(
     int workerId,
     DateTime date,
     AttendanceStatus status,
   ) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        ErrorLogger.instance.logWarning(
-          'PaymentService.isDayPaid: userId null',
-        );
-        return false;
-      }
-
-      final formattedDate = DateFormatter.toIso8601Date(date);
-      final statusStr = status == AttendanceStatus.fullDay
-          ? 'fullDay'
-          : 'halfDay';
-
-      final results = await supabase
-          .from('paid_days')
-          .select()
-          .eq('worker_id', workerId)
-          .eq('user_id', userId)
-          .eq('date', formattedDate)
-          .eq('status', statusStr);
-
-      return results.isNotEmpty;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService.isDayPaid hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return false;
-    }
+    return handleError(
+      () async {
+        _validator.validateWorkerId(workerId);
+        return await _userHelper.executeWithUserId((userId) {
+          final statusStr = _calculator.attendanceStatusToString(status);
+          return _paidDaysRepository.isDayPaid(
+            userId: userId,
+            workerId: workerId,
+            date: date,
+            status: statusStr,
+          );
+        }, defaultValue: false);
+      },
+      false,
+      context: 'PaymentService.isDayPaid',
+    );
   }
 
-  /// Ödeme kaydını güncelle ve çalışana bildirim gönder
+  /// Ödeme kaydını günceller
   Future<bool> updatePayment({
     required int paymentId,
     required int fullDays,
     required int halfDays,
     required double amount,
   }) async {
-    try {
-      debugPrint('Ödeme güncelleniyor: ID=$paymentId');
+    return handleErrorWithThrow(
+      () async {
+        _validator.validatePaymentId(paymentId);
 
-      final result = await supabase.rpc(
-        'update_payment',
-        params: {
-          'payment_id_param': paymentId,
-          'full_days_param': fullDays,
-          'half_days_param': halfDays,
-          'amount_param': amount,
-        },
-      );
+        if (fullDays < 0 || halfDays < 0) {
+          throw ArgumentError('Gün sayıları negatif olamaz');
+        }
 
-      if (result == true) {
-        debugPrint('Ödeme başarıyla güncellendi');
-        return true;
-      } else {
-        debugPrint('Ödeme güncellenemedi');
-        return false;
-      }
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService.updatePayment hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
+        if (amount < 0) {
+          throw ArgumentError('Ödeme tutarı negatif olamaz');
+        }
+
+        return await _repository.updatePayment(
+          paymentId: paymentId,
+          fullDays: fullDays,
+          halfDays: halfDays,
+          amount: amount,
+        );
+      },
+      context: 'PaymentService.updatePayment',
+      userMessage: 'Ödeme güncellenirken hata oluştu',
+    );
   }
 
-  /// Ödeme kaydını sil ve çalışana bildirim gönder
+  /// Ödeme kaydını siler
   Future<bool> deletePayment(int paymentId) async {
-    try {
-      debugPrint('Ödeme siliniyor: ID=$paymentId');
-
-      final result = await supabase.rpc(
-        'delete_payment',
-        params: {'payment_id_param': paymentId},
-      );
-
-      if (result == true) {
-        debugPrint('Ödeme başarıyla silindi');
-        return true;
-      } else {
-        debugPrint('Ödeme silinemedi');
-        return false;
-      }
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService.deletePayment hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
+    return handleErrorWithThrow(
+      () async {
+        _validator.validatePaymentId(paymentId);
+        return await _repository.deletePayment(paymentId);
+      },
+      context: 'PaymentService.deletePayment',
+      userMessage: 'Ödeme silinirken hata oluştu',
+    );
   }
 
-  /// Kullanıcının (yöneticinin) tüm ödemelerini ve avanslarını getir
+  /// Kullanıcının ödeme geçmişini getirir
   Future<List<Map<String, dynamic>>> getUserPaymentHistory({
     required DateTime startDate,
     required DateTime endDate,
     String? workerNameFilter,
   }) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) return [];
-
-      debugPrint('Ödeme geçmişi getiriliyor: $startDate - $endDate');
-
-      // Ödemeleri getir
-      var paymentsQuery = supabase
-          .from('payments')
-          .select('*, workers!inner(full_name)')
-          .eq('user_id', userId)
-          .gte('payment_date', DateFormatter.toIso8601Date(startDate))
-          .lte('payment_date', DateFormatter.toIso8601Date(endDate));
-
-      final paymentsResults = await paymentsQuery;
-
-      // Avansları getir
-      var advancesQuery = supabase
-          .from('advances')
-          .select('*, workers!inner(full_name)')
-          .eq('user_id', userId)
-          .gte('advance_date', DateFormatter.toIso8601Date(startDate))
-          .lte('advance_date', DateFormatter.toIso8601Date(endDate));
-
-      final advancesResults = await advancesQuery;
-
-      // Avansları ödeme formatına dönüştür
-      final advancesAsPayments = advancesResults.map((advance) {
-        return {
-          'id': advance['id'],
-          'user_id': advance['user_id'],
-          'worker_id': advance['worker_id'],
-          'amount': advance['amount'],
-          'payment_date': advance['advance_date'],
-          'created_at': advance['created_at'],
-          'updated_at': advance['updated_at'],
-          'workers': advance['workers'],
-          'full_days': 0, // Avanslar için gün bilgisi yok
-          'half_days': 0,
-          'is_advance': true, // Avans olduğunu belirtmek için
-          'description': advance['description'],
-        };
-      }).toList();
-
-      // Ödemelere avans bayrağı ekle
-      final paymentsWithFlag = paymentsResults.map((payment) {
-        return {...payment, 'is_advance': false};
-      }).toList();
-
-      // İki listeyi birleştir
-      final combined = [...paymentsWithFlag, ...advancesAsPayments];
-
-      // Tarihe göre sırala (en yeni en üstte)
-      combined.sort((a, b) {
-        final dateA = DateTime.parse(a['payment_date'] as String);
-        final dateB = DateTime.parse(b['payment_date'] as String);
-        return dateB.compareTo(dateA);
-      });
-
-      // Filtre uygula
-      if (workerNameFilter != null && workerNameFilter.isNotEmpty) {
-        final filtered = combined.where((item) {
-          final workerName = item['workers']['full_name'] as String;
-          return workerName.toLowerCase().contains(
-            workerNameFilter.toLowerCase(),
+    return handleError(
+      () async {
+        _validator.validateDateRange(startDate, endDate);
+        return await _userHelper.executeWithUserId((userId) async {
+          final combined = await _repository.getUserPaymentHistory(
+            userId: userId,
+            startDate: startDate,
+            endDate: endDate,
           );
-        }).toList();
 
-        debugPrint('Filtrelenmiş kayıt sayısı: ${filtered.length}');
-        return filtered;
-      }
+          if (workerNameFilter != null && workerNameFilter.isNotEmpty) {
+            return combined.where((item) {
+              final workerName = item['workers']['full_name'] as String;
+              return workerName.toLowerCase().contains(
+                workerNameFilter.toLowerCase(),
+              );
+            }).toList();
+          }
 
-      debugPrint(
-        '✅ Ödeme geçmişi getirildi: ${combined.length} kayıt (${paymentsResults.length} ödeme, ${advancesResults.length} avans)',
-      );
-      return combined;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService.getUserPaymentHistory hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return [];
-    }
+          return combined;
+        }, defaultValue: []);
+      },
+      [],
+      context: 'PaymentService.getUserPaymentHistory',
+    );
   }
 
-  /// Ödeme özet bilgilerini getirir (RPC)
-    /// N+1 query problemini çözmek için Supabase RPC fonksiyonu kullanır.
-  /// Performans: 10+ query → 1 query (%90 azalma)
-    /// Saat Dilimi: Europe/Istanbul (UTC+3)
+  /// Ödeme özet bilgilerini getirir
   Future<PaymentSummary?> getPaymentSummary({
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
-
-      debugPrint('Ödeme özeti getiriliyor: $startDate - $endDate');
-
-      final List<dynamic> data = await supabase.rpc(
-        'get_payment_summary',
-        params: {
-          'p_user_id': userId,
-          'p_start_date': DateFormatter.toIso8601Date(startDate),
-          'p_end_date': DateFormatter.toIso8601Date(endDate),
-        },
-      );
-
-      if (data.isEmpty) {
-        debugPrint('Ödeme özeti bulunamadı');
-        return null;
-      }
-
-      final summary = PaymentSummary.fromMap(
-        data.first as Map<String, dynamic>,
-      );
-      debugPrint('Ödeme özeti getirildi: ${summary.totalPayments} ödeme');
-
-      return summary;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'PaymentService.getPaymentSummary hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
+    return handleError(
+      () async {
+        _validator.validateDateRange(startDate, endDate);
+        return await _userHelper.executeWithUserIdOrThrow(
+          (userId) => _repository.getPaymentSummary(
+            userId: userId,
+            startDate: startDate,
+            endDate: endDate,
+          ),
+        );
+      },
+      null,
+      context: 'PaymentService.getPaymentSummary',
+    );
   }
 }

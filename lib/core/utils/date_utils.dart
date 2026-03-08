@@ -15,49 +15,49 @@ class AppDateUtils {
   static final DateFormat _isoFormat = DateFormat('yyyy-MM-dd');
 
   /// Tarihi string'e çevirir (dd.MM.yyyy)
-    /// [date] - Çevrilecek tarih
+  /// [date] - Çevrilecek tarih
   /// Returns: Formatlanmış tarih string'i
   static String formatDate(DateTime date) {
     return _dateFormat.format(date);
   }
 
   /// Tarih ve saati string'e çevirir (dd.MM.yyyy HH:mm)
-    /// [dateTime] - Çevrilecek tarih ve saat
+  /// [dateTime] - Çevrilecek tarih ve saat
   /// Returns: Formatlanmış tarih-saat string'i
   static String formatDateTime(DateTime dateTime) {
     return _dateTimeFormat.format(dateTime);
   }
 
   /// Saati string'e çevirir (HH:mm)
-    /// [time] - Çevrilecek saat
+  /// [time] - Çevrilecek saat
   /// Returns: Formatlanmış saat string'i
   static String formatTime(DateTime time) {
     return _timeFormat.format(time);
   }
 
-  /// Ay ve yılı string'e çevirir (Ocak 2024)
-    /// [date] - Çevrilecek tarih
+  /// Ay ve yılı string'e çevirir (Ocak 2026)
+  /// [date] - Çevrilecek tarih
   /// Returns: Formatlanmış ay-yıl string'i
   static String formatMonthYear(DateTime date) {
     return _monthYearFormat.format(date);
   }
 
   /// Gün ve ayı string'e çevirir (15 Ocak)
-    /// [date] - Çevrilecek tarih
+  /// [date] - Çevrilecek tarih
   /// Returns: Formatlanmış gün-ay string'i
   static String formatDayMonth(DateTime date) {
     return _dayMonthFormat.format(date);
   }
 
   /// ISO 8601 formatında string'e çevirir (yyyy-MM-dd)
-    /// [date] - Çevrilecek tarih
+  /// [date] - Çevrilecek tarih
   /// Returns: ISO formatında tarih string'i
   static String formatIso(DateTime date) {
     return _isoFormat.format(date);
   }
 
   /// String'i DateTime'a çevirir (dd.MM.yyyy)
-    /// [dateString] - Parse edilecek string
+  /// [dateString] - Parse edilecek string
   /// Returns: DateTime nesnesi veya null
   static DateTime? parseDate(String dateString) {
     try {
@@ -68,7 +68,7 @@ class AppDateUtils {
   }
 
   /// String'i DateTime'a çevirir (dd.MM.yyyy HH:mm)
-    /// [dateTimeString] - Parse edilecek string
+  /// [dateTimeString] - Parse edilecek string
   /// Returns: DateTime nesnesi veya null
   static DateTime? parseDateTime(String dateTimeString) {
     try {
@@ -79,7 +79,7 @@ class AppDateUtils {
   }
 
   /// ISO 8601 string'ini DateTime'a çevirir
-    /// [isoString] - Parse edilecek ISO string
+  /// [isoString] - Parse edilecek ISO string
   /// Returns: DateTime nesnesi veya null
   static DateTime? parseIso(String isoString) {
     try {
@@ -90,26 +90,26 @@ class AppDateUtils {
   }
 
   /// Bugünün tarihini döndürür (saat bilgisi olmadan)
-    /// Returns: Bugünün tarihi
+  /// Returns: Bugünün tarihi
   static DateTime today() {
     final now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
   }
 
   /// Yarının tarihini döndürür
-    /// Returns: Yarının tarihi
+  /// Returns: Yarının tarihi
   static DateTime tomorrow() {
     return today().add(const Duration(days: 1));
   }
 
   /// Dünün tarihini döndürür
-    /// Returns: Dünün tarihi
+  /// Returns: Dünün tarihi
   static DateTime yesterday() {
     return today().subtract(const Duration(days: 1));
   }
 
   /// Ayın ilk gününü döndürür
-    /// [date] - Referans tarih (opsiyonel, varsayılan: bugün)
+  /// [date] - Referans tarih (opsiyonel, varsayılan: bugün)
   /// Returns: Ayın ilk günü
   static DateTime firstDayOfMonth([DateTime? date]) {
     final d = date ?? DateTime.now();
@@ -117,7 +117,7 @@ class AppDateUtils {
   }
 
   /// Ayın son gününü döndürür
-    /// [date] - Referans tarih (opsiyonel, varsayılan: bugün)
+  /// [date] - Referans tarih (opsiyonel, varsayılan: bugün)
   /// Returns: Ayın son günü
   static DateTime lastDayOfMonth([DateTime? date]) {
     final d = date ?? DateTime.now();
@@ -125,7 +125,7 @@ class AppDateUtils {
   }
 
   /// İki tarih arasındaki gün farkını hesaplar
-    /// [date1] - İlk tarih
+  /// [date1] - İlk tarih
   /// [date2] - İkinci tarih
   /// Returns: Gün farkı
   static int daysBetween(DateTime date1, DateTime date2) {
@@ -135,7 +135,7 @@ class AppDateUtils {
   }
 
   /// Tarihin bugün olup olmadığını kontrol eder
-    /// [date] - Kontrol edilecek tarih
+  /// [date] - Kontrol edilecek tarih
   /// Returns: true ise bugün, false değilse
   static bool isToday(DateTime date) {
     final now = DateTime.now();
@@ -145,7 +145,7 @@ class AppDateUtils {
   }
 
   /// Tarihin yarın olup olmadığını kontrol eder
-    /// [date] - Kontrol edilecek tarih
+  /// [date] - Kontrol edilecek tarih
   /// Returns: true ise yarın, false değilse
   static bool isTomorrow(DateTime date) {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
@@ -155,7 +155,7 @@ class AppDateUtils {
   }
 
   /// Tarihin dün olup olmadığını kontrol eder
-    /// [date] - Kontrol edilecek tarih
+  /// [date] - Kontrol edilecek tarih
   /// Returns: true ise dün, false değilse
   static bool isYesterday(DateTime date) {
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
@@ -165,21 +165,21 @@ class AppDateUtils {
   }
 
   /// Tarihin geçmişte olup olmadığını kontrol eder
-    /// [date] - Kontrol edilecek tarih
+  /// [date] - Kontrol edilecek tarih
   /// Returns: true ise geçmişte, false değilse
   static bool isPast(DateTime date) {
     return date.isBefore(DateTime.now());
   }
 
   /// Tarihin gelecekte olup olmadığını kontrol eder
-    /// [date] - Kontrol edilecek tarih
+  /// [date] - Kontrol edilecek tarih
   /// Returns: true ise gelecekte, false değilse
   static bool isFuture(DateTime date) {
     return date.isAfter(DateTime.now());
   }
 
   /// Tarihin aynı ay olup olmadığını kontrol eder
-    /// [date1] - İlk tarih
+  /// [date1] - İlk tarih
   /// [date2] - İkinci tarih
   /// Returns: true ise aynı ay, false değilse
   static bool isSameMonth(DateTime date1, DateTime date2) {
@@ -187,7 +187,7 @@ class AppDateUtils {
   }
 
   /// Tarihin aynı gün olup olmadığını kontrol eder
-    /// [date1] - İlk tarih
+  /// [date1] - İlk tarih
   /// [date2] - İkinci tarih
   /// Returns: true ise aynı gün, false değilse
   static bool isSameDay(DateTime date1, DateTime date2) {
@@ -197,7 +197,7 @@ class AppDateUtils {
   }
 
   /// Relative time string döndürür (örn: "2 saat önce")
-    /// [dateTime] - Referans tarih
+  /// [dateTime] - Referans tarih
   /// Returns: Relative time string
   static String getRelativeTime(DateTime dateTime) {
     final now = DateTime.now();
@@ -221,7 +221,7 @@ class AppDateUtils {
   }
 
   /// Tarih aralığı oluşturur
-    /// [start] - Başlangıç tarihi
+  /// [start] - Başlangıç tarihi
   /// [end] - Bitiş tarihi
   /// Returns: Tarih listesi
   static List<DateTime> getDateRange(DateTime start, DateTime end) {
@@ -237,7 +237,7 @@ class AppDateUtils {
   }
 
   /// Haftanın günü adını döndürür
-    /// [date] - Tarih
+  /// [date] - Tarih
   /// Returns: Gün adı (Pazartesi, Salı, vb.)
   static String getWeekdayName(DateTime date) {
     const weekdays = [
@@ -253,7 +253,7 @@ class AppDateUtils {
   }
 
   /// Ayın adını döndürür
-    /// [month] - Ay numarası (1-12)
+  /// [month] - Ay numarası (1-12)
   /// Returns: Ay adı (Ocak, Şubat, vb.)
   static String getMonthName(int month) {
     const months = [

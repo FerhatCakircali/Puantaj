@@ -27,7 +27,7 @@ class TimezoneHelper {
   TimezoneHelper._internal();
 
   /// Mevcut timezone location'ını döndürür
-    /// Önce Istanbul timezone'unu dener, başarısız olursa UTC kullanır.
+  /// Önce Istanbul timezone'unu dener, başarısız olursa UTC kullanır.
   tz.Location get currentLocation {
     try {
       return tz.getLocation(defaultTimezone);
@@ -38,9 +38,9 @@ class TimezoneHelper {
   }
 
   /// DateTime'ı TZDateTime'a dönüştürür (Istanbul timezone)
-    /// [dateTime] - Dönüştürülecek DateTime
+  /// [dateTime] - Dönüştürülecek DateTime
   /// Returns: Istanbul timezone'unda TZDateTime
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final now = DateTime.now();
   /// final tzNow = helper.toTZDateTime(now);
@@ -50,10 +50,10 @@ class TimezoneHelper {
   }
 
   /// DateTime'ı belirtilen timezone'da TZDateTime'a dönüştürür
-    /// [dateTime] - Dönüştürülecek DateTime
+  /// [dateTime] - Dönüştürülecek DateTime
   /// [timezoneName] - Hedef timezone adı (örn: 'Europe/Istanbul')
   /// Returns: Belirtilen timezone'da TZDateTime
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final now = DateTime.now();
   /// final londonTime = helper.toTZDateTimeWithTimezone(now, 'Europe/London');
@@ -74,8 +74,8 @@ class TimezoneHelper {
   }
 
   /// Şu anki zamanı Istanbul timezone'unda TZDateTime olarak döndürür
-    /// Returns: Şu anki zaman (Istanbul timezone)
-    /// Örnek:
+  /// Returns: Şu anki zaman (Istanbul timezone)
+  /// Örnek:
   /// ```dart
   /// final now = helper.nowInIstanbul();
   /// ```
@@ -84,10 +84,10 @@ class TimezoneHelper {
   }
 
   /// Belirtilen saat ve dakikada bugün için TZDateTime oluşturur
-    /// [hour] - Saat (0-23)
+  /// [hour] - Saat (0-23)
   /// [minute] - Dakika (0-59)
   /// Returns: Bugün belirtilen saatte TZDateTime
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// // Bugün saat 17:00 için TZDateTime
   /// final reminderTime = helper.todayAt(17, 0);
@@ -105,10 +105,10 @@ class TimezoneHelper {
   }
 
   /// Belirtilen saat ve dakikada yarın için TZDateTime oluşturur
-    /// [hour] - Saat (0-23)
+  /// [hour] - Saat (0-23)
   /// [minute] - Dakika (0-59)
   /// Returns: Yarın belirtilen saatte TZDateTime
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// // Yarın saat 09:00 için TZDateTime
   /// final tomorrowMorning = helper.tomorrowAt(9, 0);
@@ -126,17 +126,17 @@ class TimezoneHelper {
   }
 
   /// Belirtilen tarih ve saatte TZDateTime oluşturur
-    /// [year] - Yıl
+  /// [year] - Yıl
   /// [month] - Ay (1-12)
   /// [day] - Gün (1-31)
   /// [hour] - Saat (0-23)
   /// [minute] - Dakika (0-59)
   /// [second] - Saniye (0-59) - opsiyonel, varsayılan 0
   /// Returns: Belirtilen tarih ve saatte TZDateTime
-    /// Örnek:
+  /// Örnek:
   /// ```dart
-  /// // 2024-12-31 23:59:00
-  /// final newYearEve = helper.createTZDateTime(2024, 12, 31, 23, 59);
+  /// // 2026-12-31 23:59:00
+  /// final newYearEve = helper.createTZDateTime(2026, 12, 31, 23, 59);
   /// ```
   tz.TZDateTime createTZDateTime(
     int year,
@@ -158,9 +158,9 @@ class TimezoneHelper {
   }
 
   /// Verilen TZDateTime'ın geçmişte olup olmadığını kontrol eder
-    /// [dateTime] - Kontrol edilecek TZDateTime
+  /// [dateTime] - Kontrol edilecek TZDateTime
   /// Returns: Geçmişteyse true, değilse false
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final pastTime = helper.todayAt(8, 0);
   /// if (helper.isPast(pastTime)) {
@@ -172,9 +172,9 @@ class TimezoneHelper {
   }
 
   /// Verilen TZDateTime'ın gelecekte olup olmadığını kontrol eder
-    /// [dateTime] - Kontrol edilecek TZDateTime
+  /// [dateTime] - Kontrol edilecek TZDateTime
   /// Returns: Gelecekteyse true, değilse false
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final futureTime = helper.tomorrowAt(9, 0);
   /// if (helper.isFuture(futureTime)) {
@@ -186,10 +186,10 @@ class TimezoneHelper {
   }
 
   /// İki TZDateTime arasındaki farkı Duration olarak döndürür
-    /// [start] - Başlangıç zamanı
+  /// [start] - Başlangıç zamanı
   /// [end] - Bitiş zamanı
   /// Returns: İki zaman arasındaki fark
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final now = helper.nowInIstanbul();
   /// final tomorrow = helper.tomorrowAt(9, 0);
@@ -201,11 +201,11 @@ class TimezoneHelper {
   }
 
   /// Verilen DateTime'ın bugün olup olmadığını kontrol eder
-    /// [dateTime] - Kontrol edilecek DateTime
+  /// [dateTime] - Kontrol edilecek DateTime
   /// Returns: Bugünse true, değilse false
-    /// Örnek:
+  /// Örnek:
   /// ```dart
-  /// final someDate = DateTime(2024, 1, 15);
+  /// final someDate = DateTime(2026, 1, 15);
   /// if (helper.isToday(someDate)) {
   ///   print('Bu tarih bugün');
   /// }
@@ -219,9 +219,9 @@ class TimezoneHelper {
   }
 
   /// Günün başlangıcını (00:00:00) döndürür
-    /// [dateTime] - Referans tarih (opsiyonel, varsayılan bugün)
+  /// [dateTime] - Referans tarih (opsiyonel, varsayılan bugün)
   /// Returns: Günün başlangıcı (00:00:00)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final startOfDay = helper.startOfDay();
   /// // Bugün saat 00:00:00
@@ -239,9 +239,9 @@ class TimezoneHelper {
   }
 
   /// Günün sonunu (23:59:59) döndürür
-    /// [dateTime] - Referans tarih (opsiyonel, varsayılan bugün)
+  /// [dateTime] - Referans tarih (opsiyonel, varsayılan bugün)
   /// Returns: Günün sonu (23:59:59)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// final endOfDay = helper.endOfDay();
   /// // Bugün saat 23:59:59
@@ -262,13 +262,13 @@ class TimezoneHelper {
   }
 
   /// TZDateTime'ı okunabilir string'e çevirir
-    /// [dateTime] - Formatlanacak TZDateTime
-  /// Returns: Formatlanmış string (örn: "2024-01-15 14:30:00 Europe/Istanbul")
-    /// Örnek:
+  /// [dateTime] - Formatlanacak TZDateTime
+  /// Returns: Formatlanmış string (örn: "2026-01-15 14:30:00 Europe/Istanbul")
+  /// Örnek:
   /// ```dart
   /// final now = helper.nowInIstanbul();
   /// print(helper.format(now));
-  /// // Çıktı: "2024-01-15 14:30:00 Europe/Istanbul"
+  /// // Çıktı: "2026-01-15 14:30:00 Europe/Istanbul"
   /// ```
   String format(tz.TZDateTime dateTime) {
     return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-'

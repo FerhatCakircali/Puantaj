@@ -7,7 +7,7 @@ import '../../../../shared/widgets/profile/shared_profile_info_card.dart';
 import '../../../../shared/widgets/profile/shared_password_card.dart';
 import '../mixins/worker_profile_data_mixin.dart';
 import '../mixins/worker_password_mixin.dart';
-import '../widgets/profile_edit_dialog.dart';
+import '../dialogs/worker_profile_edit_dialog.dart';
 import '../widgets/password_change_dialog.dart';
 
 /// Çalışan profil ekranı
@@ -71,14 +71,14 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen>
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => ProfileEditDialog(
+      builder: (context) => WorkerProfileEditDialog(
         workerId: worker!.id!,
         username: username ?? '',
         fullName: worker!.fullName,
         title: worker!.title,
         phone: worker!.phone,
         email: worker!.email,
-        onSave:
+        onSaveCallback:
             ({
               required String username,
               required String fullName,

@@ -4,14 +4,22 @@ import '../../../../core/mixins/context_safety_mixin.dart';
 import '../../../../data/services/local_storage_service.dart';
 import '../../../../models/worker.dart';
 import '../../../../services/worker_service.dart';
+import '../../../../core/di/service_locator.dart';
 
 /// Çalışan profil veri yönetimi mixin'i
 /// Profil bilgilerini yükleme, güncelleme ve session yönetimi
 mixin WorkerProfileDataMixin<T extends StatefulWidget> on State<T> {
   ContextSafetyMixin get contextSafety => this as ContextSafetyMixin;
 
-  final _workerService = WorkerService();
-  final _localStorage = LocalStorageService.instance;
+  late final WorkerService _workerService;
+  late final LocalStorageService _localStorage;
+
+  @override
+  void initState() {
+    super.initState();
+    _workerService = getIt<WorkerService>();
+    _localStorage = getIt<LocalStorageService>();
+  }
 
   Worker? _worker;
   String? _username;

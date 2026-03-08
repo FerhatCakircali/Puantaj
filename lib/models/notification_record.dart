@@ -1,9 +1,6 @@
 /// Bildirim kayıt modeli
 /// Veritabanındaki notifications tablosuna karşılık gelir.
 /// Sistem tarafından gönderilen bildirimlerin kaydını tutar.
-/// NOT: Bu model NotificationPayload'dan farklıdır:
-/// - NotificationPayload: Flutter local notifications için payload
-/// - NotificationRecord: Veritabanı kaydı için model
 class NotificationRecord {
   /// Bildirim ID'si (veritabanı primary key)
   final int? id;

@@ -33,11 +33,6 @@ class ApproveAttendanceUseCase
     // Call repository to approve
     final result = await _repository.approve(params.attendanceId);
 
-    // TODO: Trigger notification to employee
-    // if (result is Success<Attendance>) {
-    //   await _notificationRepository.create(...);
-    // }
-
     return result;
   }
 }

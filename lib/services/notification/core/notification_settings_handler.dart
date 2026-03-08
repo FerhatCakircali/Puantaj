@@ -6,6 +6,7 @@ import '../../../models/notification_settings.dart';
 import '../../attendance_check.dart';
 import '../../auth_service.dart';
 import '../mixins/notification_scheduling_mixin.dart';
+import '../../../core/constants/database_constants.dart';
 
 /// Bildirim ayarları yönetimi
 class NotificationSettingsHandler {
@@ -66,8 +67,28 @@ class NotificationSettingsHandler {
 
         final pendingNotifications = await plugin.pendingNotificationRequests();
 
-        if (pendingNotifications.isEmpty) {
-          debugPrint('Zamanlanmış bildirim yok, yeniden zamanlanıyor...');
+        // Çoklu bildirim kontrolü - aynı ID'den birden fazla varsa hepsini iptal et
+        final notificationIds = pendingNotifications.map((n) => n.id).toList();
+        final duplicateIds = notificationIds
+            .where(
+              (id) =>
+                  notificationIds.where((otherId) => otherId == id).length > 1,
+            )
+            .toSet();
+
+        if (duplicateIds.isNotEmpty) {
+          debugPrint(
+            '⚠️ Çoklu bildirim tespit edildi! İptal ediliyor: $duplicateIds',
+          );
+          for (final id in duplicateIds) {
+            await plugin.cancel(id);
+          }
+        }
+
+        if (pendingNotifications.isEmpty || duplicateIds.isNotEmpty) {
+          debugPrint(
+            'Zamanlanmış bildirim yok veya çoklu bildirim temizlendi, yeniden zamanlanıyor...',
+          );
 
           final user = await authService.currentUser;
           if (user != null) {
@@ -86,6 +107,15 @@ class NotificationSettingsHandler {
               username: username,
               fullName: fullName,
               time: TimeOfDay(hour: hour, minute: minute),
+            );
+          }
+        } else {
+          debugPrint(
+            'Zamanlanmış bildirim mevcut: ${pendingNotifications.length} adet',
+          );
+          for (final notification in pendingNotifications) {
+            debugPrint(
+              '  - ID: ${notification.id}, Başlık: ${notification.title}',
             );
           }
         }
@@ -110,7 +140,7 @@ class NotificationSettingsHandler {
       final endOfDay = startOfDay.add(const Duration(days: 1));
 
       final List<dynamic> res = await supabase
-          .from('attendance')
+          .from(DatabaseConstants.attendanceTable)
           .select('id')
           .eq('user_id', userId)
           .gte('date', startOfDay.toIso8601String())

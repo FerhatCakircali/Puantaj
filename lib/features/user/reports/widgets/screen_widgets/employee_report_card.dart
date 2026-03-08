@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../../models/employee.dart';
-import '../../../../../screens/constants/colors.dart';
+import 'employee_report_card/widgets/employee_avatar.dart';
+import 'employee_report_card/widgets/employee_info.dart';
+import 'employee_report_card/widgets/attendance_stat_chip.dart';
+import 'employee_report_card/widgets/attendance_dates_dialog.dart';
+import 'employee_report_card/constants/attendance_colors.dart';
 
 /// Çalışan rapor kartı - Modern tasarım
 class EmployeeReportCard extends StatelessWidget {
@@ -45,67 +49,16 @@ class EmployeeReportCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Employee Name and Title
             Row(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        primaryIndigo,
-                        primaryIndigo.withValues(alpha: 0.7),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Center(
-                    child: Text(
-                      employee.name.isNotEmpty
-                          ? employee.name[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
+                EmployeeAvatar(name: employee.name),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        employee.name,
-                        style: TextStyle(
-                          fontSize: fontSize,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (employee.title.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          employee.title,
-                          style: TextStyle(
-                            fontSize: fontSize * 0.875,
-                            fontWeight: FontWeight.w500,
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.6)
-                                : Colors.grey.shade600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ],
+                  child: EmployeeInfo(
+                    name: employee.name,
+                    title: employee.title,
+                    fontSize: fontSize,
+                    isDark: isDark,
                   ),
                 ),
                 Icon(
@@ -116,114 +69,60 @@ class EmployeeReportCard extends StatelessWidget {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
-            // Attendance Stats
             Row(
               children: [
                 Expanded(
-                  child: _buildStatChip(
-                    context: context,
+                  child: AttendanceStatChip(
                     label: 'Tam',
                     value: fullDays,
-                    color: const Color(0xFF4F5FBF), // Koyu mavi
+                    color: AttendanceColors.fullDay,
                     isDark: isDark,
+                    hasDetails: _getDatesForLabel('Tam').isNotEmpty,
+                    onTap: () => _showDatesDialog(
+                      context,
+                      'Tam',
+                      _getDatesForLabel('Tam'),
+                      AttendanceColors.fullDay,
+                      isDark,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _buildStatChip(
-                    context: context,
+                  child: AttendanceStatChip(
                     label: 'Yarım',
                     value: halfDays,
-                    color: const Color(0xFF8B9FE8), // Açık mavi
+                    color: AttendanceColors.halfDay,
                     isDark: isDark,
+                    hasDetails: _getDatesForLabel('Yarım').isNotEmpty,
+                    onTap: () => _showDatesDialog(
+                      context,
+                      'Yarım',
+                      _getDatesForLabel('Yarım'),
+                      AttendanceColors.halfDay,
+                      isDark,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _buildStatChip(
-                    context: context,
+                  child: AttendanceStatChip(
                     label: 'Gelmedi',
                     value: absentDays,
-                    color: const Color(0xFFE89595), // Açık kırmızı
+                    color: AttendanceColors.absent,
                     isDark: isDark,
+                    hasDetails: _getDatesForLabel('Gelmedi').isNotEmpty,
+                    onTap: () => _showDatesDialog(
+                      context,
+                      'Gelmedi',
+                      _getDatesForLabel('Gelmedi'),
+                      AttendanceColors.absent,
+                      isDark,
+                    ),
                   ),
                 ),
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatChip({
-    required BuildContext context,
-    required String label,
-    required int value,
-    required Color color,
-    required bool isDark,
-  }) {
-    final dates = _getDatesForLabel(label);
-
-    return GestureDetector(
-      onTap: dates.isNotEmpty
-          ? () {
-              _showDatesDialog(context, label, dates, color, isDark);
-            }
-          : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
-          boxShadow: dates.isNotEmpty
-              ? [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '$value',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: color,
-                    height: 1.0,
-                  ),
-                ),
-                if (dates.isNotEmpty) ...[
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.visibility_outlined,
-                    size: 14,
-                    color: color.withValues(alpha: 0.7),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.6)
-                    : Colors.grey.shade600,
-              ),
             ),
           ],
         ),
@@ -249,118 +148,13 @@ class EmployeeReportCard extends StatelessWidget {
     Color color,
     bool isDark,
   ) {
-    IconData icon;
-    String title;
-
-    if (label == 'Tam') {
-      icon = Icons.wb_sunny;
-      title = 'Tam Gün Çalıştığı Günler';
-    } else if (label == 'Yarım') {
-      icon = Icons.wb_twilight;
-      title = 'Yarım Gün Çalıştığı Günler';
-    } else {
-      icon = Icons.cancel_outlined;
-      title = 'Gelmediği Günler';
-    }
-
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: isDark ? const Color(0xFF0A0E1A) : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          constraints: const BoxConstraints(maxHeight: 500),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Icon(icon, color: color, size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: Icon(
-                        Icons.close,
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.7)
-                            : Colors.grey.shade700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(
-                height: 1,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.grey.shade200,
-              ),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: dates.length,
-                  itemBuilder: (context, index) {
-                    final date = dates[index];
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.1)
-                              : Colors.grey.shade200,
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.calendar_today, size: 16, color: color),
-                          const SizedBox(width: 12),
-                          Text(
-                            '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+      builder: (context) => AttendanceDatesDialog(
+        label: label,
+        dates: dates,
+        color: color,
+        isDark: isDark,
       ),
     );
   }

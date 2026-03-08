@@ -215,7 +215,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                                       reminders: filteredReminders,
                                       isLoading: isLoadingReminders,
                                       onRefresh: loadReminders,
-                                      onDelete: deleteReminderOptimistic,
+                                      onDelete: deleteReminder,
                                       onAddNew: () {
                                         // Boş fonksiyon - Add new butonu WorkerListView'da
                                       },

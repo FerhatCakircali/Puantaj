@@ -58,7 +58,7 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           setState(() => _isLoading = false);
         }
 
-                ref.read(authStateProvider.notifier).login();
+        ref.read(authStateProvider.notifier).login();
 
         // Handle navigation
         if (mounted) {
@@ -173,7 +173,7 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       debugPrint('🧹 Çalışan girişi - Kullanıcı oturumu temizleniyor...');
       try {
         await _authService.signOut();
-                ref.read(authStateProvider.notifier).logout();
+        ref.read(authStateProvider.notifier).logout();
         debugPrint('Kullanıcı oturumu temizlendi');
       } catch (e, stackTrace) {
         ErrorLogger.instance.logError(
@@ -255,16 +255,14 @@ mixin LoginAuthMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> _performAutoLoginCheck() async {
     if (!mounted) return;
 
-    // 1. Admin session check
     final user = await _authService.currentUser;
     if (user != null && mounted) {
       debugPrint('✅ Yönetici session bulundu, /home\'a yönlendiriliyor');
-            ref.read(authStateProvider.notifier).login();
+      ref.read(authStateProvider.notifier).login();
       context.go('/home');
       return;
     }
 
-    // 2. Worker session check
     final localStorage = LocalStorageService.instance;
     final workerSession = await localStorage.getWorkerSession();
     if (workerSession != null && mounted) {

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../../services/payment_service.dart';
+import '../../../../core/di/service_locator.dart';
 
 /// Ödeme geçmişi iş mantığı kontrolcüsü
 class PaymentHistoryController {
-  final PaymentService _paymentService = PaymentService();
+  final PaymentService _paymentService;
+
+  PaymentHistoryController({PaymentService? paymentService})
+    : _paymentService = paymentService ?? getIt<PaymentService>();
 
   /// Belirtilen tarih aralığındaki ödemeleri yükler
   Future<List<Map<String, dynamic>>> loadPayments({

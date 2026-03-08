@@ -14,6 +14,10 @@ class DatabaseConstants {
   static const String notificationsTable = 'notifications';
   static const String notificationSettingsTable = 'notification_settings';
   static const String paymentsTable = 'payments';
+  static const String paidDaysTable = 'paid_days';
+  static const String advancesTable = 'advances';
+  static const String expensesTable = 'expenses';
+  static const String employeeRemindersTable = 'employee_reminders';
 
   // ==================== WORKERS ALANLARI ====================
 

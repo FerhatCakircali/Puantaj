@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../../models/employee.dart';
 import '../../../../services/worker_service.dart';
+import '../../../../core/di/service_locator.dart';
 
 /// Çalışan ekranı iş mantığı mixin'i
-/// Arama, filtreleme, sıralama ve CRUD operasyonlarını yönetir
 mixin EmployeeScreenMixin<T extends StatefulWidget> on State<T> {
   // Servisler
-  final WorkerService workerService = WorkerService();
+  final WorkerService workerService = getIt<WorkerService>();
 
   // State
   List<Employee> employees = [];

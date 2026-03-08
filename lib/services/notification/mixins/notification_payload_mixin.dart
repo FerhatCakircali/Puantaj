@@ -18,17 +18,11 @@ import '../../../models/notification_payload.dart';
 /// ```
 mixin NotificationPayloadMixin {
   /// Bildirime tıklandığında çağrılır
-    /// Payload string'ini ayrıştırır, doğrular ve routing bilgisini kaydeder.
+  /// Payload string'ini ayrıştırır, doğrular ve routing bilgisini kaydeder.
   /// Uygulama kapalıyken tıklanan bildirimler için payload saklanır.
-    /// [payloadString] Bildirimden gelen JSON formatında payload string'i
+  /// [payloadString] Bildirimden gelen JSON formatında payload string'i
   ///                 veya basit string (örn: 'attendance_requests')
-    /// İşlem adımları:
-  /// 1. Payload null kontrolü
-  /// 2. Basit string mi JSON mu kontrol et
-  /// 3. JSON ise ayrıştır, basit string ise direkt işle
-  /// 4. Routing bilgisini kaydetme
-  /// 5. Hata durumunda loglama
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// await handleNotificationTap(payloadString);
   /// ```
@@ -80,9 +74,9 @@ mixin NotificationPayloadMixin {
   }
 
   /// Basit string payload'ları işler
-    /// JSON olmayan basit string payload'lar için kullanılır.
+  /// JSON olmayan basit string payload'lar için kullanılır.
   /// Örnek: 'attendance_requests', 'attendance_request:72'
-    /// [payload] Basit string payload
+  /// [payload] Basit string payload
   Future<void> _handleSimplePayload(String payload) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -159,7 +153,7 @@ mixin NotificationPayloadMixin {
         case 'payment_received':
         case 'payment_updated':
         case 'payment_deleted':
-                    // ID olmadan gelen bildirimler için (eski format uyumluluğu)
+          // ID olmadan gelen bildirimler için (eski format uyumluluğu)
           debugPrint('Çalışan bildirimi tespit edildi: $payload');
           await prefs.setString('worker_notification_type', payload);
           await prefs.setBool('has_pending_notification', true);
@@ -175,16 +169,16 @@ mixin NotificationPayloadMixin {
   }
 
   /// Routing bilgisini SharedPreferences'a kaydeder
-    /// Uygulama açıldığında bu bilgiler kullanılarak
+  /// Uygulama açıldığında bu bilgiler kullanılarak
   /// kullanıcı doğru sayfaya yönlendirilir.
-    /// [payload] Kaydedilecek payload bilgisi
-    /// Kaydedilen bilgiler:
+  /// [payload] Kaydedilecek payload bilgisi
+  /// Kaydedilen bilgiler:
   /// - notification_type: Bildirim tipi (attendanceReminder/employeeReminder)
   /// - notification_user_id: Kullanıcı ID'si
   /// - notification_reminder_id: Hatırlatıcı ID'si (sadece employeeReminder için)
   /// - has_pending_notification: Bekleyen yönlendirme var mı?
   /// - worker_notification_type: Çalışan için bildirim tipi (username worker_ ile başlıyorsa)
-    /// Örnek:
+  /// Örnek:
   /// ```dart
   /// await saveRoutingInfo(payload);
   /// ```
@@ -230,10 +224,10 @@ mixin NotificationPayloadMixin {
   }
 
   /// Payload'ı doğrular
-    /// Payload'daki zorunlu alanların geçerli olup olmadığını kontrol eder.
-    /// [payload] Doğrulanacak payload
-    /// Returns: Payload geçerliyse true, değilse false
-    /// Doğrulama kuralları:
+  /// Payload'daki zorunlu alanların geçerli olup olmadığını kontrol eder.
+  /// [payload] Doğrulanacak payload
+  /// Returns: Payload geçerliyse true, değilse false
+  /// Doğrulama kuralları:
   /// - userId pozitif olmalı
   /// - username boş olmamalı
   /// - fullName boş olmamalı

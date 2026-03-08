@@ -2680,8 +2680,8 @@ COMMENT ON FUNCTION get_workers_with_unpaid_days(UUID) IS
 -- Kullanım:
 --   SELECT * FROM get_payment_summary(
 --     'user-uuid-here',
---     '2024-01-01',
---     '2024-01-31'
+--     '2026-01-01',
+--     '2026-01-31'
 --   );
 --
 -- Saat Dilimi: Europe/Istanbul (UTC+3)

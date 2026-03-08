@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/employee.dart';
-import '../../../../models/attendance.dart' as attendance;
-import '../../../../services/attendance_service.dart';
-import '../../../../services/advance_service.dart';
-import '../../services/pdf_service.dart';
-import '../../../../services/payment_service.dart';
 import '../../../../screens/constants/colors.dart';
+import '../../../../shared/widgets/dialog/dialog_handle_bar.dart';
 import 'employee_details/index.dart';
+import 'employee_details_dialog/controllers/employee_details_controller.dart';
+import 'employee_details_dialog/handlers/attendance_data_loader.dart';
+import 'employee_details_dialog/handlers/pdf_report_handler.dart';
 
 /// Çalışan detay dialog'u
-/// Çalışanın devam ve ödeme bilgilerini gösterir
+///
+/// Çalışanın devam ve ödeme bilgilerini gösterir.
+/// PDF rapor oluşturma özelliği sunar.
 class EmployeeDetailsDialog extends StatefulWidget {
   final Employee employee;
   final VoidCallback onPaymentComplete;
@@ -21,6 +22,7 @@ class EmployeeDetailsDialog extends StatefulWidget {
     required this.onPaymentComplete,
   });
 
+  /// Dialog'u modal bottom sheet olarak gösterir
   static void show(
     BuildContext context, {
     required Employee employee,
@@ -31,7 +33,7 @@ class EmployeeDetailsDialog extends StatefulWidget {
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
-            isDismissible: true,
+      isDismissible: true,
       enableDrag: true,
       builder: (context) => EmployeeDetailsDialog(
         employee: employee,
@@ -45,187 +47,102 @@ class EmployeeDetailsDialog extends StatefulWidget {
 }
 
 class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
-  bool _isLoading = true;
-  bool _isGeneratingReport = false;
-  int _fullDays = 0;
-  int _halfDays = 0;
-  int _absentDays = 0;
-  List<DateTime> _fullDayDates = [];
-  List<DateTime> _halfDayDates = [];
-  List<DateTime> _absentDayDates = [];
-  double _totalPaid = 0.0;
-  int _paidFullDays = 0;
-  int _paidHalfDays = 0;
-  final PdfService _pdfService = PdfService();
-  final AttendanceService _attendanceService = AttendanceService();
-  final PaymentService _paymentService = PaymentService();
-  final AdvanceService _advanceService = AdvanceService();
+  late final EmployeeDetailsController _controller;
+  late final AttendanceDataLoader _dataLoader;
+  late final PdfReportHandler _pdfHandler;
 
   @override
   void initState() {
     super.initState();
+    _controller = EmployeeDetailsController();
+    _dataLoader = AttendanceDataLoader();
+    _pdfHandler = PdfReportHandler();
     _loadAttendanceData();
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadAttendanceData() async {
-    final records = await AttendanceService().getAttendanceBetween(
-      widget.employee.startDate,
-      DateTime.now(),
-      workerId: widget.employee.id,
-    );
-
-    _fullDays = 0;
-    _halfDays = 0;
-    _absentDays = 0;
-    _fullDayDates = [];
-    _halfDayDates = [];
-    _absentDayDates = [];
-
-    DateTime currentDate = widget.employee.startDate;
-    while (!currentDate.isAfter(DateTime.now())) {
-      final record = records.firstWhere(
-        (r) =>
-            r.date.year == currentDate.year &&
-            r.date.month == currentDate.month &&
-            r.date.day == currentDate.day,
-        orElse: () => attendance.Attendance(
-          userId: 0,
-          workerId: widget.employee.id,
-          date: currentDate,
-          status: attendance.AttendanceStatus.absent,
-        ),
-      );
-
-      switch (record.status) {
-        case attendance.AttendanceStatus.fullDay:
-          _fullDays++;
-          _fullDayDates.add(currentDate);
-          break;
-        case attendance.AttendanceStatus.halfDay:
-          _halfDays++;
-          _halfDayDates.add(currentDate);
-          break;
-        case attendance.AttendanceStatus.absent:
-          _absentDays++;
-          _absentDayDates.add(currentDate);
-          break;
-      }
-      currentDate = currentDate.add(const Duration(days: 1));
-    }
-
-    final payments = await _paymentService.getPaymentsByWorkerId(
-      widget.employee.id,
-    );
-    _totalPaid = payments.fold(0.0, (sum, payment) => sum + payment.amount);
-    _paidFullDays = payments.fold(0, (sum, payment) => sum + payment.fullDays);
-    _paidHalfDays = payments.fold(0, (sum, payment) => sum + payment.halfDays);
+    final data = await _dataLoader.loadEmployeeData(widget.employee);
 
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      _controller.updateAttendanceData(
+        fullDays: data.attendanceResult.fullDays,
+        halfDays: data.attendanceResult.halfDays,
+        absentDays: data.attendanceResult.absentDays,
+        fullDayDates: data.attendanceResult.fullDayDates,
+        halfDayDates: data.attendanceResult.halfDayDates,
+        absentDayDates: data.attendanceResult.absentDayDates,
+      );
+
+      _controller.updatePaymentData(
+        totalPaid: data.totalPaid,
+        paidFullDays: data.paidFullDays,
+        paidHalfDays: data.paidHalfDays,
+      );
+
+      _controller.setLoading(false);
     }
   }
 
   Future<void> _createEmployeeReport() async {
-    if (_isGeneratingReport) return;
+    if (_controller.isGeneratingReport) return;
 
-    setState(() => _isGeneratingReport = true);
+    _controller.setGeneratingReport(true);
 
-    try {
-      final attendances = await _attendanceService.getAttendanceBetween(
-        widget.employee.startDate,
-        DateTime.now(),
-        workerId: widget.employee.id,
-      );
-      final payments = await _paymentService.getPaymentsByWorkerId(
-        widget.employee.id,
-      );
-      final advances = await _advanceService.getWorkerAdvances(
-        widget.employee.id,
-      );
-      await _pdfService.generateEmployeeReport(
-        widget.employee,
-        attendances,
-        payments,
-        advances,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Rapor başarıyla oluşturuldu'),
-            backgroundColor: primaryIndigo,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Rapor oluşturulurken hata oluştu: $e'),
-            backgroundColor: Colors.red.shade600,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isGeneratingReport = false);
-      }
+    await _pdfHandler.generateEmployeeReport(context, widget.employee);
+
+    if (mounted) {
+      _controller.setGeneratingReport(false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final backgroundColor = isDark ? const Color(0xFF0A0E1A) : Colors.white;
 
-    return Container(
-      height: screenHeight * 0.85,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(32),
-          topRight: Radius.circular(32),
-        ),
-      ),
-      child: Column(
-        children: [
-          _buildDragHandle(isDark),
-          const SizedBox(height: 16),
-          _buildHeader(isDark),
-          const SizedBox(height: 16),
-          Expanded(
-            child: _isLoading
-                ? Center(child: CircularProgressIndicator(color: primaryIndigo))
-                : _buildContent(isDark),
+    return ListenableBuilder(
+      listenable: _controller,
+      builder: (context, _) {
+        return Container(
+          height: screenHeight * 0.85,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(32),
+              topRight: Radius.circular(32),
+            ),
           ),
-          _buildBottomButton(isDark),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDragHandle(bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      width: 40,
-      height: 4,
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.3)
-            : Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(2),
-      ),
+          child: Column(
+            children: [
+              DialogHandleBar(
+                screenWidth: screenWidth,
+                colorScheme: colorScheme,
+              ),
+              const SizedBox(height: 16),
+              _buildHeader(isDark),
+              const SizedBox(height: 16),
+              Expanded(
+                child: _controller.isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(color: primaryIndigo),
+                      )
+                    : _buildContent(isDark),
+              ),
+              _buildBottomButton(isDark),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -319,7 +236,7 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
                 child: EmployeeStatCard(
                   icon: Icons.wb_sunny,
                   label: 'Tam Gün',
-                  value: '$_fullDays',
+                  value: '${_controller.fullDays}',
                   color: const Color(0xFF4F5FBF),
                 ),
               ),
@@ -328,7 +245,7 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
                 child: EmployeeStatCard(
                   icon: Icons.wb_twilight,
                   label: 'Yarım',
-                  value: '$_halfDays',
+                  value: '${_controller.halfDays}',
                   color: const Color(0xFF8B9FE8),
                 ),
               ),
@@ -337,7 +254,7 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
                 child: EmployeeStatCard(
                   icon: Icons.cancel_outlined,
                   label: 'Gelmedi',
-                  value: '$_absentDays',
+                  value: '${_controller.absentDays}',
                   color: const Color(0xFFE89595),
                 ),
               ),
@@ -356,33 +273,33 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
             value: DateFormat('dd/MM/yyyy').format(widget.employee.startDate),
           ),
           const SizedBox(height: 16),
-          if (_fullDayDates.isNotEmpty)
+          if (_controller.fullDayDates.isNotEmpty)
             EmployeeDayExpansion(
               title: 'Geldiği Günler (Tam)',
-              dates: _fullDayDates,
+              dates: _controller.fullDayDates,
               icon: Icons.wb_sunny,
               color: const Color(0xFF4F5FBF),
             ),
-          if (_halfDayDates.isNotEmpty)
+          if (_controller.halfDayDates.isNotEmpty)
             EmployeeDayExpansion(
               title: 'Geldiği Günler (Yarım)',
-              dates: _halfDayDates,
+              dates: _controller.halfDayDates,
               icon: Icons.wb_twilight,
               color: const Color(0xFF8B9FE8),
             ),
-          if (_absentDayDates.isNotEmpty)
+          if (_controller.absentDayDates.isNotEmpty)
             EmployeeDayExpansion(
               title: 'Gelmediği Günler',
-              dates: _absentDayDates,
+              dates: _controller.absentDayDates,
               icon: Icons.cancel_outlined,
               color: const Color(0xFFE89595),
             ),
-          if (_totalPaid > 0) ...[
+          if (_controller.totalPaid > 0) ...[
             const SizedBox(height: 16),
             EmployeeTotalPaidCard(
-              totalPaid: _totalPaid,
-              paidFullDays: _paidFullDays,
-              paidHalfDays: _paidHalfDays,
+              totalPaid: _controller.totalPaid,
+              paidFullDays: _controller.paidFullDays,
+              paidHalfDays: _controller.paidHalfDays,
             ),
           ],
           const SizedBox(height: 24),
@@ -411,7 +328,9 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
         width: double.infinity,
         height: 56,
         child: FilledButton.icon(
-          onPressed: _isGeneratingReport ? null : _createEmployeeReport,
+          onPressed: _controller.isGeneratingReport
+              ? null
+              : _createEmployeeReport,
           style: FilledButton.styleFrom(
             backgroundColor: primaryIndigo,
             shape: RoundedRectangleBorder(
@@ -419,7 +338,7 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
             ),
             elevation: 0,
           ),
-          icon: _isGeneratingReport
+          icon: _controller.isGeneratingReport
               ? const SizedBox(
                   width: 20,
                   height: 20,
@@ -430,7 +349,9 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
                 )
               : const Icon(Icons.picture_as_pdf, size: 20),
           label: Text(
-            _isGeneratingReport ? 'Rapor Oluşturuluyor...' : 'Rapor Oluştur',
+            _controller.isGeneratingReport
+                ? 'Rapor Oluşturuluyor...'
+                : 'Rapor Oluştur',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,

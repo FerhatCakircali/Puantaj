@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/worker_dashboard_controller.dart';
+import '../models/dashboard_data.dart';
 import '../widgets/worker_month_card.dart';
 import '../widgets/worker_total_card.dart';
 import '../widgets/pending_requests_card.dart';

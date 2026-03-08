@@ -45,5 +45,33 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Permissions -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil fotoğrafı eklemek için fotoğraf galerisine erişim gereklidir.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Profil fotoğrafı çekmek için kameraya erişim gereklidir.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Uygulama deneyiminizi kişiselleştirmek için izleme izni gereklidir.</string>
+	
+	<!-- Notification permissions -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	
+	<!-- Internet access -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	
+	<!-- Minimum iOS version -->
+	<key>MinimumOSVersion</key>
+	<string>12.0</string>
 </dict>
 </plist>

@@ -1,9 +1,13 @@
 import '../../../../models/expense.dart';
 import '../../../../services/expense_service.dart';
+import '../../../../core/di/service_locator.dart';
 
 /// Masraf ekranı iş mantığı kontrolcüsü
 class ExpenseController {
-  final ExpenseService _expenseService = ExpenseService();
+  final ExpenseService _expenseService;
+
+  ExpenseController({ExpenseService? expenseService})
+    : _expenseService = expenseService ?? getIt<ExpenseService>();
 
   /// Tüm masrafları ve istatistikleri yükler
   Future<ExpenseData> loadExpenseData() async {

@@ -21,7 +21,7 @@ class ErrorHandler {
   ErrorHandler._internal();
 
   /// Hata loglama - production'da farklı davranabilir
-    /// [context] - Hatanın oluştuğu bağlam (örn: 'NotificationService.init')
+  /// [context] - Hatanın oluştuğu bağlam (örn: 'NotificationService.init')
   /// [error] - Hata nesnesi
   /// [stackTrace] - Stack trace (opsiyonel)
   /// [additionalInfo] - Ek bilgi (opsiyonel)
@@ -61,13 +61,10 @@ class ErrorHandler {
       // Production'da daha az detaylı log
       debugPrint('ERROR [$context]: $error');
     }
-
-    // TODO: Production'da Sentry, Firebase Crashlytics vb. entegre edilebilir
-    // _sendToErrorTracking(context, error, stackTrace, additionalInfo);
   }
 
   /// Bilgi loglama
-    /// [context] - Bilginin oluştuğu bağlam
+  /// [context] - Bilginin oluştuğu bağlam
   /// [message] - Bilgi mesajı
   /// [data] - Ek veri (opsiyonel)
   static void logInfo(
@@ -86,7 +83,7 @@ class ErrorHandler {
   }
 
   /// Uyarı loglama
-    /// [context] - Uyarının oluştuğu bağlam
+  /// [context] - Uyarının oluştuğu bağlam
   /// [message] - Uyarı mesajı
   /// [data] - Ek veri (opsiyonel)
   static void logWarning(
@@ -105,7 +102,7 @@ class ErrorHandler {
   }
 
   /// Başarı loglama
-    /// [context] - Başarının oluştuğu bağlam
+  /// [context] - Başarının oluştuğu bağlam
   /// [message] - Başarı mesajı
   /// [data] - Ek veri (opsiyonel)
   static void logSuccess(
@@ -124,7 +121,7 @@ class ErrorHandler {
   }
 
   /// Debug loglama (sadece debug modda)
-    /// [context] - Debug bilgisinin oluştuğu bağlam
+  /// [context] - Debug bilgisinin oluştuğu bağlam
   /// [message] - Debug mesajı
   /// [data] - Ek veri (opsiyonel)
   static void logDebug(
@@ -143,7 +140,7 @@ class ErrorHandler {
   }
 
   /// Hata mesajını kullanıcı dostu formata çevirir
-    /// [error] - Hata nesnesi
+  /// [error] - Hata nesnesi
   /// Returns: Kullanıcı dostu hata mesajı
   static String getUserFriendlyMessage(dynamic error) {
     if (error == null) return 'Bilinmeyen bir hata oluştu';
@@ -180,7 +177,7 @@ class ErrorHandler {
   }
 
   /// Hata durumunda güvenli fallback değeri döndürür
-    /// [operation] - Çalıştırılacak işlem
+  /// [operation] - Çalıştırılacak işlem
   /// [fallback] - Hata durumunda dönecek değer
   /// [context] - Hata bağlamı
   /// Returns: İşlem sonucu veya fallback değeri
@@ -194,7 +191,7 @@ class ErrorHandler {
   }
 
   /// Async hata durumunda güvenli fallback değeri döndürür
-    /// [operation] - Çalıştırılacak async işlem
+  /// [operation] - Çalıştırılacak async işlem
   /// [fallback] - Hata durumunda dönecek değer
   /// [context] - Hata bağlamı
   /// Returns: İşlem sonucu veya fallback değeri

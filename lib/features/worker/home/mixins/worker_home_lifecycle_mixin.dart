@@ -57,20 +57,6 @@ mixin WorkerHomeLifecycleMixin<T extends StatefulWidget> on State<T> {
   /// Bildirim tıklama stream'ini dinle
   void setupNotificationClickListener(VoidCallback onNotificationClick) {
     // Stream import edilmediği için bu kısım ana dosyada kalmalı
-    // notificationClickSubscription = notificationClickStream.stream.listen((
-    //   payload,
-    // ) {
-    //   debugPrint(
-    //     '🔔 WorkerHomeScreen: Bildirim tıklama eventi alındı: $payload',
-    //   );
-    //   if (mounted) {
-    //     Future.delayed(const Duration(milliseconds: 300), () {
-    //       if (mounted) {
-    //         onNotificationClick();
-    //       }
-    //     });
-    //   }
-    // });
   }
 
   /// Lifecycle başlangıç
@@ -80,6 +66,9 @@ mixin WorkerHomeLifecycleMixin<T extends StatefulWidget> on State<T> {
   ) {
     checkAuth(context);
     startNotificationListener();
+    
+    // Uygulama başlangıcında bildirimleri kontrol et
+    _checkAndRescheduleNotifications();
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -94,6 +83,17 @@ mixin WorkerHomeLifecycleMixin<T extends StatefulWidget> on State<T> {
   void cleanupLifecycle() {
     notificationClickSubscription?.cancel();
     stopNotificationListener();
+  }
+
+  /// Bildirimleri kontrol et ve yeniden zamanla
+  Future<void> _checkAndRescheduleNotifications() async {
+    try {
+      final notificationService = NotificationService();
+      await notificationService.checkAndRescheduleNotifications();
+      debugPrint('Bildirimler yeniden zamanlandı (worker)');
+    } catch (e) {
+      debugPrint('Bildirimler yeniden zamanlanırken hata: $e');
+    }
   }
 
   /// Bekleyen bildirimi kontrol eder ve uygun yönlendirmeyi yapar

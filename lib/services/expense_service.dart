@@ -1,228 +1,115 @@
-import 'package:flutter/foundation.dart';
 import '../models/expense.dart';
-import '../core/app_globals.dart';
-import '../utils/date_formatter.dart';
-import '../utils/currency_formatter.dart';
-import '../core/error_logger.dart';
+import '../core/error_handling/error_handler_mixin.dart';
 import 'auth_service.dart';
+import 'expense/repositories/expense_repository.dart';
+import 'shared/base_user_helper.dart';
 
 /// Masraf yönetimi servisi
-/// İş masraflarının (malzeme, ulaşım vb.) CRUD işlemlerini yönetir
-class ExpenseService {
-  final _authService = AuthService();
+class ExpenseService with ErrorHandlerMixin {
+  final ExpenseRepository _repository;
+  final BaseUserHelper _userHelper;
 
-  /// Yöneticinin tüm masraflarını getir
+  ExpenseService({
+    AuthService? authService,
+    ExpenseRepository? repository,
+    BaseUserHelper? userHelper,
+  }) : _repository = repository ?? ExpenseRepository(),
+       _userHelper = userHelper ?? BaseUserHelper(authService ?? AuthService());
+
   Future<List<Expense>> getExpenses() async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) return [];
-
-      debugPrint('Masraflar getiriliyor...');
-
-      final results = await supabase
-          .from('expenses')
-          .select()
-          .eq('user_id', userId)
-          .order('expense_date', ascending: false);
-
-      final expenses = results.map((map) => Expense.fromMap(map)).toList();
-
-      debugPrint('${expenses.length} masraf getirildi');
-      return expenses;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'ExpenseService.getExpenses hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return [];
-    }
+    return handleError(
+      () => _userHelper.executeWithUserId(
+        (userId) => _repository.getExpenses(userId),
+        defaultValue: [],
+      ),
+      [],
+      context: 'ExpenseService.getExpenses',
+    );
   }
 
-  /// Kategoriye göre masrafları getir
   Future<List<Expense>> getExpensesByCategory(ExpenseCategory category) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) return [];
-
-      debugPrint(
-        '🏗️ Kategori masrafları getiriliyor: ${category.displayName}',
-      );
-
-      final results = await supabase
-          .from('expenses')
-          .select()
-          .eq('user_id', userId)
-          .eq('category', category.value)
-          .order('expense_date', ascending: false);
-
-      final expenses = results.map((map) => Expense.fromMap(map)).toList();
-
-      debugPrint('${expenses.length} masraf getirildi');
-      return expenses;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'ExpenseService.getExpensesByCategory hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return [];
-    }
+    return handleError(
+      () => _userHelper.executeWithUserId(
+        (userId) => _repository.getExpensesByCategory(userId, category),
+        defaultValue: [],
+      ),
+      [],
+      context: 'ExpenseService.getExpensesByCategory',
+    );
   }
 
-  /// Kategorilere göre toplam masrafları getir
   Future<Map<ExpenseCategory, double>> getCategoryTotals() async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) return {};
+    return handleError(
+      () async => await _userHelper.executeWithUserId((userId) async {
+        final Map<ExpenseCategory, double> totals = {};
+        for (var category in ExpenseCategory.values) {
+          totals[category] = await _repository.getCategoryTotal(
+            userId,
+            category,
+          );
+        }
+        return totals;
+      }, defaultValue: {}),
+      {},
+      context: 'ExpenseService.getCategoryTotals',
+    );
+  }
 
-      debugPrint('Kategori toplamları hesaplanıyor...');
+  Future<int> addExpense(Expense expense) async {
+    return handleErrorWithThrow(
+      () => _userHelper.executeWithUserId(
+        (userId) => _repository.addExpense(expense, userId),
+        defaultValue: -1,
+      ),
+      context: 'ExpenseService.addExpense',
+      userMessage: 'Masraf eklenirken hata oluştu',
+    );
+  }
 
-      final Map<ExpenseCategory, double> totals = {};
+  Future<int> updateExpense(Expense expense) async {
+    return handleErrorWithThrow(
+      () async => await _userHelper.executeWithUserId((userId) async {
+        final success = await _repository.updateExpense(expense, userId);
+        return success ? 1 : -1;
+      }, defaultValue: -1),
+      context: 'ExpenseService.updateExpense',
+      userMessage: 'Masraf güncellenirken hata oluştu',
+    );
+  }
 
-      for (var category in ExpenseCategory.values) {
-        final result = await supabase.rpc(
-          'get_expenses_by_category',
-          params: {'user_id_param': userId, 'category_param': category.value},
-        );
-
-        final total = (result as num?)?.toDouble() ?? 0.0;
-        totals[category] = total;
-
-        debugPrint(
-          '  ${category.displayName}: ${CurrencyFormatter.formatWithSymbol(total)}',
-        );
-      }
-
-      debugPrint('Kategori toplamları hesaplandı');
-      return totals;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'ExpenseService.getCategoryTotals hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return {};
-    }
+  Future<int> deleteExpense(int id) async {
+    return handleErrorWithThrow(
+      () async => await _userHelper.executeWithUserId((userId) async {
+        final success = await _repository.deleteExpense(id, userId);
+        return success ? 1 : -1;
+      }, defaultValue: -1),
+      context: 'ExpenseService.deleteExpense',
+      userMessage: 'Masraf silinirken hata oluştu',
+    );
   }
 
   /// En çok harcanan kategoriyi getir
   Future<Map<String, dynamic>?> getTopExpenseCategory() async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) return null;
+    return handleError(
+      () async {
+        final categoryTotals = await getCategoryTotals();
+        if (categoryTotals.isEmpty) return null;
 
-      debugPrint('En çok harcanan kategori hesaplanıyor...');
+        var topCategory = categoryTotals.entries.first.key;
+        var topAmount = categoryTotals.entries.first.value;
 
-      final result = await supabase.rpc(
-        'get_top_expense_category',
-        params: {'user_id_param': userId},
-      );
+        for (var entry in categoryTotals.entries) {
+          if (entry.value > topAmount) {
+            topCategory = entry.key;
+            topAmount = entry.value;
+          }
+        }
 
-      if (result == null || result.isEmpty) {
-        debugPrint('Henüz masraf kaydı yok');
-        return null;
-      }
-
-      final topCategory = result.first;
-      final categoryValue = topCategory['category'] as String;
-      final totalAmount = (topCategory['total_amount'] as num).toDouble();
-
-      final category = ExpenseCategory.fromString(categoryValue);
-
-      debugPrint(
-        '✅ En çok harcanan: ${category.displayName} - ${CurrencyFormatter.formatWithSymbol(totalAmount)}',
-      );
-
-      return {'category': category, 'amount': totalAmount};
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'ExpenseService.getTopExpenseCategory hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
-  }
-
-  /// Yeni masraf ekle
-  Future<Expense> addExpense(Expense expense) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        ErrorLogger.instance.logError('ExpenseService.addExpense: userId null');
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
-
-      debugPrint(
-        '🏗️ Yeni masraf ekleniyor: ${expense.expenseType} - ${expense.amount}',
-      );
-
-      final expenseMap = expense.copyWith(userId: userId).toMap();
-      debugPrint('Masraf map: $expenseMap');
-
-      final result = await supabase
-          .from('expenses')
-          .insert(expenseMap)
-          .select()
-          .single();
-
-      final newExpense = Expense.fromMap(result);
-
-      debugPrint('Masraf başarıyla eklendi (ID: ${newExpense.id})');
-
-      return newExpense;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'ExpenseService.addExpense hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Masraf güncelle
-  Future<void> updateExpense(Expense expense) async {
-    try {
-      if (expense.id == null) {
-        throw Exception('Masraf ID bulunamadı');
-      }
-
-      debugPrint('Masraf güncelleniyor: ID=${expense.id}');
-
-      final expenseMap = expense.toMap();
-      expenseMap.remove('id'); // ID'yi güncelleme map'inden çıkar
-
-      await supabase.from('expenses').update(expenseMap).eq('id', expense.id!);
-
-      debugPrint('Masraf başarıyla güncellendi');
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'ExpenseService.updateExpense hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Masraf sil
-  Future<void> deleteExpense(int expenseId) async {
-    try {
-      debugPrint('Masraf siliniyor: ID=$expenseId');
-
-      await supabase.from('expenses').delete().eq('id', expenseId);
-
-      debugPrint('Masraf başarıyla silindi');
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'ExpenseService.deleteExpense hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
+        return {'category': topCategory, 'amount': topAmount};
+      },
+      null,
+      context: 'ExpenseService.getTopExpenseCategory',
+    );
   }
 
   /// Aylık masraf toplamını getir
@@ -230,35 +117,25 @@ class ExpenseService {
     DateTime monthStart,
     DateTime monthEnd,
   ) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) return 0.0;
-
-      debugPrint('Aylık masraf hesaplanıyor: $monthStart - $monthEnd');
-
-      final result = await supabase.rpc(
-        'get_monthly_expenses',
-        params: {
-          'user_id_param': userId,
-          'month_start': DateFormatter.toIso8601Date(monthStart),
-          'month_end': DateFormatter.toIso8601Date(monthEnd),
-        },
-      );
-
-      final monthlyTotal = (result as num?)?.toDouble() ?? 0.0;
-
-      debugPrint(
-        '✅ Aylık masraf: ${CurrencyFormatter.formatWithSymbol(monthlyTotal)}',
-      );
-      return monthlyTotal;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'ExpenseService.getMonthlyExpenses hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return 0.0;
-    }
+    return handleError(
+      () async => await _userHelper.executeWithUserId((userId) async {
+        final expenses = await _repository.getExpenses(userId);
+        double total = 0.0;
+        for (var expense in expenses) {
+          if (expense.expenseDate.isAfter(
+                monthStart.subtract(const Duration(days: 1)),
+              ) &&
+              expense.expenseDate.isBefore(
+                monthEnd.add(const Duration(days: 1)),
+              )) {
+            total += expense.amount;
+          }
+        }
+        return total;
+      }, defaultValue: 0.0),
+      0.0,
+      context: 'ExpenseService.getMonthlyExpenses',
+    );
   }
 
   /// Tarih aralığına göre masrafları getir
@@ -266,33 +143,23 @@ class ExpenseService {
     DateTime startDate,
     DateTime endDate,
   ) async {
-    try {
-      final userId = await _authService.getUserId();
-      if (userId == null) return [];
-
-      debugPrint(
-        '🏗️ Tarih aralığı masrafları getiriliyor: $startDate - $endDate',
-      );
-
-      final results = await supabase
-          .from('expenses')
-          .select()
-          .eq('user_id', userId)
-          .gte('expense_date', DateFormatter.toIso8601Date(startDate))
-          .lte('expense_date', DateFormatter.toIso8601Date(endDate))
-          .order('expense_date', ascending: false);
-
-      final expenses = results.map((map) => Expense.fromMap(map)).toList();
-
-      debugPrint('${expenses.length} masraf getirildi');
-      return expenses;
-    } catch (e, stackTrace) {
-      ErrorLogger.instance.logError(
-        'ExpenseService.getExpensesByDateRange hatası',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return [];
-    }
+    return handleError(
+      () async => await _userHelper.executeWithUserId((userId) async {
+        final expenses = await _repository.getExpenses(userId);
+        return expenses
+            .where(
+              (expense) =>
+                  expense.expenseDate.isAfter(
+                    startDate.subtract(const Duration(days: 1)),
+                  ) &&
+                  expense.expenseDate.isBefore(
+                    endDate.add(const Duration(days: 1)),
+                  ),
+            )
+            .toList();
+      }, defaultValue: []),
+      [],
+      context: 'ExpenseService.getExpensesByDateRange',
+    );
   }
 }

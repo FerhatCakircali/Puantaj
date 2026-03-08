@@ -127,7 +127,7 @@ class PdfPeriodEmployeeReportService {
             pw.SizedBox(height: 16),
 
             // Devam kayıtları özeti
-            PdfEmployeeReportTable.buildAttendanceSummary(
+            EmployeeReportTableHelper.buildAttendanceSummary(
               allDays,
               periodStart,
               periodEnd,
@@ -136,7 +136,7 @@ class PdfPeriodEmployeeReportService {
             pw.SizedBox(height: 16),
 
             // Ödeme bilgileri
-            PdfEmployeeReportTable.buildPaymentInfo(
+            EmployeeReportTableHelper.buildPaymentInfo(
               payments,
               allDays,
               periodStart,
@@ -146,7 +146,7 @@ class PdfPeriodEmployeeReportService {
             pw.SizedBox(height: 16),
 
             // Avans bilgileri
-            PdfEmployeeReportTable.buildAdvanceInfo(
+            EmployeeReportTableHelper.buildAdvanceInfo(
               advances,
               periodStart,
               periodEnd,
@@ -155,14 +155,14 @@ class PdfPeriodEmployeeReportService {
             pw.SizedBox(height: 16),
 
             // Tam gün çalışma kayıtları
-            if (PdfEmployeeReportTable.buildAttendanceTable(
+            if (EmployeeReportTableHelper.buildAttendanceTable(
                   allDays,
                   AttendanceStatus.fullDay,
                   'TAM GÜN ÇALIŞMA KAYITLARI',
                   styles,
                 ) !=
                 null) ...[
-              PdfEmployeeReportTable.buildAttendanceTable(
+              EmployeeReportTableHelper.buildAttendanceTable(
                 allDays,
                 AttendanceStatus.fullDay,
                 'TAM GÜN ÇALIŞMA KAYITLARI',
@@ -172,14 +172,14 @@ class PdfPeriodEmployeeReportService {
             ],
 
             // Yarım gün çalışma kayıtları
-            if (PdfEmployeeReportTable.buildAttendanceTable(
+            if (EmployeeReportTableHelper.buildAttendanceTable(
                   allDays,
                   AttendanceStatus.halfDay,
                   'YARIM GÜN ÇALIŞMA KAYITLARI',
                   styles,
                 ) !=
                 null) ...[
-              PdfEmployeeReportTable.buildAttendanceTable(
+              EmployeeReportTableHelper.buildAttendanceTable(
                 allDays,
                 AttendanceStatus.halfDay,
                 'YARIM GÜN ÇALIŞMA KAYITLARI',
@@ -189,14 +189,14 @@ class PdfPeriodEmployeeReportService {
             ],
 
             // Gelmediği günler
-            if (PdfEmployeeReportTable.buildAttendanceTable(
+            if (EmployeeReportTableHelper.buildAttendanceTable(
                   allDays,
                   AttendanceStatus.absent,
                   'GELMEDİĞİ GÜNLER',
                   styles,
                 ) !=
                 null) ...[
-              PdfEmployeeReportTable.buildAttendanceTable(
+              EmployeeReportTableHelper.buildAttendanceTable(
                 allDays,
                 AttendanceStatus.absent,
                 'GELMEDİĞİ GÜNLER',

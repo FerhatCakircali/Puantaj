@@ -23,7 +23,7 @@ class FCMService {
   String? get fcmToken => _fcmToken;
 
   /// FCM servisini başlatır
-    /// İzin ister, token alır, listener'ları kurar.
+  /// İzin ister, token alır, listener'ları kurar.
   Future<void> initialize() async {
     try {
       debugPrint('FCM servisi başlatılıyor...');
@@ -51,8 +51,7 @@ class FCMService {
         _fcmToken = newToken;
         debugPrint('🔄 FCM Token yenilendi: $newToken');
 
-        // Token'ı Supabase'e kaydet (mevcut kullanıcı/çalışan için)
-        // NOT: Bu otomatik çalışır, manuel kayıt gerekmez
+        // Token'ı Supabase'e kaydet
         try {
           // Mevcut token'ı güncelle
           await supabase
@@ -100,7 +99,7 @@ class FCMService {
     debugPrint('Mesaj: ${message.notification?.body}');
     debugPrint('Data: ${message.data}');
 
-        // Çünkü Realtime subscription zaten bildirim gösteriyor
+    // Çünkü Realtime subscription zaten bildirim gösteriyor
     debugPrint(
       '  ℹ️ Uygulama açık - Local notification gösterilmiyor (Realtime aktif)',
     );
@@ -141,7 +140,7 @@ class FCMService {
   }
 
   /// FCM token'ı Supabase'e kaydet (User için)
-    /// [userId] - Kullanıcı ID'si
+  /// [userId] - Kullanıcı ID'si
   /// [deviceInfo] - Cihaz bilgileri (opsiyonel)
   Future<void> saveTokenForUser(
     int userId, {
@@ -182,7 +181,7 @@ class FCMService {
           'user_id': userId,
           'worker_id': null,
           'token': _fcmToken,
-          'device_type': 'android', // TODO: Platform detection
+          'device_type': 'android',
           'device_info': deviceInfo ?? {},
           'is_active': true,
         });
@@ -196,7 +195,7 @@ class FCMService {
   }
 
   /// FCM token'ı Supabase'e kaydet (Worker için)
-    /// [workerId] - Çalışan ID'si
+  /// [workerId] - Çalışan ID'si
   /// [deviceInfo] - Cihaz bilgileri (opsiyonel)
   Future<void> saveTokenForWorker(
     int workerId, {
@@ -239,7 +238,7 @@ class FCMService {
           'user_id': null,
           'worker_id': workerId,
           'token': _fcmToken,
-          'device_type': 'android', // TODO: Platform detection
+          'device_type': 'android',
           'device_info': deviceInfo ?? {},
           'is_active': true,
         });
@@ -253,7 +252,7 @@ class FCMService {
   }
 
   /// FCM token'ı Supabase'den sil
-    /// Logout veya cihaz değişikliğinde kullanılır.
+  /// Logout veya cihaz değişikliğinde kullanılır.
   Future<void> deleteToken() async {
     try {
       if (_fcmToken == null) {
@@ -272,8 +271,7 @@ class FCMService {
     }
   }
 
-  /// FCM token'ı deaktif et (silmeden)
-    /// Geçici olarak bildirimleri durdurmak için kullanılır.
+  /// FCM token'ı deaktif et
   Future<void> deactivateToken() async {
     try {
       if (_fcmToken == null) {

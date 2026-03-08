@@ -18,15 +18,8 @@ final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
 final GlobalKey<ScaffoldState> globalScaffoldKey = GlobalKey<ScaffoldState>();
 
 /// Kaydedilmiş tema tercihini yükle
-/// ⚠️ DEPRECATED: Bu fonksiyon artık kullanılmıyor.
-/// Tema yükleme işlemi ThemeStateProvider tarafından otomatik yapılıyor.
-@Deprecated('Use ThemeStateProvider instead')
 Future<void> loadSavedThemeMode() async {
-  // Bu fonksiyon artık kullanılmıyor - ThemeStateProvider otomatik yüklüyor
-  ErrorHandler.logDebug(
-    'loadSavedThemeMode',
-    'DEPRECATED: ThemeStateProvider kullanılmalı',
-  );
+  ErrorHandler.logDebug('loadSavedThemeMode', 'Tema yükleme işlemi');
 }
 
 /// Global bildirim fonksiyonu

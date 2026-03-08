@@ -71,3 +71,17 @@ GoogleService-Info.plist
 # SQL dosyası (gerçek değerler)
 **/SonAsamaSQL/PuantajAllQuery.sql.local
 **/supabase/migrations/*.sql.local
+
+# Android Keystore (GİZLİ - Asla commit etmeyin!)
+*.jks
+*.keystore
+key.properties
+/android/key.properties
+/android/app/key.properties
+
+# iOS Signing (GİZLİ)
+*.mobileprovision
+*.p12
+*.cer
+*.certSigningRequest
+

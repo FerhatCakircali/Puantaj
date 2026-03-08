@@ -7,8 +7,6 @@ import 'hive_service.dart';
 /// Offline-first senkronizasyon yöneticisi
 /// İnternet bağlantısı geldiğinde bekleyen verileri Supabase'e gönderir.
 /// Connectivity_plus ile internet durumunu dinler.
-/// NOT: Circular dependency'yi önlemek için service'leri kullanmaz,
-/// direkt Supabase ile iletişim kurar.
 class SyncManager {
   // Singleton pattern
   SyncManager._();
@@ -113,6 +111,15 @@ class SyncManager {
             case 'payment':
               success = await _syncPayment(data, operation);
               break;
+            case 'worker':
+              success = await _syncWorker(data, operation);
+              break;
+            case 'advance':
+              success = await _syncAdvance(data, operation);
+              break;
+            case 'expense':
+              success = await _syncExpense(data, operation);
+              break;
             default:
               print('⚠️ Bilinmeyen veri tipi: $type');
           }
@@ -203,6 +210,90 @@ class SyncManager {
       }
     } catch (e) {
       ErrorLogger.instance.logError('Payment sync error', error: e);
+      return false;
+    }
+  }
+
+  /// Worker verisini senkronize et (Direkt Supabase)
+  Future<bool> _syncWorker(Map<String, dynamic> data, String operation) async {
+    try {
+      switch (operation) {
+        case 'create':
+          await supabase.from('workers').insert(data);
+          return true;
+        case 'update':
+          if (data['id'] != null) {
+            await supabase.from('workers').update(data).eq('id', data['id']);
+            return true;
+          }
+          return false;
+        case 'delete':
+          if (data['id'] != null) {
+            await supabase.from('workers').delete().eq('id', data['id']);
+            return true;
+          }
+          return false;
+        default:
+          return false;
+      }
+    } catch (e) {
+      ErrorLogger.instance.logError('Worker sync error', error: e);
+      return false;
+    }
+  }
+
+  /// Advance verisini senkronize et (Direkt Supabase)
+  Future<bool> _syncAdvance(Map<String, dynamic> data, String operation) async {
+    try {
+      switch (operation) {
+        case 'create':
+          await supabase.from('advances').insert(data);
+          return true;
+        case 'update':
+          if (data['id'] != null) {
+            await supabase.from('advances').update(data).eq('id', data['id']);
+            return true;
+          }
+          return false;
+        case 'delete':
+          if (data['id'] != null) {
+            await supabase.from('advances').delete().eq('id', data['id']);
+            return true;
+          }
+          return false;
+        default:
+          return false;
+      }
+    } catch (e) {
+      ErrorLogger.instance.logError('Advance sync error', error: e);
+      return false;
+    }
+  }
+
+  /// Expense verisini senkronize et (Direkt Supabase)
+  Future<bool> _syncExpense(Map<String, dynamic> data, String operation) async {
+    try {
+      switch (operation) {
+        case 'create':
+          await supabase.from('expenses').insert(data);
+          return true;
+        case 'update':
+          if (data['id'] != null) {
+            await supabase.from('expenses').update(data).eq('id', data['id']);
+            return true;
+          }
+          return false;
+        case 'delete':
+          if (data['id'] != null) {
+            await supabase.from('expenses').delete().eq('id', data['id']);
+            return true;
+          }
+          return false;
+        default:
+          return false;
+      }
+    } catch (e) {
+      ErrorLogger.instance.logError('Expense sync error', error: e);
       return false;
     }
   }

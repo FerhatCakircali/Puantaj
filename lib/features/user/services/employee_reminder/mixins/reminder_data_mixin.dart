@@ -2,35 +2,33 @@ import 'package:flutter/material.dart';
 import '../../../../../../core/app_globals.dart';
 import '../../../../../../models/employee_reminder.dart';
 import '../../../../../../services/auth_service.dart';
+import '../../../../../../core/auth/base_auth_helper.dart';
 
 /// Çalışan hatırlatıcıları için veritabanı CRUD işlemlerini yöneten mixin
 mixin ReminderDataMixin {
-  final AuthService _authService = AuthService();
+  late final AuthHelper _authHelper = AuthHelper(AuthService());
 
   /// Kullanıcının tüm çalışan hatırlatıcılarını getir
   Future<List<EmployeeReminder>> getEmployeeReminders({
     bool includeCompleted = false,
   }) async {
     try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
+      return await _authHelper.executeWithUserId((userId) async {
+        final query = supabase
+            .from('employee_reminders')
+            .select()
+            .eq('user_id', userId);
 
-      final query = supabase
-          .from('employee_reminders')
-          .select()
-          .eq('user_id', userId);
+        if (!includeCompleted) {
+          query.eq('is_completed', 0);
+        }
 
-      if (!includeCompleted) {
-        query.eq('is_completed', 0);
-      }
+        query.order('reminder_date', ascending: true);
 
-      query.order('reminder_date', ascending: true);
+        final List<dynamic> data = await query;
 
-      final List<dynamic> data = await query;
-
-      return data.map((item) => EmployeeReminder.fromMap(item)).toList();
+        return data.map((item) => EmployeeReminder.fromMap(item)).toList();
+      });
     } catch (e) {
       debugPrint('Çalışan hatırlatıcıları alınırken hata: $e');
       return [];
@@ -43,26 +41,23 @@ mixin ReminderDataMixin {
     bool includeCompleted = false,
   }) async {
     try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
+      return await _authHelper.executeWithUserId((userId) async {
+        final query = supabase
+            .from('employee_reminders')
+            .select()
+            .eq('user_id', userId)
+            .eq('worker_id', workerId);
 
-      final query = supabase
-          .from('employee_reminders')
-          .select()
-          .eq('user_id', userId)
-          .eq('worker_id', workerId);
+        if (!includeCompleted) {
+          query.eq('is_completed', 0);
+        }
 
-      if (!includeCompleted) {
-        query.eq('is_completed', 0);
-      }
+        query.order('reminder_date', ascending: true);
 
-      query.order('reminder_date', ascending: true);
+        final List<dynamic> data = await query;
 
-      final List<dynamic> data = await query;
-
-      return data.map((item) => EmployeeReminder.fromMap(item)).toList();
+        return data.map((item) => EmployeeReminder.fromMap(item)).toList();
+      });
     } catch (e) {
       debugPrint('Çalışanın hatırlatıcıları alınırken hata: $e');
       return [];
@@ -74,18 +69,15 @@ mixin ReminderDataMixin {
     EmployeeReminder reminder,
   ) async {
     try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
+      return await _authHelper.executeWithUserId((userId) async {
+        final data = await supabase
+            .from('employee_reminders')
+            .insert(reminder.toMap())
+            .select()
+            .single();
 
-      final data = await supabase
-          .from('employee_reminders')
-          .insert(reminder.toMap())
-          .select()
-          .single();
-
-      return EmployeeReminder.fromMap(data);
+        return EmployeeReminder.fromMap(data);
+      });
     } catch (e) {
       debugPrint('Çalışan hatırlatıcısı eklenirken hata: $e');
       return null;
@@ -95,18 +87,15 @@ mixin ReminderDataMixin {
   /// Hatırlatıcıyı güncelle
   Future<bool> updateEmployeeReminder(EmployeeReminder reminder) async {
     try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
+      return await _authHelper.executeWithUserId((userId) async {
+        await supabase
+            .from('employee_reminders')
+            .update(reminder.toMap())
+            .eq('id', reminder.id!)
+            .eq('user_id', userId);
 
-      await supabase
-          .from('employee_reminders')
-          .update(reminder.toMap())
-          .eq('id', reminder.id!)
-          .eq('user_id', userId);
-
-      return true;
+        return true;
+      });
     } catch (e) {
       debugPrint('Çalışan hatırlatıcısı güncellenirken hata: $e');
       return false;
@@ -116,18 +105,15 @@ mixin ReminderDataMixin {
   /// Hatırlatıcıyı sil
   Future<bool> deleteEmployeeReminder(int reminderId) async {
     try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
+      return await _authHelper.executeWithUserId((userId) async {
+        await supabase
+            .from('employee_reminders')
+            .delete()
+            .eq('id', reminderId)
+            .eq('user_id', userId);
 
-      await supabase
-          .from('employee_reminders')
-          .delete()
-          .eq('id', reminderId)
-          .eq('user_id', userId);
-
-      return true;
+        return true;
+      });
     } catch (e) {
       debugPrint('Çalışan hatırlatıcısı silinirken hata: $e');
       return false;
@@ -137,18 +123,15 @@ mixin ReminderDataMixin {
   /// Hatırlatıcıyı tamamlandı olarak işaretle
   Future<bool> markReminderAsCompleted(int reminderId) async {
     try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
+      return await _authHelper.executeWithUserId((userId) async {
+        await supabase
+            .from('employee_reminders')
+            .update({'is_completed': 1})
+            .eq('id', reminderId)
+            .eq('user_id', userId);
 
-      await supabase
-          .from('employee_reminders')
-          .update({'is_completed': 1})
-          .eq('id', reminderId)
-          .eq('user_id', userId);
-
-      return true;
+        return true;
+      });
     } catch (e) {
       debugPrint(
         'Çalışan hatırlatıcısı tamamlandı olarak işaretlenirken hata: $e',
@@ -176,19 +159,16 @@ mixin ReminderDataMixin {
   /// Hatırlatıcıyı ID ile getir
   Future<EmployeeReminder?> getReminderById(int reminderId) async {
     try {
-      final userId = await _authService.getUserId();
-      if (userId == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
+      return await _authHelper.executeWithUserId((userId) async {
+        final data = await supabase
+            .from('employee_reminders')
+            .select()
+            .eq('id', reminderId)
+            .eq('user_id', userId)
+            .single();
 
-      final data = await supabase
-          .from('employee_reminders')
-          .select()
-          .eq('id', reminderId)
-          .eq('user_id', userId)
-          .single();
-
-      return EmployeeReminder.fromMap(data);
+        return EmployeeReminder.fromMap(data);
+      });
     } catch (e) {
       debugPrint('Hatırlatıcı bilgisi alınamadı (id=$reminderId): $e');
       return null;

@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
 import '../../../../models/employee_reminder.dart';
-import '../../../../models/notification_settings.dart';
-import '../../../../services/attendance_check.dart';
 import 'notification_state_mixin.dart';
+import 'notification_data/loaders/worker_loader.dart';
+import 'notification_data/loaders/settings_loader.dart';
+import 'notification_data/loaders/reminder_loader.dart';
+import 'notification_data/savers/settings_saver.dart';
+import 'notification_data/handlers/reminder_scheduler.dart';
 
 /// Notification Settings ekranı için data operations mixin'i
-/// Bu mixin, veri yükleme, kaydetme ve filtreleme işlemlerini yönetir.
+///
+/// Veri yükleme, kaydetme ve filtreleme işlemlerini koordine eder
 mixin NotificationDataMixin<T extends StatefulWidget>
     on NotificationStateMixin<T> {
-  /// Load workers from service
+  final WorkerLoader _workerLoader = WorkerLoader();
+  final SettingsLoader _settingsLoader = SettingsLoader();
+  final ReminderLoader _reminderLoader = ReminderLoader();
+  final SettingsSaver _settingsSaver = SettingsSaver();
+  final ReminderScheduler _reminderScheduler = ReminderScheduler();
+
+  /// Çalışanları yükler
   Future<void> loadWorkers() async {
     setState(() {
       isLoadingWorkers = true;
     });
 
     try {
-      final loadedWorkers = await workerService.getWorkers();
+      final loadedWorkers = await _workerLoader.loadWorkers();
       setState(() {
         workers = loadedWorkers;
         filteredWorkers = loadedWorkers;
@@ -29,56 +39,32 @@ mixin NotificationDataMixin<T extends StatefulWidget>
     }
   }
 
-  /// Filter workers and reminders by query
+  /// Çalışanları ve hatırlatıcıları filtreler
   void filterWorkers(String query) {
     setState(() {
-      if (query.isEmpty) {
-        filteredWorkers = workers;
-        filteredReminders = reminders;
-      } else {
-        final lowerQuery = query.toLowerCase();
-        filteredWorkers = workers
-            .where(
-              (worker) => worker.fullName.toLowerCase().contains(lowerQuery),
-            )
-            .toList();
-        filteredReminders = reminders
-            .where(
-              (reminder) =>
-                  reminder.workerName.toLowerCase().contains(lowerQuery),
-            )
-            .toList();
-      }
+      filteredWorkers = WorkerLoader.filterByQuery(
+        workers,
+        query,
+        (worker) => worker.fullName,
+      );
+      filteredReminders = WorkerLoader.filterByQuery(
+        reminders,
+        query,
+        (reminder) => reminder.workerName,
+      );
     });
   }
 
-  /// Load notification settings
+  /// Bildirim ayarlarını yükler
   Future<void> loadSettings() async {
-    debugPrint('🔄 _loadSettings başladı');
-
     setState(() {
       isLoading = true;
     });
 
     try {
-      final userId = await notificationService.getCurrentUserId();
-      debugPrint('👤 User ID: $userId');
-
-      if (userId == null) {
-        debugPrint('User ID null');
-        showSnackBar('Oturum bilgisi alınamadı');
-        return;
-      }
-
-      final loadedSettings = await notificationService
-          .getNotificationSettings();
-      debugPrint('📥 Veritabanından gelen ayarlar: $loadedSettings');
-      debugPrint(
-        '📥 enabled: ${loadedSettings?.enabled}, time: ${loadedSettings?.time}',
-      );
+      final loadedSettings = await _settingsLoader.loadSettings();
 
       if (loadedSettings != null) {
-        debugPrint('Ayarlar bulundu, state güncelleniyor');
         setState(() {
           settings = loadedSettings;
           isEnabled = loadedSettings.enabled;
@@ -86,193 +72,68 @@ mixin NotificationDataMixin<T extends StatefulWidget>
           attendanceRequestsEnabled = loadedSettings.attendanceRequestsEnabled;
           selectedTime = loadedSettings.time;
         });
-        debugPrint(
-          '✅ State güncellendi: isEnabled=$isEnabled, autoApproveTrusted=$autoApproveTrusted, attendanceRequestsEnabled=$attendanceRequestsEnabled, selectedTime=$selectedTime',
-        );
       } else {
-        debugPrint('Ayarlar bulunamadı, varsayılan değerler kullanılıyor');
+        final defaults = SettingsLoader.getDefaultSettings();
         setState(() {
           settings = null;
-          isEnabled = false;
-          autoApproveTrusted = false;
-          attendanceRequestsEnabled = true;
-          selectedTime = '18:00';
+          isEnabled = defaults['isEnabled'] as bool;
+          autoApproveTrusted = defaults['autoApproveTrusted'] as bool;
+          attendanceRequestsEnabled =
+              defaults['attendanceRequestsEnabled'] as bool;
+          selectedTime = defaults['selectedTime'] as String;
         });
       }
     } catch (e) {
-      debugPrint('Hata: $e');
       showSnackBar('Ayarlar yüklenirken bir hata oluştu');
     } finally {
       setState(() {
         isLoading = false;
       });
-      debugPrint('_loadSettings tamamlandı');
     }
   }
 
-  /// Save notification settings
+  /// Bildirim ayarlarını kaydeder
   Future<void> saveSettings() async {
-    debugPrint(
-      '💾 _saveSettings başladı - isEnabled: $isEnabled, autoApproveTrusted: $autoApproveTrusted, attendanceRequestsEnabled: $attendanceRequestsEnabled, selectedTime: $selectedTime',
-    );
-
     setState(() {
       isLoading = true;
     });
 
     try {
-      final userId = await notificationService.getCurrentUserId();
-      debugPrint('👤 User ID: $userId');
-
-      if (userId == null) {
-        debugPrint('User ID null');
-        showSnackBar('Oturum bilgisi alınamadı');
-        return;
-      }
-
-      final settingsToSave =
-          settings ??
-          NotificationSettings(
-            userId: userId,
-            time: selectedTime,
-            enabled: isEnabled,
-            autoApproveTrusted: autoApproveTrusted,
-            attendanceRequestsEnabled: attendanceRequestsEnabled,
-            lastUpdated: DateTime.now(),
-          );
-
-      final updatedSettings = NotificationSettings(
-        id: settingsToSave.id,
-        userId: userId,
-        time: selectedTime,
-        enabled: isEnabled,
+      final success = await _settingsSaver.saveSettings(
+        currentSettings: settings,
+        isEnabled: isEnabled,
         autoApproveTrusted: autoApproveTrusted,
         attendanceRequestsEnabled: attendanceRequestsEnabled,
-        lastUpdated: DateTime.now(),
+        selectedTime: selectedTime,
       );
-
-      debugPrint(
-        '💾 Kaydedilecek ayarlar: enabled=$isEnabled, autoApproveTrusted=$autoApproveTrusted, attendanceRequestsEnabled=$attendanceRequestsEnabled, time=$selectedTime',
-      );
-
-      final success = await notificationService.updateNotificationSettings(
-        updatedSettings,
-      );
-
-      debugPrint('💾 Kaydetme sonucu: $success');
 
       if (success) {
-        // Yeni bildirim sistemi ile hatırlatıcıyı zamanla veya iptal et
         if (isEnabled) {
-          debugPrint('Hatırlatıcı zamanlanıyor...');
-          await scheduleAttendanceReminderWithNewSystem();
+          await _reminderScheduler.scheduleAttendanceReminder(selectedTime);
         } else {
-          debugPrint('🚫 Hatırlatıcı iptal ediliyor...');
-          await cancelAttendanceReminderWithNewSystem();
+          await _reminderScheduler.cancelAttendanceReminder();
         }
 
-        final hasAttendanceToday = await notificationService
-            .hasAttendanceEntryForToday();
-        final attendanceDoneLocally =
-            await AttendanceCheck.isTodayAttendanceDone();
+        final message = await _settingsSaver.getSaveSuccessMessage(
+          isEnabled: isEnabled,
+          selectedTime: selectedTime,
+        );
+        showSnackBar(message);
 
-        if (hasAttendanceToday || attendanceDoneLocally) {
-          showSnackBar(
-            'Bildirim ayarları kaydedildi. Bugün için yevmiye girişi zaten yapılmış.',
-          );
-        } else if (isEnabled) {
-          final now = DateTime.now();
-          final timeParts = selectedTime.split(':');
-          final hour = int.parse(timeParts[0]);
-          final minute = int.parse(timeParts[1]);
-          final scheduledTime = DateTime(
-            now.year,
-            now.month,
-            now.day,
-            hour,
-            minute,
-          );
-
-          if (scheduledTime.isBefore(now)) {
-            showSnackBar(
-              'Bildirim ayarları kaydedildi. Belirtilen saat geçtiği için bildirim yarın etkin olacak.',
-            );
-          } else {
-            showSnackBar(
-              'Bildirim ayarları kaydedildi. Bildirim bugün $selectedTime saatinde gönderilecek.',
-            );
-          }
-        } else {
-          showSnackBar(
-            'Bildirim ayarları kaydedildi. Bildirimler devre dışı bırakıldı.',
-          );
-        }
-
-        debugPrint('🔄 Ayarlar yeniden yükleniyor...');
         await loadSettings();
       } else {
-        debugPrint('Kaydetme başarısız');
         showSnackBar('Bildirim ayarları kaydedilirken bir hata oluştu');
       }
     } catch (e) {
-      debugPrint('Hata: $e');
       showSnackBar('Ayarlar kaydedilirken bir hata oluştu: $e');
     } finally {
       setState(() {
         isLoading = false;
       });
-      debugPrint('_saveSettings tamamlandı');
     }
   }
 
-  /// Schedule attendance reminder with new system
-  Future<void> scheduleAttendanceReminderWithNewSystem() async {
-    try {
-      // Kullanıcı bilgilerini al
-      final user = await authService.currentUser;
-      if (user == null) {
-        debugPrint('Kullanıcı bilgisi alınamadı');
-        return;
-      }
-
-      final userId = user['id'] as int;
-      final username = user['username'] as String;
-      final firstName = user['first_name'] as String? ?? '';
-      final lastName = user['last_name'] as String? ?? '';
-      final fullName = '$firstName $lastName'.trim();
-
-      // Saat bilgisini ayrıştır
-      final timeParts = selectedTime.split(':');
-      final hour = int.parse(timeParts[0]);
-      final minute = int.parse(timeParts[1]);
-
-      // Yeni bildirim servisi ile zamanla
-      await notificationServiceV2.scheduleAttendanceReminder(
-        userId: userId,
-        username: username,
-        fullName: fullName,
-        time: TimeOfDay(hour: hour, minute: minute),
-      );
-
-      debugPrint('Yevmiye hatırlatıcısı yeni sistem ile zamanlandı');
-    } catch (e) {
-      debugPrint('Yevmiye hatırlatıcısı zamanlanırken hata: $e');
-    }
-  }
-
-  /// Cancel attendance reminder with new system
-  Future<void> cancelAttendanceReminderWithNewSystem() async {
-    try {
-      await notificationServiceV2.cancelNotification(
-        1,
-      ); // NotificationIds.attendanceReminder
-      debugPrint('Yevmiye hatırlatıcısı iptal edildi');
-    } catch (e) {
-      debugPrint('Yevmiye hatırlatıcısı iptal edilirken hata: $e');
-    }
-  }
-
-  /// Load reminders
+  /// Hatırlatıcıları yükler
   Future<void> loadReminders() async {
     final requestId = ++remindersLoadRequestId;
     setState(() {
@@ -280,33 +141,30 @@ mixin NotificationDataMixin<T extends StatefulWidget>
     });
 
     try {
-      final loadedReminders = await reminderService.getEmployeeReminders();
+      final loadedReminders = await _reminderLoader.loadReminders();
 
       if (!mounted || requestId != remindersLoadRequestId) return;
 
       setState(() {
-        reminders = loadedReminders
-            .where(
-              (r) => r.id == null || !pendingDeleteReminderIds.contains(r.id),
-            )
-            .toList();
+        reminders = ReminderLoader.filterPendingDeletes(
+          loadedReminders,
+          pendingDeleteReminderIds,
+        );
         filteredReminders = reminders;
       });
     } catch (e) {
       showSnackBar('Hatırlatıcılar yüklenirken bir hata oluştu');
     } finally {
-      if (!mounted) return;
-      setState(() {
-        isLoadingReminders = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoadingReminders = false;
+        });
+      }
     }
   }
 
-  /// Delete reminder with optimistic update
-  Future<void> deleteReminderOptimistic(
-    int listIndex,
-    EmployeeReminder reminder,
-  ) async {
+  /// Hatırlatıcıyı siler
+  Future<void> deleteReminder(int listIndex, EmployeeReminder reminder) async {
     if (reminder.id == null) return;
 
     final reminderId = reminder.id!;
@@ -318,27 +176,30 @@ mixin NotificationDataMixin<T extends StatefulWidget>
     });
 
     try {
-      final success = await reminderService
-          .deleteEmployeeReminderWithNotification(reminderId);
+      final success = await _reminderLoader.deleteReminder(reminderId);
       if (success) {
         pendingDeleteReminderIds.remove(reminderId);
         showSnackBar('Hatırlatıcı silindi');
-        loadReminders();
+        await loadReminders();
       } else {
-        pendingDeleteReminderIds.remove(reminderId);
-        setState(() {
-          final safeIndex = listIndex.clamp(0, reminders.length);
-          reminders.insert(safeIndex, reminder);
-        });
+        _revertReminderDelete(listIndex, reminder, reminderId);
         showSnackBar('Hatırlatıcı silinirken bir hata oluştu');
       }
     } catch (e) {
-      pendingDeleteReminderIds.remove(reminderId);
-      setState(() {
-        final safeIndex = listIndex.clamp(0, reminders.length);
-        reminders.insert(safeIndex, reminder);
-      });
+      _revertReminderDelete(listIndex, reminder, reminderId);
       showSnackBar('Hatırlatıcı silinirken bir hata oluştu');
     }
+  }
+
+  void _revertReminderDelete(
+    int listIndex,
+    EmployeeReminder reminder,
+    int reminderId,
+  ) {
+    pendingDeleteReminderIds.remove(reminderId);
+    setState(() {
+      final safeIndex = listIndex.clamp(0, reminders.length);
+      reminders.insert(safeIndex, reminder);
+    });
   }
 }

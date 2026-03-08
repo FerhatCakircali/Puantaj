@@ -2,16 +2,24 @@ import '../../../../models/employee.dart';
 import '../../../../services/worker_service.dart';
 import '../../../../services/payment_service.dart';
 import '../../../../data/local/hive_service.dart';
+import '../../../../core/di/service_locator.dart';
 
 /// Ödeme ekranı iş mantığı kontrolcüsü
 class PaymentController {
-  final WorkerService _workerService = WorkerService();
-  final PaymentService _paymentService = PaymentService();
-  final _hiveService = HiveService.instance;
+  final WorkerService _workerService;
+  final PaymentService _paymentService;
+  final HiveService _hiveService;
 
-  /// Tüm çalışanları ve ödenmemiş günlerini yükler (Optimized)
+  PaymentController({
+    WorkerService? workerService,
+    PaymentService? paymentService,
+    HiveService? hiveService,
+  }) : _workerService = workerService ?? getIt<WorkerService>(),
+       _paymentService = paymentService ?? getIt<PaymentService>(),
+       _hiveService = hiveService ?? getIt<HiveService>();
+
+  /// Tüm çalışanları ve ödenmemiş günlerini yükler
   Future<PaymentData> loadPaymentData() async {
-    // 1. Önce cache'den employees al (hızlı)
     final cachedEmployees = _hiveService.employees.values.toList();
 
     // Eğer cache varsa hemen döndür, arka planda güncelle

@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../models/employee_reminder.dart';
-import '../../services/employee_reminder_service.dart';
-import '../../../../services/notification_service.dart';
 import '../../../../services/auth_service.dart';
 import '../../../../core/app_globals.dart';
 import '../../../../core/providers/auth_provider.dart';
@@ -12,6 +8,9 @@ import '../../../../core/providers/user_data_provider.dart';
 import '../../../../core/providers/theme_provider.dart';
 import '../../home/mixins/home_drawer.dart';
 import '../widgets/index.dart';
+import '../loaders/reminder_loader.dart';
+import '../handlers/reminder_delete_handler.dart';
+import '../handlers/navigation_handler.dart';
 
 class EmployeeReminderDetailScreen extends ConsumerStatefulWidget {
   final int? reminderId;
@@ -25,7 +24,8 @@ class EmployeeReminderDetailScreen extends ConsumerStatefulWidget {
 
 class _EmployeeReminderDetailScreenState
     extends ConsumerState<EmployeeReminderDetailScreen> {
-  final EmployeeReminderService _reminderService = EmployeeReminderService();
+  final ReminderLoader _reminderLoader = ReminderLoader();
+  final ReminderDeleteHandler _deleteHandler = ReminderDeleteHandler();
 
   bool _isLoading = true;
   bool _isDeleting = false;
@@ -45,98 +45,19 @@ class _EmployeeReminderDetailScreenState
     });
 
     try {
-      int? reminderId = widget.reminderId;
+      final reminder = await _reminderLoader.load(widget.reminderId);
 
-      // ÖNCELİK 1: Router'dan gelen reminderId (widget parametresi)
-      if (reminderId != null) {
-        debugPrint(
-          '🎯 EmployeeReminderDetail: Router\'dan reminderId alındı: $reminderId',
-        );
-      } else {
-        debugPrint(
-          '⚠️ EmployeeReminderDetail: Router\'dan reminderId gelmedi, fallback mekanizmaları deneniyor',
-        );
+      if (!mounted) return;
 
-        // ÖNCELİK 2: NotificationService'ten kontrol et (fallback)
-        try {
-          final notificationService = NotificationService();
-          final notification = await notificationService
-              .getPendingNotification();
-          if (notification != null && notification.isEmployeeReminder) {
-            reminderId = notification.reminderId;
-            debugPrint(
-              '📬 EmployeeReminderDetail: NotificationService\'ten reminderId alındı: $reminderId',
-            );
-          }
-        } catch (e) {
-          debugPrint(
-            '❌ EmployeeReminderDetail: NotificationService fallback hatası: $e',
-          );
-        }
-
-        // ÖNCELİK 3: SharedPreferences'tan kontrol et (geriye dönük uyumluluk)
-        if (reminderId == null) {
-          try {
-            final prefs = await SharedPreferences.getInstance();
-            reminderId = prefs.getInt('active_employee_reminder_id');
-            if (reminderId != null) {
-              debugPrint(
-                '💾 EmployeeReminderDetail: SharedPreferences\'tan reminderId alındı: $reminderId',
-              );
-            }
-          } catch (e) {
-            debugPrint(
-              '❌ EmployeeReminderDetail: SharedPreferences fallback hatası: $e',
-            );
-          }
-        }
-      }
-
-      // Hiçbir kaynaktan reminderId alınamadıysa hata göster
-      if (reminderId == null) {
-        debugPrint(
-          '❌ EmployeeReminderDetail: Hiçbir kaynaktan reminderId alınamadı',
-        );
+      if (reminder == null) {
         _showSnackBar('Hatırlatıcı bulunamadı');
         return;
       }
 
-      debugPrint(
-        '🔍 EmployeeReminderDetail: Hatırlatıcı yükleniyor (ID: $reminderId)',
-      );
-
-      // Tüm hatırlatıcıları al
-      final reminders = await _reminderService.getEmployeeReminders(
-        includeCompleted: true,
-      );
-
-      // ID'ye göre hatırlatıcıyı bul
-      final reminder = reminders.firstWhere(
-        (r) => r.id == reminderId,
-        orElse: () => throw Exception('Hatırlatıcı bulunamadı'),
-      );
-
-      if (mounted) {
-        setState(() {
-          _reminder = reminder;
-        });
-      }
-
-      debugPrint(
-        '✅ EmployeeReminderDetail: Hatırlatıcı yüklendi: ${reminder.workerName}',
-      );
-
-      // Hatırlatıcıyı tamamlandı olarak işaretle
-      await _reminderService.markReminderAsCompletedWithNotification(
-        reminderId,
-      );
-
-      debugPrint(
-        '✅ EmployeeReminderDetail: Hatırlatıcı tamamlandı olarak işaretlendi',
-      );
-    } catch (e, stackTrace) {
-      debugPrint('EmployeeReminderDetail: Hatırlatıcı yükleme hatası: $e');
-      debugPrint('Stack trace: $stackTrace');
+      setState(() {
+        _reminder = reminder;
+      });
+    } catch (e) {
       if (mounted) {
         _showSnackBar('Hatırlatıcı yüklenirken bir hata oluştu');
       }
@@ -172,19 +93,8 @@ class _EmployeeReminderDetailScreenState
         lastName: lastName,
         isAdmin: isAdmin,
         selectedIndex: null,
-        onItemTap: (index) {
-          // Drawer'ı kapat
-          Navigator.pop(context);
-          // Kısa gecikme sonrası navigasyon (drawer animasyonu için)
-          Future.delayed(const Duration(milliseconds: 200), () {
-            if (mounted) {
-              // Mevcut ekranı kapat ve home'a git
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-              context.go('/home', extra: {'initialTab': index});
-            }
-          });
+        onItemTap: (index) async {
+          await NavigationHandler.navigateToTab(context, index);
         },
         onThemeToggle: () async {
           final currentMode = ref.read(themeStateProvider);
@@ -215,16 +125,15 @@ class _EmployeeReminderDetailScreenState
                     try {
                       final authService = AuthService();
                       await authService.signOut();
-                                            if (mounted && context.mounted) {
-                        final container = ProviderScope.containerOf(context);
-                        container.read(authStateProvider.notifier).logout();
-                        context.go('/login');
-                      }
+
+                      if (!mounted || !context.mounted) return;
+
+                      final container = ProviderScope.containerOf(context);
+                      container.read(authStateProvider.notifier).logout();
+                      NavigationHandler.navigateToLogin(context);
                     } catch (e) {
-                      debugPrint('Çıkış hatası: $e');
-                      if (mounted) {
-                        context.go('/login');
-                      }
+                      if (!mounted) return;
+                      NavigationHandler.navigateToLogin(context);
                     }
                   },
                   child: const Text('Evet'),
@@ -289,35 +198,11 @@ class _EmployeeReminderDetailScreenState
     final reminderId = _reminder!.id!;
 
     try {
-      debugPrint(
-        '🗑️ EmployeeReminderDetail: Hatırlatıcı siliniyor (ID: $reminderId)',
-      );
-
-      final success = await _reminderService
-          .deleteEmployeeReminderWithNotification(reminderId);
+      final success = await _deleteHandler.delete(reminderId);
 
       if (!mounted) return;
 
       if (success) {
-        debugPrint('EmployeeReminderDetail: Hatırlatıcı başarıyla silindi');
-
-        // Hatırlatıcı silindikten sonra bildirim durumunu temizle
-        try {
-          final notificationService = NotificationService();
-          await notificationService.clearPendingNotification();
-
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.remove('active_employee_reminder_id');
-
-          debugPrint('🧹 EmployeeReminderDetail: Bildirim durumu temizlendi');
-        } catch (e) {
-          debugPrint(
-            '⚠️ EmployeeReminderDetail: Bildirim temizleme hatası (göz ardı edildi): $e',
-          );
-        }
-
-        if (!mounted) return;
-
         // SnackBar göster
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -326,33 +211,14 @@ class _EmployeeReminderDetailScreenState
           ),
         );
 
-        // Kısa gecikme sonrası navigasyon
-        await Future.delayed(const Duration(milliseconds: 300));
-
-        if (!mounted) return;
-
-        // Güvenli navigasyon: pop ile geri dön
-        debugPrint('🔙 EmployeeReminderDetail: Geri dönülüyor');
-
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-          debugPrint('EmployeeReminderDetail: Navigator.pop başarılı');
-        } else {
-          // Eğer pop yapılamazsa, home'a git
-          debugPrint(
-            '⚠️ EmployeeReminderDetail: Pop yapılamıyor, home\'a gidiliyor',
-          );
-          context.go('/home');
-        }
+        // Geri dön
+        await NavigationHandler.navigateBack(context);
       } else {
-        debugPrint('EmployeeReminderDetail: Silme işlemi başarısız');
         if (mounted) {
           _showSnackBar('Hatırlatıcı silinirken bir hata oluştu');
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint('EmployeeReminderDetail: Silme hatası: $e');
-      debugPrint('Stack trace: $stackTrace');
+    } catch (e) {
       if (mounted) {
         _showSnackBar('Hatırlatıcı silinirken bir hata oluştu: $e');
       }

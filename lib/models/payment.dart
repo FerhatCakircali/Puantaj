@@ -20,7 +20,7 @@ class Payment {
     this.amount = 0.0,
   });
 
-  // PDF için getter, daha sonra silinen çalışan raporları için
+  // PDF için getter
   DateTime get date => paymentDate;
 
   Map<String, dynamic> toMap() {
@@ -46,7 +46,7 @@ class Payment {
       'half_days': halfDays,
       'payment_date': formattedDate,
       'amount': amount,
-          };
+    };
 
     // id değeri varsa ekle, yoksa Supabase'in otomatik atamasına izin ver
     if (id != null) {

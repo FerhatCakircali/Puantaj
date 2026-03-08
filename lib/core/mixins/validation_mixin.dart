@@ -11,12 +11,12 @@
 /// ```
 mixin ValidationMixin {
   /// Validates username field
-    /// Rules:
+  /// Rules:
   /// - Required (not empty)
   /// - Minimum 3 characters
   /// - Maximum 50 characters
   /// - Only alphanumeric and underscore allowed
-    /// Returns error message if invalid, null if valid
+  /// Returns error message if invalid, null if valid
   String? validateUsername(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Kullanıcı adı gereklidir';
@@ -42,10 +42,10 @@ mixin ValidationMixin {
   }
 
   /// Validates password field
-    /// Rules:
+  /// Rules:
   /// - Required (not empty)
   /// - Minimum 6 characters
-    /// Returns error message if invalid, null if valid
+  /// Returns error message if invalid, null if valid
   String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Şifre gereklidir';
@@ -59,9 +59,9 @@ mixin ValidationMixin {
   }
 
   /// Validates password confirmation field
-    /// Rules:
+  /// Rules:
   /// - Must match the original password
-    /// Returns error message if invalid, null if valid
+  /// Returns error message if invalid, null if valid
   String? validatePasswordConfirmation(String? password, String? confirmation) {
     if (confirmation == null || confirmation.isEmpty) {
       return 'Şifre tekrarı gereklidir';
@@ -75,11 +75,10 @@ mixin ValidationMixin {
   }
 
   /// Validates phone number field
-    /// Rules:
+  /// Rules:
   /// - Optional (can be empty)
   /// - If provided, must be valid Turkish phone format
-  /// - Accepts formats: 5XXXXXXXXX, 05XXXXXXXXX, +905XXXXXXXXX, 905XXXXXXXXX
-    /// Returns error message if invalid, null if valid
+  /// Returns error message if invalid, null if valid
   String? validatePhone(String? value) {
     // Phone is optional
     if (value == null || value.trim().isEmpty) {
@@ -91,12 +90,11 @@ mixin ValidationMixin {
     // Remove common separators for validation
     final cleaned = trimmed.replaceAll(RegExp(r'[\s\-\(\)]'), '');
 
-    // Turkish phone number patterns
     final patterns = [
-      RegExp(r'^5\d{9}$'), // 5XXXXXXXXX
-      RegExp(r'^05\d{9}$'), // 05XXXXXXXXX
-      RegExp(r'^\+905\d{9}$'), // +905XXXXXXXXX
-      RegExp(r'^905\d{9}$'), // 905XXXXXXXXX
+      RegExp(r'^5\d{9}$'),
+      RegExp(r'^05\d{9}$'),
+      RegExp(r'^\+905\d{9}$'),
+      RegExp(r'^905\d{9}$'),
     ];
 
     final isValid = patterns.any((pattern) => pattern.hasMatch(cleaned));
@@ -109,11 +107,11 @@ mixin ValidationMixin {
   }
 
   /// Validates full name field
-    /// Rules:
+  /// Rules:
   /// - Required (not empty)
   /// - Minimum 2 characters
   /// - Maximum 100 characters
-    /// Returns error message if invalid, null if valid
+  /// Returns error message if invalid, null if valid
   String? validateFullName(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Ad soyad gereklidir';
@@ -133,10 +131,10 @@ mixin ValidationMixin {
   }
 
   /// Validates title/position field
-    /// Rules:
+  /// Rules:
   /// - Optional (can be empty)
   /// - If provided, maximum 100 characters
-    /// Returns error message if invalid, null if valid
+  /// Returns error message if invalid, null if valid
   String? validateTitle(String? value) {
     // Title is optional
     if (value == null || value.trim().isEmpty) {
@@ -153,10 +151,10 @@ mixin ValidationMixin {
   }
 
   /// Validates note/comment field
-    /// Rules:
+  /// Rules:
   /// - Optional (can be empty)
   /// - If provided, maximum 500 characters
-    /// Returns error message if invalid, null if valid
+  /// Returns error message if invalid, null if valid
   String? validateNote(String? value) {
     // Note is optional
     if (value == null || value.trim().isEmpty) {

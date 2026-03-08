@@ -4,6 +4,7 @@ import 'package:puantaj/data/services/local_storage_service.dart';
 import 'package:puantaj/services/notification_service.dart';
 import 'package:puantaj/services/fcm_service.dart';
 import 'package:puantaj/services/cache_manager_service.dart';
+import 'package:puantaj/core/di/service_locator.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -37,8 +38,14 @@ class ServiceInitializer {
 
     // Bildirim servisini başlat
     debugPrint('🔧 ServiceInitializer: Bildirim servisi başlatılıyor');
-    await NotificationService().init();
+    final notificationService = NotificationService();
+    await notificationService.init();
     debugPrint('ServiceInitializer: Bildirim servisi başlatıldı');
+
+    // Uygulama açılışında bildirimleri kontrol et ve yeniden zamanla
+    debugPrint('🔧 ServiceInitializer: Bildirimler kontrol ediliyor');
+    await notificationService.checkAndRescheduleNotifications();
+    debugPrint('ServiceInitializer: Bildirimler kontrol edildi');
 
     // FCM servisini başlat
     debugPrint('🔧 ServiceInitializer: FCM servisi başlatılıyor');
@@ -47,7 +54,7 @@ class ServiceInitializer {
 
     // Cache manager'ı başlat ve expired cache'leri temizle
     debugPrint('🔧 ServiceInitializer: Cache manager başlatılıyor');
-    await CacheManagerService.instance.initializeCache();
+    await getIt<CacheManagerService>().initializeCache();
     debugPrint('ServiceInitializer: Cache manager başlatıldı');
 
     debugPrint('ServiceInitializer: Tüm servisler başarıyla başlatıldı');

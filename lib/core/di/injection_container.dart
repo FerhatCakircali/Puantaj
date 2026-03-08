@@ -56,13 +56,7 @@ class InjectionContainer {
   final GetIt _getIt = GetIt.instance;
 
   /// Initialize all dependencies
-    /// Should be called once at app startup before any other operations.
-  /// Registers dependencies in the correct order:
-  /// 1. Data sources
-  /// 2. Repositories
-  /// 3. Services
-  /// 4. Use cases
-  /// 5. Controllers
+  /// Should be called once at app startup before any other operations.
   Future<void> init() async {
     // Register data sources
     _registerDataSources();
@@ -133,8 +127,6 @@ class InjectionContainer {
     _getIt.registerLazySingleton<IThemeService>(
       () => ThemeServiceImpl(_getIt<IStorageService>()),
     );
-
-    // Note: INotificationService will be registered after refactoring NotificationService
   }
 
   /// Use case'leri kaydet
@@ -247,7 +239,7 @@ class InjectionContainer {
   }
 
   /// Get a registered dependency
-    /// Throws if the dependency is not registered.
+  /// Throws if the dependency is not registered.
   T get<T extends Object>() => _getIt.get<T>();
 
   /// Check if a dependency is registered

@@ -79,7 +79,6 @@ class AttendanceNotificationHandler {
       final currentTime = TimeOfDay(hour: now.hour, minute: now.minute);
 
       for (final worker in workersWithoutAttendance) {
-        // 1. Local bildirim gönder
         await notificationService.scheduleAttendanceReminder(
           userId: worker.id,
           username: worker.name,
@@ -87,7 +86,6 @@ class AttendanceNotificationHandler {
           time: currentTime,
         );
 
-        // 2. Veritabanına bildirim kaydı ekle
         try {
           await Supabase.instance.client.from('notifications').insert({
             'sender_id': managerId,
@@ -162,7 +160,6 @@ class AttendanceNotificationHandler {
         message = '$date - $time\n${getStatusText(newStatus)}';
       }
 
-      // 1. Veritabanına bildirim kaydı ekle
       await Supabase.instance.client.from('notifications').insert({
         'sender_id': managerId,
         'sender_type': 'user',

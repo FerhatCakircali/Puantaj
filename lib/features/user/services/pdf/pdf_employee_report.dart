@@ -13,7 +13,7 @@ import 'employee_report/builders/attendance_summary_builder.dart';
 import 'employee_report/builders/payment_info_builder.dart';
 import 'employee_report/builders/attendance_details_builder.dart';
 import 'helpers/pdf_styles.dart';
-import 'helpers/pdf_employee_report_table.dart';
+import 'employee_report/helpers/employee_report_table_helper.dart';
 
 /// Çalışan raporu PDF oluşturma servisi - Modüler tasarım
 class PdfEmployeeReportService {
@@ -61,7 +61,7 @@ class PdfEmployeeReportService {
             PaymentInfoBuilder.build(allDays, payments, styles, _base.boldFont),
             pw.SizedBox(height: 16),
             // Avans bilgileri
-            PdfEmployeeReportTable.buildAdvanceInfo(
+            EmployeeReportTableHelper.buildAdvanceInfo(
               advances,
               employee.startDate,
               DateTime.now(),

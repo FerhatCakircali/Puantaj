@@ -5,6 +5,7 @@ import '../../core/app_globals.dart';
 import '../../models/notification_settings.dart';
 import '../auth_service.dart';
 import '../attendance_check.dart';
+import '../../core/constants/database_constants.dart';
 
 /// Bildirim ayarları yönetimi
 class NotificationSettingsManager {
@@ -152,7 +153,7 @@ class NotificationSettingsManager {
       final endOfDay = startOfDay.add(const Duration(days: 1));
 
       final List<dynamic> res = await supabase
-          .from('attendance')
+          .from(DatabaseConstants.attendanceTable)
           .select('id')
           .eq('user_id', userId)
           .gte('date', startOfDay.toIso8601String())

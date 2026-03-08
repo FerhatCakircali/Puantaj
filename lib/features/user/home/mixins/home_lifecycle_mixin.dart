@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../services/auth_service.dart';
+import '../../../../services/notification_service.dart';
 import '../../../../services/database_cleanup_service.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../auth/login/screens/login_screen.dart';
@@ -26,7 +27,7 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-        // Drawer header güncellemesi için ref.watch kullanılıyor (build metodunda)
+    // Drawer header güncellemesi için ref.watch kullanılıyor (build metodunda)
     authService.currentUser;
 
     checkUserBlockStatus();
@@ -82,7 +83,7 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
     notificationHandler.stopNotificationListener();
     WidgetsBinding.instance.removeObserver(this);
     blockCheckTimer?.cancel();
-        super.dispose();
+    super.dispose();
   }
 
   @override
@@ -92,12 +93,25 @@ mixin HomeLifecycleMixin<T extends ConsumerStatefulWidget> on ConsumerState<T>
       authService.loadCurrentUser();
       // Blok durumunu kontrol et
       checkUserBlockStatus();
+      // Bildirimleri kontrol et ve yeniden zamanla
+      _checkAndRescheduleNotifications();
+    }
+  }
+
+  /// Bildirimleri kontrol et ve yeniden zamanla
+  Future<void> _checkAndRescheduleNotifications() async {
+    try {
+      final notificationService = NotificationService();
+      await notificationService.checkAndRescheduleNotifications();
+      debugPrint('Bildirimler yeniden zamanlandı (resumed)');
+    } catch (e) {
+      debugPrint('Bildirimler yeniden zamanlanırken hata: $e');
     }
   }
 
   void signOut() async {
     await AuthService().signOut();
-        ref.read(authStateProvider.notifier).logout();
+    ref.read(authStateProvider.notifier).logout();
 
     if (!mounted) return;
 
