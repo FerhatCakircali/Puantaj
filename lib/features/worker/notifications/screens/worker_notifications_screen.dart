@@ -58,6 +58,12 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
             (n) => (n['notification_type'] as String).startsWith('payment'),
           )
           .toList();
+    } else if (_selectedType == 'advance') {
+      filtered = filtered
+          .where(
+            (n) => (n['notification_type'] as String).startsWith('advance'),
+          )
+          .toList();
     }
 
     return filtered;
@@ -352,6 +358,16 @@ class _WorkerNotificationsScreenState extends State<WorkerNotificationsScreen> {
                     label: 'Ödemeler',
                     isSelected: _selectedType == 'payment',
                     onTap: () => setState(() => _selectedType = 'payment'),
+                  ),
+                  SizedBox(width: w * 0.02),
+                  _buildTypeChip(
+                    w,
+                    h,
+                    isDark,
+                    icon: Icons.account_balance_wallet,
+                    label: 'Avanslar',
+                    isSelected: _selectedType == 'advance',
+                    onTap: () => setState(() => _selectedType = 'advance'),
                   ),
                   SizedBox(width: w * 0.04), // Sağ padding için
                 ],
