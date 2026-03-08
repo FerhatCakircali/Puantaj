@@ -168,19 +168,13 @@ class AttendanceNotificationHandler {
         'sender_type': 'user',
         'recipient_id': workerId,
         'recipient_type': 'worker',
-        'notification_type':
-            'general', // 'attendance_entry' yerine 'general' kullan
+        'notification_type': 'general',
         'title': title,
         'message': message,
         'is_read': false,
-        // created_at otomatik olarak Supabase tarafından UTC'de eklenir
       });
 
       debugPrint('✅ Çalışan $workerName için yevmiye bildirimi kaydedildi');
-
-      // NOT: Push notification GÖNDERMİYORUZ
-      // Çünkü bu bildirim sadece çalışan için, yönetici kendi yaptığı işlem için bildirim almamalı
-      // Push notification sadece çalışan uygulamasını açtığında veya FCM trigger ile gönderilecek
 
       debugPrint(
         '✅ Çalışan $workerName için bildirim veritabanına kaydedildi (push notification yok)',

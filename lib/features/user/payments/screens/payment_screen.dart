@@ -156,7 +156,7 @@ class _PaymentScreenState extends State<PaymentScreen>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(), // Kaydırma aktif
                 children: [
                   _buildPaymentsTab(),
                   const AdvancesTab(),
@@ -237,57 +237,61 @@ class _PaymentScreenState extends State<PaymentScreen>
   Widget _buildSearchBar(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
 
-    return TextField(
-      controller: _searchController,
-      onChanged: _filterEmployees,
-      style: TextStyle(
-        color: isDark ? Colors.white : Colors.black,
-        fontSize: 16,
-      ),
-      decoration: InputDecoration(
-        hintText: 'Çalışan ara...',
-        hintStyle: TextStyle(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.5)
-              : Colors.grey.shade600,
+    return SingleChildScrollView(
+      child: TextField(
+        controller: _searchController,
+        onChanged: _filterEmployees,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+          fontSize: 16,
         ),
-        prefixIcon: Icon(
-          Icons.search,
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.7)
-              : Colors.grey.shade700,
-        ),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: Icon(
-                  Icons.clear,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.7)
-                      : Colors.grey.shade700,
-                ),
-                onPressed: () {
-                  _searchController.clear();
-                  _filterEmployees('');
-                },
-              )
-            : null,
-        filled: true,
-        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+        decoration: InputDecoration(
+          hintText: 'Çalışan ara...',
+          hintStyle: TextStyle(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.5)
+                : Colors.grey.shade600,
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.7)
+                : Colors.grey.shade700,
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: Icon(
+                    Icons.clear,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.7)
+                        : Colors.grey.shade700,
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    _filterEmployees('');
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
       ),
     );

@@ -69,7 +69,7 @@ class AdvanceSummaryCards extends StatelessWidget {
                 ),
               ),
               SizedBox(height: cardSpacing),
-              // Küçük Kartlar - Yan yana
+              // Küçük Kartlar - Yan yana (Toplam Avans ve Avans Alan)
               Row(
                 children: [
                   Expanded(
@@ -92,15 +92,6 @@ class AdvanceSummaryCards extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-              SizedBox(height: cardSpacing),
-              // Ortalama Avans - Tek kart
-              _buildWideCard(
-                context,
-                title: 'Ortalama Avans',
-                value: '₺${CurrencyFormatter.format(averageAdvance)}',
-                w: w,
-                theme: theme,
               ),
             ],
           );

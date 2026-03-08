@@ -217,99 +217,137 @@ class _ExpensesTabState extends State<ExpensesTab> {
   }
 
   Widget _buildCategoryFilters() {
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          CategoryChip(
-            category: null,
-            isSelected: _selectedCategory == null,
-            onTap: () => _filterByCategory(null),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.filter_list,
+              size: 16,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'Kategori Filtrele',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+            const Spacer(),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 12,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 40,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              CategoryChip(
+                category: null,
+                isSelected: _selectedCategory == null,
+                onTap: () => _filterByCategory(null),
+              ),
+              const SizedBox(width: 8),
+              CategoryChip(
+                category: ExpenseCategory.malzeme,
+                isSelected: _selectedCategory == ExpenseCategory.malzeme,
+                onTap: () => _filterByCategory(ExpenseCategory.malzeme),
+              ),
+              const SizedBox(width: 8),
+              CategoryChip(
+                category: ExpenseCategory.ulasim,
+                isSelected: _selectedCategory == ExpenseCategory.ulasim,
+                onTap: () => _filterByCategory(ExpenseCategory.ulasim),
+              ),
+              const SizedBox(width: 8),
+              CategoryChip(
+                category: ExpenseCategory.ekipman,
+                isSelected: _selectedCategory == ExpenseCategory.ekipman,
+                onTap: () => _filterByCategory(ExpenseCategory.ekipman),
+              ),
+              const SizedBox(width: 8),
+              CategoryChip(
+                category: ExpenseCategory.diger,
+                isSelected: _selectedCategory == ExpenseCategory.diger,
+                onTap: () => _filterByCategory(ExpenseCategory.diger),
+              ),
+              const SizedBox(width: 8), // Sağ padding
+            ],
           ),
-          const SizedBox(width: 8),
-          CategoryChip(
-            category: ExpenseCategory.malzeme,
-            isSelected: _selectedCategory == ExpenseCategory.malzeme,
-            onTap: () => _filterByCategory(ExpenseCategory.malzeme),
-          ),
-          const SizedBox(width: 8),
-          CategoryChip(
-            category: ExpenseCategory.ulasim,
-            isSelected: _selectedCategory == ExpenseCategory.ulasim,
-            onTap: () => _filterByCategory(ExpenseCategory.ulasim),
-          ),
-          const SizedBox(width: 8),
-          CategoryChip(
-            category: ExpenseCategory.ekipman,
-            isSelected: _selectedCategory == ExpenseCategory.ekipman,
-            onTap: () => _filterByCategory(ExpenseCategory.ekipman),
-          ),
-          const SizedBox(width: 8),
-          CategoryChip(
-            category: ExpenseCategory.diger,
-            isSelected: _selectedCategory == ExpenseCategory.diger,
-            onTap: () => _filterByCategory(ExpenseCategory.diger),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildSearchBar(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
 
-    return TextField(
-      controller: _searchController,
-      onChanged: _filterExpenses,
-      style: TextStyle(
-        color: isDark ? Colors.white : Colors.black,
-        fontSize: 16,
-      ),
-      decoration: InputDecoration(
-        hintText: 'Masraf ara...',
-        hintStyle: TextStyle(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.5)
-              : Colors.grey.shade600,
+    return SingleChildScrollView(
+      child: TextField(
+        controller: _searchController,
+        onChanged: _filterExpenses,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+          fontSize: 16,
         ),
-        prefixIcon: Icon(
-          Icons.search,
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.7)
-              : Colors.grey.shade700,
-        ),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: Icon(
-                  Icons.clear,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.7)
-                      : Colors.grey.shade700,
-                ),
-                onPressed: () {
-                  _searchController.clear();
-                  _filterExpenses('');
-                },
-              )
-            : null,
-        filled: true,
-        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+        decoration: InputDecoration(
+          hintText: 'Masraf ara...',
+          hintStyle: TextStyle(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.5)
+                : Colors.grey.shade600,
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.7)
+                : Colors.grey.shade700,
+          ),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: Icon(
+                    Icons.clear,
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.7)
+                        : Colors.grey.shade700,
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    _filterExpenses('');
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
       ),
     );
