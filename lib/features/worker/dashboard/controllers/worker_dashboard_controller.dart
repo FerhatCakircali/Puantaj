@@ -91,6 +91,10 @@ class WorkerDashboardController {
     // Toplam ödemeler
     final totalPayments = await _attendanceService.getTotalPayments(workerId);
 
+    // Avans bilgileri
+    final totalAdvances = await _getTotalAdvances(workerId);
+    final pendingAdvances = await _getPendingAdvances(workerId);
+
     // Bekleyen talepler
     final pendingCount = await _getPendingRequestsCount(workerId);
 
@@ -124,6 +128,8 @@ class WorkerDashboardController {
       workerId: workerId,
       monthlyStats: monthlyStats,
       totalPayments: totalPayments,
+      totalAdvances: totalAdvances,
+      pendingAdvances: pendingAdvances,
       pendingCount: pendingCount,
       unreadNotifications: unreadNotifications,
       weeklyDays: weeklyDays,
@@ -162,6 +168,34 @@ class WorkerDashboardController {
       return (response as List).length;
     } catch (e) {
       return 0;
+    }
+  }
+
+  // Toplam avans
+  Future<double> _getTotalAdvances(int workerId) async {
+    try {
+      final result = await _supabase.rpc(
+        'get_worker_total_advances',
+        params: {'worker_id_param': workerId},
+      );
+      return (result as num?)?.toDouble() ?? 0.0;
+    } catch (e) {
+      debugPrint('❌ Toplam avans hatası: $e');
+      return 0.0;
+    }
+  }
+
+  // Bekleyen avans
+  Future<double> _getPendingAdvances(int workerId) async {
+    try {
+      final result = await _supabase.rpc(
+        'get_worker_pending_advances',
+        params: {'worker_id_param': workerId},
+      );
+      return (result as num?)?.toDouble() ?? 0.0;
+    } catch (e) {
+      debugPrint('❌ Bekleyen avans hatası: $e');
+      return 0.0;
     }
   }
 
@@ -445,6 +479,8 @@ class DashboardData {
   final int workerId;
   final Map<String, dynamic> monthlyStats;
   final double totalPayments;
+  final double totalAdvances;
+  final double pendingAdvances;
   final int pendingCount;
   final int unreadNotifications;
   final int weeklyDays;
@@ -461,6 +497,8 @@ class DashboardData {
     required this.workerId,
     required this.monthlyStats,
     required this.totalPayments,
+    this.totalAdvances = 0.0,
+    this.pendingAdvances = 0.0,
     required this.pendingCount,
     required this.unreadNotifications,
     required this.weeklyDays,

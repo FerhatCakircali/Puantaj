@@ -139,7 +139,11 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           ),
           SizedBox(height: h * 0.02),
           // Toplam kazanç
-          WorkerTotalCard(totalPayments: _dashboardData!.totalPayments),
+          WorkerTotalCard(
+            totalPayments: _dashboardData!.totalPayments,
+            totalAdvances: _dashboardData!.totalAdvances,
+            pendingAdvances: _dashboardData!.pendingAdvances,
+          ),
           SizedBox(height: h * 0.02),
           // Son aktiviteler
           RecentActivitiesCard(
