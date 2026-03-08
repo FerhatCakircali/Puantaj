@@ -99,7 +99,7 @@ class _EditAdvanceDialogState extends State<EditAdvanceDialog> {
         description: _descriptionController.text.trim(),
       );
 
-      await _controller.updateAdvance(updatedAdvance);
+      await _controller.updateAdvance(widget.advance, updatedAdvance);
 
       if (!mounted) return;
 

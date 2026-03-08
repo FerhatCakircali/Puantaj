@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../mixins/index.dart';
 
-/// Geçmiş ekranı - 2 tab (Yevmiye / Ödeme)
+/// Geçmiş ekranı - 3 tab (Yevmiye / Ödeme / Avans)
 class WorkerAttendanceScreen extends StatefulWidget {
   final int? initialTab;
 
@@ -84,6 +84,7 @@ class _WorkerAttendanceScreenState extends State<WorkerAttendanceScreen>
             tabs: const [
               Tab(text: 'Yevmiye Geçmişi'),
               Tab(text: 'Ödeme Geçmişi'),
+              Tab(text: 'Avans Geçmişi'),
             ],
           ),
         ),
@@ -163,6 +164,11 @@ class _WorkerAttendanceScreenState extends State<WorkerAttendanceScreen>
               WorkerPaymentTab(
                 isLoading: isLoading,
                 paymentHistory: paymentHistory,
+                onRefresh: loadData,
+              ),
+              WorkerAdvanceTab(
+                isLoading: isLoading,
+                advanceHistory: advanceHistory,
                 onRefresh: loadData,
               ),
             ],

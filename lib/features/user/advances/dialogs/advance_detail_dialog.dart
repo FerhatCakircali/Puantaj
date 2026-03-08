@@ -57,7 +57,7 @@ class AdvanceDetailDialog extends StatelessWidget {
 
     try {
       final controller = AdvanceController();
-      await controller.deleteAdvance(advance.id!);
+      await controller.deleteAdvance(advance);
 
       if (!context.mounted) return;
 

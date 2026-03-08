@@ -16,6 +16,7 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
 
   List<Map<String, dynamic>> attendanceHistory = [];
   List<Map<String, dynamic>> paymentHistory = [];
+  List<Map<String, dynamic>> advanceHistory = [];
   DateTime startDate = DateTime.now().subtract(const Duration(days: 30));
   DateTime endDate = DateTime.now();
 
@@ -37,7 +38,7 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
       }
 
       tabController = TabController(
-        length: 2,
+        length: 3, // 3 tab: Yevmiye, Ödeme, Avans
         vsync: this,
         initialIndex: initialTabIndex,
       );
@@ -56,7 +57,7 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
       loadData();
     } catch (e) {
       debugPrint('❌ WorkerAttendanceScreen: Tab başlatma hatası: $e');
-      tabController = TabController(length: 2, vsync: this);
+      tabController = TabController(length: 3, vsync: this);
       tabController.addListener(onTabChanged);
 
       if (mounted) {
@@ -104,7 +105,7 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
           attendanceHistory = history;
           isLoading = false;
         });
-      } else {
+      } else if (tabController.index == 1) {
         final payments = await attendanceService.getPaymentHistory(
           workerId: workerId!,
           startDate: startDate,
@@ -121,6 +122,21 @@ mixin WorkerAttendanceLogicMixin<T extends StatefulWidget>
         if (!mounted) return;
         setState(() {
           paymentHistory = payments;
+          isLoading = false;
+        });
+      } else {
+        // Tab 2: Avans geçmişi
+        final advances = await attendanceService.getAdvanceHistory(
+          workerId: workerId!,
+          startDate: startDate,
+          endDate: endDate,
+        );
+
+        debugPrint('✅ Avans geçmişi: ${advances.length} kayıt bulundu');
+
+        if (!mounted) return;
+        setState(() {
+          advanceHistory = advances;
           isLoading = false;
         });
       }

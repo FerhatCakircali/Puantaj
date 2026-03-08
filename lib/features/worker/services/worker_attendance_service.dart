@@ -355,6 +355,33 @@ class WorkerAttendanceService {
     }
   }
 
+  /// Avans geçmişini getir
+  Future<List<Map<String, dynamic>>> getAdvanceHistory({
+    required int workerId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final response = await supabase
+          .from('advances')
+          .select('*')
+          .eq('worker_id', workerId)
+          .gte('advance_date', _formatDate(startDate))
+          .lte('advance_date', _formatDate(endDate))
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('❌ getAdvanceHistory hata: $e');
+      return [];
+    }
+  }      return payments;
+    } catch (e) {
+      debugPrint('❌ getPaymentHistory hata: $e');
+      return [];
+    }
+  }
+
   /// Ödeme detaylarını getir
   Future<Map<String, dynamic>?> getPaymentDetails(int paymentId) async {
     try {

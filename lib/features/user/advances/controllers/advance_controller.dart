@@ -93,13 +93,13 @@ class AdvanceController {
   }
 
   /// Avans güncelle
-  Future<void> updateAdvance(Advance advance) async {
-    await _advanceService.updateAdvance(advance);
+  Future<void> updateAdvance(Advance oldAdvance, Advance newAdvance) async {
+    await _advanceService.updateAdvance(oldAdvance, newAdvance);
   }
 
   /// Avans sil
-  Future<void> deleteAdvance(int advanceId) async {
-    await _advanceService.deleteAdvance(advanceId);
+  Future<void> deleteAdvance(Advance advance) async {
+    await _advanceService.deleteAdvance(advance);
   }
 
   /// Çalışanın bekleyen avanslarını getir

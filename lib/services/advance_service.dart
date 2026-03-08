@@ -145,7 +145,7 @@ class AdvanceService {
       debugPrint('✅ Avans başarıyla eklendi (ID: ${newAdvance.id})');
 
       // Çalışana bildirim gönder
-      await _sendAdvanceNotification(newAdvance);
+      await _sendAdvanceCreatedNotification(newAdvance);
 
       return newAdvance;
     } catch (e, stackTrace) {
@@ -156,20 +156,26 @@ class AdvanceService {
   }
 
   /// Avans güncelle
-  Future<void> updateAdvance(Advance advance) async {
+  Future<void> updateAdvance(Advance oldAdvance, Advance newAdvance) async {
     try {
-      if (advance.id == null) {
+      if (newAdvance.id == null) {
         throw Exception('Avans ID bulunamadı');
       }
 
-      debugPrint('💰 Avans güncelleniyor: ID=${advance.id}');
+      debugPrint('💰 Avans güncelleniyor: ID=${newAdvance.id}');
 
-      final advanceMap = advance.toMap();
+      final advanceMap = newAdvance.toMap();
       advanceMap.remove('id'); // ID'yi güncelleme map'inden çıkar
 
-      await supabase.from('advances').update(advanceMap).eq('id', advance.id!);
+      await supabase
+          .from('advances')
+          .update(advanceMap)
+          .eq('id', newAdvance.id!);
 
       debugPrint('✅ Avans başarıyla güncellendi');
+
+      // Çalışana güncelleme bildirimi gönder
+      await _sendAdvanceUpdatedNotification(oldAdvance, newAdvance);
     } catch (e) {
       debugPrint('❌ Avans güncelleme hatası: $e');
       rethrow;
@@ -177,13 +183,20 @@ class AdvanceService {
   }
 
   /// Avans sil
-  Future<void> deleteAdvance(int advanceId) async {
+  Future<void> deleteAdvance(Advance advance) async {
     try {
-      debugPrint('💰 Avans siliniyor: ID=$advanceId');
+      if (advance.id == null) {
+        throw Exception('Avans ID bulunamadı');
+      }
 
-      await supabase.from('advances').delete().eq('id', advanceId);
+      debugPrint('💰 Avans siliniyor: ID=${advance.id}');
+
+      await supabase.from('advances').delete().eq('id', advance.id!);
 
       debugPrint('✅ Avans başarıyla silindi');
+
+      // Çalışana silme bildirimi gönder
+      await _sendAdvanceDeletedNotification(advance);
     } catch (e) {
       debugPrint('❌ Avans silme hatası: $e');
       rethrow;
@@ -239,30 +252,130 @@ class AdvanceService {
     }
   }
 
-  /// Çalışana avans bildirimi gönder
-  Future<void> _sendAdvanceNotification(Advance advance) async {
+  /// Çalışana avans oluşturma bildirimi gönder
+  Future<void> _sendAdvanceCreatedNotification(Advance advance) async {
     try {
       final userId = await _authService.getUserId();
       if (userId == null) return;
 
-      final message = '₺${_formatAmount(advance.amount)} avans verildi';
+      // Yönetici adını al
+      final userProfile = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', userId)
+          .single();
 
-      debugPrint('📢 Avans bildirimi gönderiliyor: $message');
+      final userName = userProfile['full_name'] as String? ?? 'Yönetici';
+      final formattedAmount = _formatAmount(advance.amount);
+      final formattedDate = _formatDate(advance.advanceDate);
+      final formattedTime =
+          '${advance.advanceDate.hour.toString().padLeft(2, '0')}:${advance.advanceDate.minute.toString().padLeft(2, '0')}';
+
+      final message =
+          '$userName tarafından avans ödemesi: ₺$formattedAmount\n$formattedDate $formattedTime';
+
+      debugPrint('📢 Avans oluşturma bildirimi gönderiliyor: $message');
 
       await supabase.from('notifications').insert({
         'sender_id': userId,
         'sender_type': 'user',
         'recipient_id': advance.workerId,
         'recipient_type': 'worker',
-        'notification_type': 'general',
-        'title': 'Avans Verildi',
+        'notification_type': 'advance_created',
+        'title': 'Avans Ödemesi',
         'message': message,
         'related_id': advance.id,
       });
 
-      debugPrint('✅ Avans bildirimi gönderildi');
+      debugPrint('✅ Avans oluşturma bildirimi gönderildi');
     } catch (e) {
       debugPrint('⚠️ Avans bildirimi gönderilemedi: $e');
+    }
+  }
+
+  /// Çalışana avans güncelleme bildirimi gönder
+  Future<void> _sendAdvanceUpdatedNotification(
+    Advance oldAdvance,
+    Advance newAdvance,
+  ) async {
+    try {
+      final userId = await _authService.getUserId();
+      if (userId == null) return;
+
+      // Yönetici adını al
+      final userProfile = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', userId)
+          .single();
+
+      final userName = userProfile['full_name'] as String? ?? 'Yönetici';
+      final oldAmount = _formatAmount(oldAdvance.amount);
+      final newAmount = _formatAmount(newAdvance.amount);
+      final formattedDate = _formatDate(newAdvance.advanceDate);
+      final formattedTime =
+          '${newAdvance.advanceDate.hour.toString().padLeft(2, '0')}:${newAdvance.advanceDate.minute.toString().padLeft(2, '0')}';
+
+      final message =
+          '$userName tarafından avans ödemesi güncellendi: ₺$oldAmount → ₺$newAmount\n$formattedDate $formattedTime';
+
+      debugPrint('📢 Avans güncelleme bildirimi gönderiliyor: $message');
+
+      await supabase.from('notifications').insert({
+        'sender_id': userId,
+        'sender_type': 'user',
+        'recipient_id': newAdvance.workerId,
+        'recipient_type': 'worker',
+        'notification_type': 'advance_updated',
+        'title': 'Avans Ödemesi Güncellendi',
+        'message': message,
+        'related_id': newAdvance.id,
+      });
+
+      debugPrint('✅ Avans güncelleme bildirimi gönderildi');
+    } catch (e) {
+      debugPrint('⚠️ Avans güncelleme bildirimi gönderilemedi: $e');
+    }
+  }
+
+  /// Çalışana avans silme bildirimi gönder
+  Future<void> _sendAdvanceDeletedNotification(Advance advance) async {
+    try {
+      final userId = await _authService.getUserId();
+      if (userId == null) return;
+
+      // Yönetici adını al
+      final userProfile = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', userId)
+          .single();
+
+      final userName = userProfile['full_name'] as String? ?? 'Yönetici';
+      final formattedAmount = _formatAmount(advance.amount);
+      final formattedDate = _formatDate(advance.advanceDate);
+      final formattedTime =
+          '${advance.advanceDate.hour.toString().padLeft(2, '0')}:${advance.advanceDate.minute.toString().padLeft(2, '0')}';
+
+      final message =
+          '$userName tarafından avans ödemesi silindi: ₺$formattedAmount\n$formattedDate $formattedTime';
+
+      debugPrint('📢 Avans silme bildirimi gönderiliyor: $message');
+
+      await supabase.from('notifications').insert({
+        'sender_id': userId,
+        'sender_type': 'user',
+        'recipient_id': advance.workerId,
+        'recipient_type': 'worker',
+        'notification_type': 'advance_deleted',
+        'title': 'Avans Ödemesi Silindi',
+        'message': message,
+        'related_id': advance.id,
+      });
+
+      debugPrint('✅ Avans silme bildirimi gönderildi');
+    } catch (e) {
+      debugPrint('⚠️ Avans silme bildirimi gönderilemedi: $e');
     }
   }
 }
