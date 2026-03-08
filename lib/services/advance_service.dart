@@ -258,14 +258,15 @@ class AdvanceService {
       final userId = await _authService.getUserId();
       if (userId == null) return;
 
-      // Yönetici adını al
+      // Yönetici adını al (users tablosundan)
       final userProfile = await supabase
-          .from('profiles')
-          .select('full_name')
+          .from('users')
+          .select('first_name, last_name')
           .eq('id', userId)
           .single();
 
-      final userName = userProfile['full_name'] as String? ?? 'Yönetici';
+      final userName =
+          '${userProfile['first_name']} ${userProfile['last_name']}';
       final formattedAmount = _formatAmount(advance.amount);
       final formattedDate = _formatDate(advance.advanceDate);
       final formattedTime =
@@ -302,14 +303,15 @@ class AdvanceService {
       final userId = await _authService.getUserId();
       if (userId == null) return;
 
-      // Yönetici adını al
+      // Yönetici adını al (users tablosundan)
       final userProfile = await supabase
-          .from('profiles')
-          .select('full_name')
+          .from('users')
+          .select('first_name, last_name')
           .eq('id', userId)
           .single();
 
-      final userName = userProfile['full_name'] as String? ?? 'Yönetici';
+      final userName =
+          '${userProfile['first_name']} ${userProfile['last_name']}';
       final oldAmount = _formatAmount(oldAdvance.amount);
       final newAmount = _formatAmount(newAdvance.amount);
       final formattedDate = _formatDate(newAdvance.advanceDate);
@@ -344,14 +346,15 @@ class AdvanceService {
       final userId = await _authService.getUserId();
       if (userId == null) return;
 
-      // Yönetici adını al
+      // Yönetici adını al (users tablosundan)
       final userProfile = await supabase
-          .from('profiles')
-          .select('full_name')
+          .from('users')
+          .select('first_name, last_name')
           .eq('id', userId)
           .single();
 
-      final userName = userProfile['full_name'] as String? ?? 'Yönetici';
+      final userName =
+          '${userProfile['first_name']} ${userProfile['last_name']}';
       final formattedAmount = _formatAmount(advance.amount);
       final formattedDate = _formatDate(advance.advanceDate);
       final formattedTime =
