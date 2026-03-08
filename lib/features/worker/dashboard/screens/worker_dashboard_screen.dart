@@ -4,7 +4,6 @@ import '../widgets/worker_month_card.dart';
 import '../widgets/worker_total_card.dart';
 import '../widgets/pending_requests_card.dart';
 import '../widgets/quick_stats_card.dart';
-import '../widgets/payment_history_card.dart';
 import '../widgets/attendance_trend_card.dart';
 import '../widgets/recent_activities_card.dart';
 import '../widgets/reminders_card.dart';
@@ -125,6 +124,7 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
           WorkerMonthCard(
             monthlyStats: _dashboardData!.monthlyStats,
             attendanceRate: attendanceRate,
+            monthlyAdvances: _dashboardData!.monthlyAdvances,
           ),
           SizedBox(height: h * 0.02),
           // Son 3 ay trendi
@@ -132,12 +132,6 @@ class _WorkerDashboardScreenState extends State<WorkerDashboardScreen> {
             AttendanceTrendCard(monthlyData: _dashboardData!.monthlyTrend),
           if (_dashboardData!.monthlyTrend.isNotEmpty)
             SizedBox(height: h * 0.02),
-          // Ödeme geçmişi
-          PaymentHistoryCard(
-            recentPayments: _dashboardData!.recentPayments,
-            monthlyAverage: _dashboardData!.monthlyAverage,
-          ),
-          SizedBox(height: h * 0.02),
           // Toplam kazanç
           WorkerTotalCard(
             totalPayments: _dashboardData!.totalPayments,

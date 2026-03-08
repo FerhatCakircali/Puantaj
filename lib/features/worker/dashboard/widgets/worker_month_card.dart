@@ -7,11 +7,13 @@ import 'worker_dates_list.dart';
 class WorkerMonthCard extends StatefulWidget {
   final Map<String, dynamic> monthlyStats;
   final double attendanceRate;
+  final double monthlyAdvances;
 
   const WorkerMonthCard({
     super.key,
     required this.monthlyStats,
     required this.attendanceRate,
+    this.monthlyAdvances = 0.0,
   });
 
   @override
@@ -215,7 +217,7 @@ class _WorkerMonthCardState extends State<WorkerMonthCard> {
                   ),
                 ),
                 child: Text(
-                  '₺${CurrencyFormatter.format(monthlyAmount)}',
+                  '₺${CurrencyFormatter.format(monthlyAmount + widget.monthlyAdvances)}',
                   style: TextStyle(
                     fontSize: w * 0.10,
                     fontWeight: FontWeight.w900,
@@ -226,6 +228,63 @@ class _WorkerMonthCardState extends State<WorkerMonthCard> {
                   textAlign: TextAlign.center,
                 ),
               ),
+              // Detay: Ödemeler ve Avanslar
+              if (monthlyAmount > 0 || widget.monthlyAdvances > 0) ...[
+                SizedBox(height: h * 0.015),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    if (monthlyAmount > 0)
+                      Column(
+                        children: [
+                          Text(
+                            'Ödemeler',
+                            style: TextStyle(
+                              fontSize: w * 0.032,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: h * 0.005),
+                          Text(
+                            '₺${CurrencyFormatter.format(monthlyAmount)}',
+                            style: TextStyle(
+                              fontSize: w * 0.038,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (widget.monthlyAdvances > 0)
+                      Column(
+                        children: [
+                          Text(
+                            'Avanslar',
+                            style: TextStyle(
+                              fontSize: w * 0.032,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: h * 0.005),
+                          Text(
+                            '₺${CurrencyFormatter.format(widget.monthlyAdvances)}',
+                            style: TextStyle(
+                              fontSize: w * 0.038,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ],
             ],
           ),
         ],

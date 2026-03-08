@@ -123,7 +123,7 @@ class WorkerTotalCard extends StatelessWidget {
               ),
             ),
             child: Text(
-              '₺${CurrencyFormatter.format(totalPayments)}',
+              '₺${CurrencyFormatter.format(totalPayments + (totalAdvances ?? 0))}',
               style: TextStyle(
                 fontSize: w * 0.10,
                 fontWeight: FontWeight.w900,
@@ -136,7 +136,7 @@ class WorkerTotalCard extends StatelessWidget {
           ),
           SizedBox(height: h * 0.015),
           Text(
-            'Şimdiye kadar aldığınız toplam ödeme',
+            'Ödemeler + Avanslar',
             style: TextStyle(
               fontSize: w * 0.035,
               fontWeight: FontWeight.w500,
@@ -144,14 +144,47 @@ class WorkerTotalCard extends StatelessWidget {
             ),
             textAlign: TextAlign.center,
           ),
-          // Avans bilgisi
+          // Detay bilgileri
+          SizedBox(height: h * 0.02),
+          Container(
+            height: 1,
+            color: theme.colorScheme.outline.withValues(alpha: 0.1),
+          ),
+          SizedBox(height: h * 0.015),
+          // Ödemeler
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.payments_outlined,
+                    color: Colors.green,
+                    size: w * 0.045,
+                  ),
+                  SizedBox(width: w * 0.02),
+                  Text(
+                    'Toplam Ödemeler',
+                    style: TextStyle(
+                      fontSize: w * 0.038,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '₺${CurrencyFormatter.format(totalPayments)}',
+                style: TextStyle(
+                  fontSize: w * 0.042,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.green,
+                ),
+              ),
+            ],
+          ),
           if (totalAdvances != null && totalAdvances! > 0) ...[
-            SizedBox(height: h * 0.02),
-            Container(
-              height: 1,
-              color: theme.colorScheme.outline.withValues(alpha: 0.1),
-            ),
-            SizedBox(height: h * 0.015),
+            SizedBox(height: h * 0.01),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -164,7 +197,7 @@ class WorkerTotalCard extends StatelessWidget {
                     ),
                     SizedBox(width: w * 0.02),
                     Text(
-                      'Toplam Avans',
+                      'Toplam Avanslar',
                       style: TextStyle(
                         fontSize: w * 0.038,
                         fontWeight: FontWeight.w600,
@@ -185,38 +218,38 @@ class WorkerTotalCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (pendingAdvances != null && pendingAdvances! > 0) ...[
-              SizedBox(height: h * 0.01),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.schedule, color: Colors.red, size: w * 0.045),
-                      SizedBox(width: w * 0.02),
-                      Text(
-                        'Bekleyen Avans',
-                        style: TextStyle(
-                          fontSize: w * 0.038,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.7,
-                          ),
+          ],
+          if (pendingAdvances != null && pendingAdvances! > 0) ...[
+            SizedBox(height: h * 0.01),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.schedule, color: Colors.red, size: w * 0.045),
+                    SizedBox(width: w * 0.02),
+                    Text(
+                      'Bekleyen Avans',
+                      style: TextStyle(
+                        fontSize: w * 0.038,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
                         ),
                       ),
-                    ],
-                  ),
-                  Text(
-                    '₺${CurrencyFormatter.format(pendingAdvances!)}',
-                    style: TextStyle(
-                      fontSize: w * 0.042,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.red,
                     ),
+                  ],
+                ),
+                Text(
+                  '₺${CurrencyFormatter.format(pendingAdvances!)}',
+                  style: TextStyle(
+                    fontSize: w * 0.042,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.red,
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ],
         ],
       ),

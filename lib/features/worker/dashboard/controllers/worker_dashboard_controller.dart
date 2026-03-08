@@ -94,6 +94,11 @@ class WorkerDashboardController {
     // Avans bilgileri
     final totalAdvances = await _getTotalAdvances(workerId);
     final pendingAdvances = await _getPendingAdvances(workerId);
+    final monthlyAdvances = await _getMonthlyAdvances(
+      workerId,
+      monthStart,
+      monthEnd,
+    );
 
     // Bekleyen talepler
     final pendingCount = await _getPendingRequestsCount(workerId);
@@ -130,6 +135,7 @@ class WorkerDashboardController {
       totalPayments: totalPayments,
       totalAdvances: totalAdvances,
       pendingAdvances: pendingAdvances,
+      monthlyAdvances: monthlyAdvances,
       pendingCount: pendingCount,
       unreadNotifications: unreadNotifications,
       weeklyDays: weeklyDays,
@@ -195,6 +201,37 @@ class WorkerDashboardController {
       return (result as num?)?.toDouble() ?? 0.0;
     } catch (e) {
       debugPrint('❌ Bekleyen avans hatası: $e');
+      return 0.0;
+    }
+  }
+
+  // Aylık avans
+  Future<double> _getMonthlyAdvances(
+    int workerId,
+    DateTime monthStart,
+    DateTime monthEnd,
+  ) async {
+    try {
+      final startStr =
+          '${monthStart.year}-${monthStart.month.toString().padLeft(2, '0')}-${monthStart.day.toString().padLeft(2, '0')}';
+      final endStr =
+          '${monthEnd.year}-${monthEnd.month.toString().padLeft(2, '0')}-${monthEnd.day.toString().padLeft(2, '0')}';
+
+      final response = await _supabase
+          .from('advances')
+          .select('amount')
+          .eq('worker_id', workerId)
+          .gte('advance_date', startStr)
+          .lte('advance_date', endStr);
+
+      double total = 0.0;
+      for (final record in response) {
+        total += (record['amount'] as num).toDouble();
+      }
+
+      return total;
+    } catch (e) {
+      debugPrint('❌ Aylık avans hatası: $e');
       return 0.0;
     }
   }
@@ -481,6 +518,7 @@ class DashboardData {
   final double totalPayments;
   final double totalAdvances;
   final double pendingAdvances;
+  final double monthlyAdvances;
   final int pendingCount;
   final int unreadNotifications;
   final int weeklyDays;
@@ -499,6 +537,7 @@ class DashboardData {
     required this.totalPayments,
     this.totalAdvances = 0.0,
     this.pendingAdvances = 0.0,
+    this.monthlyAdvances = 0.0,
     required this.pendingCount,
     required this.unreadNotifications,
     required this.weeklyDays,
