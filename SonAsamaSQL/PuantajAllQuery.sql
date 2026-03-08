@@ -247,6 +247,9 @@ CREATE TABLE notifications (
     'payment_received',
     'payment_updated',
     'payment_deleted',
+    'advance_created',
+    'advance_updated',
+    'advance_deleted',
     'general'
   )),
   title TEXT NOT NULL,
@@ -2864,3 +2867,22 @@ CREATE TRIGGER trigger_fcm_notification
 
 COMMENT ON TRIGGER trigger_fcm_notification ON notifications IS 
 'Notification eklendiğinde otomatik FCM push gönderir';
+
+-- ============================================
+-- SECTION 10: ADVANCE NOTIFICATION TYPES
+-- ============================================
+-- 📌 AÇIKLAMA: Avans bildirim tiplerini ekler
+-- Migration: 014_add_advance_notification_types.sql
+
+-- ============================================
+-- 10.1 UPDATE NOTIFICATION TYPE CONSTRAINT
+-- ============================================
+-- 🔔 Avans bildirim tiplerini constraint'e ekler
+
+-- NOT: Bu migration sadece yeni veritabanları için gerekli
+-- Mevcut veritabanında constraint'i güncellemek için:
+-- ALTER TABLE notifications DROP CONSTRAINT notifications_notification_type_check;
+-- Sonra yukarıdaki CREATE TABLE notifications'daki constraint otomatik uygulanır
+
+COMMENT ON COLUMN notifications.notification_type IS 
+'Bildirim tipleri: attendance_* (devam), payment_* (ödeme), advance_* (avans), general (genel)';
