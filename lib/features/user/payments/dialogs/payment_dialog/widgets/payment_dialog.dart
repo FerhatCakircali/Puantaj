@@ -237,6 +237,9 @@ class _PaymentDialogState extends State<PaymentDialog> {
       (sum, adv) => sum + adv['amount'],
     );
 
+    debugPrint('💰 Toplam düşülen avans: $totalAdvanceDeducted');
+    debugPrint('💰 Kalan ödeme tutarı: $amount');
+
     setState(() => _isLoading = true);
 
     try {

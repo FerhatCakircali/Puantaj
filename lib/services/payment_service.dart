@@ -30,7 +30,7 @@ class PaymentService {
   Future<int?> addPayment(Payment payment) async {
     try {
       debugPrint(
-        '💰 Yeni ödeme ekleniyor: Tarih=${payment.paymentDate}, Tutar=${payment.amount}',
+        '💰 Yeni ödeme ekleniyor: Tarih=${payment.paymentDate}, Tutar=${payment.amount}, Avans Düşüldü=${payment.advanceDeducted}',
       );
 
       // Ödeme kaydını ekle
@@ -96,8 +96,17 @@ class PaymentService {
       if (userId == null) return;
 
       // Bildirim mesajı oluştur
-      final message =
-          '${payment.fullDays} Tam Gün, ${payment.halfDays} Yarım Gün - Toplam ₺${_formatAmount(payment.amount)} ödendi';
+      String message =
+          '${payment.fullDays} Tam Gün, ${payment.halfDays} Yarım Gün';
+
+      if (payment.advanceDeducted > 0) {
+        // Avans düşüldüyse, hem ödeme hem avans bilgisini göster
+        message +=
+            ' - ₺${_formatAmount(payment.amount)} ödendi, ₺${_formatAmount(payment.advanceDeducted)} avans düşüldü';
+      } else {
+        // Sadece ödeme varsa
+        message += ' - Toplam ₺${_formatAmount(payment.amount)} ödendi';
+      }
 
       debugPrint('📢 Ödeme bildirimi gönderiliyor: $message');
 
