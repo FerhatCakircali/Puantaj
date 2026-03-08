@@ -72,15 +72,18 @@ class _WorkerAttendanceScreenState extends State<WorkerAttendanceScreen>
               alpha: 0.6,
             ),
             labelStyle: TextStyle(
-              fontSize: w * 0.038,
+              fontSize: w * 0.04,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.2,
             ),
             unselectedLabelStyle: TextStyle(
-              fontSize: w * 0.038,
+              fontSize: w * 0.035,
               fontWeight: FontWeight.w600,
               letterSpacing: -0.2,
             ),
+            isScrollable: true,
+            tabAlignment: TabAlignment.center,
+            labelPadding: EdgeInsets.symmetric(horizontal: w * 0.04),
             tabs: const [
               Tab(text: 'Yevmiye Geçmişi'),
               Tab(text: 'Ödeme Geçmişi'),
